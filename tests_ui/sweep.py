@@ -28,6 +28,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 FIX = HERE / "fixtures"
 LETTERS = ["letterA.docx", "with_header.docx", "northwind.docx", "acme_tagged.docx", "oldtemplate.docx", "letterB.docx"]
+TAGGED = ["broken_tagged.docx", "tagged_missing_field.docx"]   # loaded through "Check a tagged template"
 DATA = ["emps.csv", "emps.xlsx"]
 BAD_LETTERS = ["bad_not_a_docx.docx", "bad_no_body.docx"]
 BAD_DATA = ["bad_empty.csv", "bad_header_only.csv", "bad.xlsx"]
@@ -170,6 +171,45 @@ class Sweep:
                 await self.settle(200)
             await self.close_overlays()
 
+    async def check_tagged(self, name):
+        self.doing = f"checking tagged template {name}"
+        await self.pg.set_input_files("#inCheck", str(FIX / name))
+        await self.settle(2500)
+        if name.startswith("broken") and not await self.pg.locator("#checks li.ck.error").count():
+            self.fail(f"{name}: the check found no problems in a template that has some")
+        locs = self.pg.locator("#checks .loc")
+        for k in range(min(3, await locs.count())):
+            if await locs.nth(k).is_visible():
+                await locs.nth(k).click()
+                await self.settle(200)
+        await self.click_all("#panel-check", limit=25)
+
+    async def para_condition(self):
+        """Click a paragraph, build a condition with the first value from the data, apply it."""
+        self.doing = "adding a condition to a paragraph"
+        await self.view("source")
+        paras = self.pg.locator("#paper p.lp.body")
+        if await paras.count() < 4:
+            return
+        await paras.nth(3).click(position={"x": 4, "y": 4})
+        await self.settle(300)
+        if not await self.pg.locator("#cbf-0").count():
+            return
+        await self.pg.locator("#cbf-0").fill("dept")
+        await self.pg.locator("#cbf-0").dispatch_event("change")
+        await self.settle(300)
+        pick = self.pg.locator("#selTools .cb-pick")
+        if await pick.count():
+            await pick.first.click()
+        else:
+            await self.pg.locator("#cbv-0").fill("Finance")
+        await self.settle(400)
+        await self.click_all("#selTools .cb-foot", limit=3)
+        await self.close_overlays()
+        if await self.pg.locator("#cbApply").count():
+            await self.pg.locator("#cbApply").click()
+            await self.settle(500)
+
     async def select_text(self):
         self.doing = "selecting text in the letter"
         await self.pg.evaluate("""()=>{
@@ -208,6 +248,7 @@ class Sweep:
             await self.load_data(d)
         if len(data) > 1:
             await self.load_data(data[0], extra=True)
+        await self.para_condition()
         for t in TABS:
             await self.tab(t)
             await self.click_all(f"#panel-{t}", limit=25 if self.quick else 60)
@@ -256,6 +297,8 @@ async def main():
                 await sw.click_all(f"#panel-{t}", limit=20)
             for letter in letters:
                 await sw.letter_round(letter, data)
+            for name in TAGGED:
+                await sw.check_tagged(name)
             # broken files: each must give a message, not a crash
             for bad in BAD_LETTERS:
                 await sw.load_letter(bad)

@@ -125,8 +125,22 @@ def _friendly(exc):
             return f"“{m.group(1)}” is missing for this employee (for example custom_schema.{m.group(1)}), and the tag needs a value there. Add the column, or use | default(…)."
         return f"A value is missing for this employee: {text}"
     if isinstance(exc, TemplateSyntaxError):
-        if "expected token 'end of statement block'" in text:
-            return f"A tag has a typing mistake: {text}"
+        m = re.search(r"No filter named '([^']+)'", text)
+        if m:
+            return f"“| {m.group(1)}” isn't a filter Jinja knows. Check the spelling (for example | float, | int, | indian_comma, | lower)."
+        m = re.search(r"Encountered unknown tag '(\w+)'", text)
+        if m and m.group(1) in ("endif", "else", "elif", "endfor"):
+            return f"There is a {{% {m.group(1)} %}} without the {{% if %}} (or {{% for %}}) it belongs to above it."
+        if m:
+            return f"“{{% {m.group(1)} %}}” isn't a Jinja tag. Check the spelling (if, elif, else, endif, for, endfor, set)."
+        if "Unexpected end of template" in text:
+            m = re.search(r"innermost block that needs to be closed is '(\w+)'", text)
+            return f"An {{% {m.group(1) if m else 'if'} %}} is never closed. Add {{% end{m.group(1) if m else 'if'} %}} where it should stop."
+        if "got '='" in text:
+            return "Use == to compare inside a condition, e.g. {% if band == \"A\" %}. A single = only works in {% set %}."
+        if "expected token 'end of statement block'" in text or "expected token 'end of print statement'" in text:
+            got = re.search(r"got '([^']+)'", text)
+            return f"A tag has a typing mistake near “{got.group(1)}”: a missing quote, bracket or | , or two words without and / or between them." if got else f"A tag has a typing mistake: {text}"
         if "Unexpected end of template" in text or "endif" in text and "Encountered unknown tag" in text:
             return f"An if or for block isn't closed properly: {text}"
         return f"A tag has a typing mistake: {text}"
@@ -178,3 +192,140 @@ def docx_text(docx_bytes: bytes) -> dict:
         headers += [p.text for p in section.header.paragraphs]
         footers += [p.text for p in section.footer.paragraphs]
     return {"body": body, "tables": tables, "headers": headers, "footers": footers}
+
+
+# ---------------------------------------------------------------- validate
+
+TAG_RE = re.compile(r"\{\{.*?\}\}|\{%.*?%\}")
+FOOTNOTES_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"
+ENDNOTES_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml"
+MAX_EMPLOYEES = 5000
+
+
+def _open(template_bytes):
+    try:
+        tpl = DocxTemplate(io.BytesIO(template_bytes))
+        tpl.init_docx()
+        return tpl
+    except Exception as exc:  # noqa: BLE001 - any failure here means "not a usable .docx"
+        raise RenderError("That file isn't a .docx Word can open.", kind="file") from exc
+
+
+def template_parts(tpl):
+    """[(path, label, xml)] for the body, headers, footers and notes, the way docxtpl fills them.
+
+    The xml has one paragraph per line (as in docxtpl's render), so a Jinja line number
+    points at a paragraph: line 1 is what comes before the first paragraph, line 2 the first one.
+    """
+    raw = [("word/document.xml", "Body", tpl.patch_xml(tpl.get_xml()))]
+    for uri, label in ((tpl.HEADER_URI, "Header"), (tpl.FOOTER_URI, "Footer")):
+        for _, part in tpl.get_headers_footers(uri):
+            raw.append((str(part.partname).lstrip("/"), label, tpl.patch_xml(tpl.get_part_xml(part))))
+    for part in tpl.docx.part.package.parts:
+        if part.content_type in (FOOTNOTES_TYPE, ENDNOTES_TYPE):
+            blob = part.blob.decode("utf-8") if isinstance(part.blob, bytes) else part.blob
+            label = "Footnotes" if part.content_type == FOOTNOTES_TYPE else "Endnotes"
+            raw.append((str(part.partname).lstrip("/"), label, tpl.patch_xml(blob)))
+    return [(path, label, re.sub(r"<w:p([ >])", r"\n<w:p\1", xml)) for path, label, xml in raw]
+
+
+def _line_info(xml, lineno, message=""):
+    """Where a Jinja line number lands: paragraph index in the part, its text, the tag on it."""
+    lines = xml.splitlines()
+    if not lineno or lineno < 1 or lineno > len(lines):
+        return {}
+    text = re.sub(r"<[^>]+>", "", lines[lineno - 1])
+    text = re.sub(r"\s+", " ", text).strip()
+    tags = TAG_RE.findall(text)
+    # the tag the message is about: the one holding a word the message quotes ('iff', '=', 'old')
+    words = [w for w in re.findall(r"'([^']+)'", message or "") if w not in ("end of statement block", "end of print statement")]
+    tag = next((t for t in tags if any(w in t for w in words)), tags[0] if tags else "")
+    return {"line": lineno, "para_index": lineno - 2 if lineno >= 2 else None,
+            "line_text": text[:300], "tag": tag[:200]}
+
+
+def _template_lineno(exc):
+    """The template line a runtime error happened on (Jinja rewrites tracebacks to point at it)."""
+    tb, line = exc.__traceback__, None
+    while tb is not None:
+        if tb.tb_frame.f_code.co_filename == "<template>":
+            line = tb.tb_lineno
+        tb = tb.tb_next
+    return line
+
+
+def _undefined_name(text):
+    m = re.search(r"'([^']+)' is undefined", text) or re.search(r"has no attribute '([^']+)'", text)
+    return m.group(1) if m else ""
+
+
+def validate_docx(template_bytes: bytes, employees=None, autoescape: bool | None = None) -> dict:
+    """Check a tagged .docx with real Jinja, without making any file.
+
+    1. Syntax: every part is parsed the way docxtpl parses it; a typing mistake comes back
+       with the paragraph it is in.
+    2. Employees (optional): the letter is filled for each employee's values; any that stop
+       with an error, or that would give a file Word can't open, are listed.
+    """
+    from jinja2 import meta
+    from lxml import etree
+
+    if autoescape is None:
+        autoescape = settings.LETTER_STUDIO["AUTOESCAPE"]
+    tpl = _open(template_bytes)
+    env = make_env(autoescape)
+    parts = template_parts(tpl)
+
+    syntax, compiled, variables = [], [], set()
+    for path, label, xml in parts:
+        try:
+            ast = env.parse(xml)
+            template = env.from_string(xml)  # also catches unknown filters such as | floot
+        except TemplateSyntaxError as exc:
+            where = _line_info(xml, exc.lineno, exc.message or "")
+            if "Unexpected end of template" in (exc.message or ""):
+                # Jinja only notices at the very end; the open block is somewhere above
+                where = {"line": None, "para_index": None, "line_text": "", "tag": ""}
+            friendly = _friendly(exc)
+            for t in TAG_RE.findall(where.get("line_text") or ""):
+                inner = re.sub(r"\\.", "", t)
+                if inner.count('"') % 2 or inner.count("'") % 2:
+                    friendly, where["tag"] = f"A quote isn't closed in {t[:80]}. Every \" or ' needs its pair.", t[:200]
+                    break
+            syntax.append({"part": path, "part_label": label, "message": exc.message or str(exc),
+                           "friendly": friendly, **where})
+            continue
+        variables |= meta.find_undeclared_variables(ast)
+        compiled.append((path, label, xml, template))
+
+    result = {"ok": not syntax, "syntax": syntax, "variables": sorted(variables - {"currentDatetime"}),
+              "parts": [{"part": p, "label": lbl} for p, lbl, _ in parts], "employees": None}
+    if syntax or not employees:
+        return result
+
+    tested, failed = 0, []
+    for k, emp in enumerate(employees[:MAX_EMPLOYEES]):
+        label = str(emp.get("label") or f"Employee {k + 1}")
+        values = emp.get("values") if isinstance(emp.get("values"), dict) else {}
+        tested += 1
+        for path, part_label, xml, template in compiled:
+            try:
+                out = template.render(values)
+            except Exception as exc:  # noqa: BLE001 - data can break a template in many ways
+                text = str(exc)
+                failed.append({"index": k, "label": label, "part": path, "part_label": part_label,
+                               "kind": type(exc).__name__, "message": text[:300], "friendly": _friendly(exc),
+                               "name": _undefined_name(text), **_line_info(xml, _template_lineno(exc), text)})
+                break
+            try:
+                etree.fromstring(out.encode("utf-8"))
+            except etree.XMLSyntaxError as exc:
+                failed.append({"index": k, "label": label, "part": path, "part_label": part_label,
+                               "kind": "BrokenFile", "message": str(exc)[:300],
+                               "friendly": "The filled letter would be a file Word can't open. This usually means a value has &, < or > and the tags print it unescaped, or a condition cuts a paragraph or table in half.",
+                               "name": ""})
+                break
+    result["employees"] = {"tested": tested, "failed": failed, "limit": MAX_EMPLOYEES,
+                           "skipped": max(0, len(employees) - MAX_EMPLOYEES)}
+    result["ok"] = not failed
+    return result

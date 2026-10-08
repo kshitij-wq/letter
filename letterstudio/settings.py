@@ -1,5 +1,5 @@
 """Settings for Letter Studio: the Letter Tagger front end plus a Django back end
-that fills templates with real Jinja (docxtpl) and converts them to PDF with LibreOffice."""
+that checks templates with real Jinja (docxtpl), the engine CompUp fills letters with."""
 import os
 from pathlib import Path
 
@@ -29,7 +29,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# The PDF preview is shown in a frame on the same page.
 X_FRAME_OPTIONS = "SAMEORIGIN"
 
 ROOT_URLCONF = "letterstudio.urls"
@@ -59,6 +58,10 @@ USE_I18N = False
 USE_TZ = True
 
 STATIC_URL = "static/"
+# Locally the page's libraries are served straight from the app; collectstatic is only for a server.
+WHITENOISE_USE_FINDERS = True
+import warnings  # noqa: E402
+warnings.filterwarnings("ignore", message="No directory at")
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -68,13 +71,8 @@ MAX_UPLOAD_MB = int(os.environ.get("LS_MAX_UPLOAD_MB", "25"))
 DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_MB * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_MB * 1024 * 1024
 
-# Rendering and PDF conversion
+# Checking and filling templates
 LETTER_STUDIO = {
-    # Path to soffice / libreoffice. Leave empty to search the usual places.
-    "SOFFICE_PATH": os.environ.get("SOFFICE_PATH", ""),
-    # How many LibreOffice conversions may run at once.
-    "PDF_PARALLEL": int(os.environ.get("LS_PDF_PARALLEL", "2")),
-    "PDF_TIMEOUT": int(os.environ.get("LS_PDF_TIMEOUT", "120")),
     # Escape &, < and > in employee data (recommended; see guide 11.3).
     "AUTOESCAPE": env_bool("LS_AUTOESCAPE", True),
 }

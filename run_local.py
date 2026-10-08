@@ -2,7 +2,7 @@
 
 In PyCharm: right-click this file → Run 'run_local'. Or from a terminal: python run_local.py
 
-It checks the Python packages and LibreOffice, starts the server on http://127.0.0.1:8000
+It checks the Python packages, starts the server on http://127.0.0.1:8000
 and opens it in your browser. Stop it with the red square in PyCharm (or Ctrl+C).
 """
 import importlib.util
@@ -30,14 +30,6 @@ def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "letterstudio.settings")
     import django
     django.setup()
-    from renderer.pdf import find_soffice, libreoffice_version
-
-    soffice = find_soffice()
-    if soffice:
-        print(f"LibreOffice: {libreoffice_version() or soffice}")
-    else:
-        print("LibreOffice not found: the page works, but 'Make the PDF' is off.")
-        print("Install it from https://www.libreoffice.org/download/ or set SOFFICE_PATH to soffice.exe.")
 
     url = f"http://127.0.0.1:{PORT}/"
     print(f"\nLetter Studio is starting at {url}\n")

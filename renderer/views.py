@@ -1,18 +1,21 @@
-"""HTTP endpoints. The page at / is the Letter Tagger; it calls these to fill and convert letters."""
+"""HTTP endpoints. The page at / is the Letter Tagger; it calls /api/validate to check templates with real Jinja."""
 from __future__ import annotations
 
 import json
 import logging
+import platform
 import re
 from pathlib import Path
 
+import django
+import docxtpl
+import jinja2
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.templatetags.static import static
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from .engine import RenderError, docx_text, render_docx
-from .pdf import PdfError, docx_to_pdf, installed_fonts, pdf_page_count, system_info
+from .engine import RenderError, docx_text, render_docx, validate_docx
 
 log = logging.getLogger("renderer")
 FRONTEND = Path(__file__).resolve().parent / "frontend" / "index.html"
@@ -27,16 +30,14 @@ def index(request):
 
 
 def health(request):
-    info = system_info()
     return JsonResponse({
         "status": "ok",
         "app": "Letter Studio",
+        "validate": True,
         "render": True,
-        "pdf": bool(info["soffice"]),
-        "libreoffice": info["libreoffice"],
-        "fonts": installed_fonts(),
         "autoescape": settings.LETTER_STUDIO["AUTOESCAPE"],
-        "system": info,
+        "versions": {"python": platform.python_version(), "django": django.get_version(),
+                     "docxtpl": getattr(docxtpl, "__version__", ""), "jinja2": jinja2.__version__},
     })
 
 
@@ -45,38 +46,50 @@ def _safe_name(name, ext):
     return f"{stem[:80]}.{ext}"
 
 
+def _json_errors(view):
+    def wrapped(request):
+        try:
+            return view(request)
+        except Exception:  # noqa: BLE001 - always answer the page in JSON, never an HTML error page
+            log.exception("%s failed", view.__name__)
+            return JsonResponse({"error": "Something went wrong on the server. The details are in the terminal where Letter Studio is running.", "kind": "server"}, status=500)
+    wrapped.__name__ = view.__name__
+    return wrapped
+
+
+def _upload(request):
+    """The .docx from the request, or a JsonResponse saying what is wrong with it."""
+    upload = request.FILES.get("template")
+    if not upload:
+        return None, JsonResponse({"error": "Send the tagged letter as “template”."}, status=400)
+    if not upload.name.lower().endswith(".docx"):
+        return None, JsonResponse({"error": "The template has to be a .docx file."}, status=400)
+    if upload.size > settings.MAX_UPLOAD_MB * 1024 * 1024:
+        return None, JsonResponse({"error": f"The letter is larger than {settings.MAX_UPLOAD_MB} MB. Make the pictures in it smaller, or raise LS_MAX_UPLOAD_MB."}, status=413)
+    return upload, None
+
+
+@_json_errors
 def render(request):
-    try:
-        return _render(request)
-    except Exception:  # noqa: BLE001 - always answer the page in JSON, never an HTML error page
-        log.exception("render failed")
-        return JsonResponse({"error": "Something went wrong on the server while filling the letter. The details are in the terminal where Letter Studio is running.", "kind": "server"}, status=500)
+    """POST multipart: template (.docx), context (JSON), format (docx | json), name.
 
-
-def _render(request):
-    """POST multipart: template (.docx), context (JSON), format (docx | pdf | json), name.
-
-    docx/pdf return the file; json returns the filled text, for quick checks.
+    docx returns the filled file; json returns the filled text, for quick checks.
     Errors come back as JSON with a plain-language message and the tag near the problem.
     """
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
-    upload = request.FILES.get("template")
-    if not upload:
-        return JsonResponse({"error": "Send the tagged letter as “template”."}, status=400)
-    if not upload.name.lower().endswith(".docx"):
-        return JsonResponse({"error": "The template has to be a .docx file."}, status=400)
-    if upload.size > settings.MAX_UPLOAD_MB * 1024 * 1024:
-        return JsonResponse({"error": f"The letter is larger than {settings.MAX_UPLOAD_MB} MB. Make the pictures in it smaller, or raise LS_MAX_UPLOAD_MB."}, status=413)
+    upload, err = _upload(request)
+    if err:
+        return err
     try:
         context = json.loads(request.POST.get("context") or "{}")
         if not isinstance(context, dict):
             raise ValueError
     except ValueError:
         return JsonResponse({"error": "The employee values aren't valid JSON."}, status=400)
-    fmt = (request.POST.get("format") or "pdf").lower()
-    if fmt not in {"pdf", "docx", "json"}:
-        return JsonResponse({"error": "format must be pdf, docx or json."}, status=400)
+    fmt = (request.POST.get("format") or "docx").lower()
+    if fmt not in {"docx", "json"}:
+        return JsonResponse({"error": "format must be docx or json."}, status=400)
     autoescape = request.POST.get("autoescape")
     autoescape = settings.LETTER_STUDIO["AUTOESCAPE"] if autoescape is None else autoescape.lower() in {"1", "true", "yes"}
 
@@ -88,16 +101,31 @@ def _render(request):
     name = request.POST.get("name") or upload.name
     if fmt == "json":
         return JsonResponse({"ok": True, "text": docx_text(filled)})
-    if fmt == "docx":
-        resp = HttpResponse(filled, content_type=DOCX_TYPE)
-        resp["Content-Disposition"] = f'attachment; filename="{_safe_name(name, "docx")}"'
-        return resp
-    try:
-        pdf = docx_to_pdf(filled)
-    except PdfError as exc:
-        return JsonResponse({"error": str(exc), "kind": "pdf"}, status=503)
-    resp = HttpResponse(pdf, content_type="application/pdf")
-    resp["Content-Disposition"] = f'inline; filename="{_safe_name(name, "pdf")}"'
-    resp["X-Page-Count"] = str(pdf_page_count(pdf))
-    resp["Access-Control-Expose-Headers"] = "X-Page-Count"
+    resp = HttpResponse(filled, content_type=DOCX_TYPE)
+    resp["Content-Disposition"] = f'attachment; filename="{_safe_name(name, "docx")}"'
     return resp
+
+
+@_json_errors
+def validate(request):
+    """POST multipart: template (.docx) and, optionally, employees (JSON list of
+    {"label": "E1 · Asha", "values": {...}}). Checks the template with real Jinja; makes no file."""
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    upload, err = _upload(request)
+    if err:
+        return err
+    employees = None
+    if request.POST.get("employees"):
+        try:
+            employees = json.loads(request.POST["employees"])
+            if not isinstance(employees, list) or not all(isinstance(e, dict) for e in employees):
+                raise ValueError
+        except ValueError:
+            return JsonResponse({"error": "employees must be a JSON list of {label, values}."}, status=400)
+    autoescape = request.POST.get("autoescape")
+    autoescape = settings.LETTER_STUDIO["AUTOESCAPE"] if autoescape is None else autoescape.lower() in {"1", "true", "yes"}
+    try:
+        return JsonResponse(validate_docx(upload.read(), employees, autoescape=autoescape))
+    except RenderError as exc:
+        return JsonResponse(exc.as_dict(), status=422)

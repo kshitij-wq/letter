@@ -1,12 +1,10 @@
 import io
 import json
-import unittest
 
 from django.test import Client, SimpleTestCase
 from docx import Document
 
 from .engine import format_date, indian_comma, int_comma, render_docx, RenderError
-from .pdf import find_soffice
 
 
 def make_docx(paragraphs, table=None):
@@ -93,6 +91,7 @@ class ApiTests(SimpleTestCase):
     def test_health(self):
         data = self.client.get("/api/health").json()
         self.assertEqual(data["app"], "Letter Studio")
+        self.assertTrue(data["validate"])
 
     def test_render_json(self):
         tpl = make_docx(["Hello {{ first_name }}"])
@@ -110,14 +109,6 @@ class ApiTests(SimpleTestCase):
         self.assertEqual(resp.status_code, 422)
         self.assertIn("error", resp.json())
 
-    @unittest.skipUnless(find_soffice(), "LibreOffice not installed")
-    def test_render_pdf(self):
-        tpl = make_docx(["Hello {{ first_name }}"])
-        resp = self.client.post("/api/render", {"template": self._file(tpl), "context": json.dumps({"first_name": "Ravi"}), "format": "pdf"})
-        self.assertEqual(resp.status_code, 200, resp.content[:300])
-        self.assertTrue(resp.content.startswith(b"%PDF"))
-        self.assertEqual(resp["X-Page-Count"], "1")
-
     def test_bad_requests_get_plain_json_errors(self):
         tpl = make_docx(["Hi"])
         cases = [
@@ -125,7 +116,7 @@ class ApiTests(SimpleTestCase):
             ({"template": self._file(tpl, "letter.doc")}, 400),                   # not .docx
             ({"template": self._file(tpl), "context": "{not json"}, 400),         # broken JSON
             ({"template": self._file(tpl), "context": "[1, 2]"}, 400),            # JSON but not values
-            ({"template": self._file(tpl), "format": "xls"}, 400),                # unknown format
+            ({"template": self._file(tpl), "format": "pdf"}, 400),                # no PDFs any more
             ({"template": self._file(b"not a zip")}, 422),                        # not a Word file
         ]
         for data, status in cases:
@@ -177,3 +168,72 @@ class ApiTests(SimpleTestCase):
     def _file(data, name="letter.docx"):
         from django.core.files.uploadedfile import SimpleUploadedFile
         return SimpleUploadedFile(name, data, content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
+class ValidateTests(SimpleTestCase):
+    def post(self, paragraphs, employees=None, **extra):
+        data = {"template": ApiTests._file(make_docx(paragraphs))}
+        if employees is not None:
+            data["employees"] = json.dumps(employees)
+        data.update(extra)
+        return self.client.post("/api/validate", data)
+
+    def test_clean_template(self):
+        resp = self.post(["Dear {{ first_name }},", "{% if band == \"A\" %}Top{% endif %}"])
+        data = resp.json()
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["variables"], ["band", "first_name"])
+
+    def test_syntax_errors_point_at_the_paragraph(self):
+        cases = {
+            "{{ ctc | floot }}": "floot",
+            "{% if band = 1 %}x{% endif %}": "==",
+            '{% if band == "A %}x{% endif %}': "quote",
+            "{% endif %}": "without",
+            "{% iff x %}": "isn't a Jinja tag",
+        }
+        for tag, words in cases.items():
+            data = self.post(["Hello", "Second line", tag]).json()
+            self.assertFalse(data["ok"], tag)
+            err = data["syntax"][0]
+            self.assertIn(words, err["friendly"], tag)
+            self.assertEqual(err["para_index"], 2, tag)
+            self.assertEqual(err["part_label"], "Body")
+
+    def test_unclosed_if_has_no_misleading_place(self):
+        err = self.post(["{% if x %}", "never closed"]).json()["syntax"][0]
+        self.assertIn("never closed", err["friendly"])
+        self.assertIsNone(err["para_index"])
+
+    def test_header_errors_name_the_header(self):
+        doc = Document()
+        doc.add_paragraph("Body")
+        doc.sections[0].header.paragraphs[0].text = "{{ name | floot }}"
+        buf = io.BytesIO(); doc.save(buf)
+        data = self.client.post("/api/validate", {"template": ApiTests._file(buf.getvalue())}).json()
+        self.assertEqual(data["syntax"][0]["part_label"], "Header")
+
+    def test_employees_that_break_the_letter_are_listed(self):
+        emps = [{"label": "E1", "values": {"old": "5", "dept": "HR"}},
+                {"label": "E2", "values": {"dept": "R&D"}}]
+        data = self.post(["{{ old | float }}", "Dept {{ dept }}"], emps).json()
+        self.assertEqual(data["employees"]["tested"], 2)
+        failed = data["employees"]["failed"]
+        self.assertEqual([f["label"] for f in failed], ["E2"])
+        self.assertEqual(failed[0]["name"], "old")
+        self.assertEqual(failed[0]["para_index"], 0)
+
+    def test_unescaped_ampersand_is_a_broken_file(self):
+        data = self.post(["Dept {{ dept }}"], [{"label": "E1", "values": {"dept": "R&D"}}], autoescape="0").json()
+        self.assertEqual(data["employees"]["failed"][0]["kind"], "BrokenFile")
+        data = self.post(["Dept {{ dept }}"], [{"label": "E1", "values": {"dept": "R&D"}}], autoescape="1").json()
+        self.assertTrue(data["ok"])
+
+    def test_bad_input(self):
+        self.assertEqual(self.client.post("/api/validate", {}).status_code, 400)
+        bad = self.client.post("/api/validate", {"template": ApiTests._file(make_docx(["Hi"])), "employees": "{nope"})
+        self.assertEqual(bad.status_code, 400)
+        resp = self.client.post("/api/validate", {"template": ApiTests._file(b"not a zip")})
+        self.assertEqual(resp.status_code, 422)
+        self.assertEqual(self.client.get("/api/validate").status_code, 405)

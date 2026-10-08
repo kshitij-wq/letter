@@ -14,3 +14,6 @@ private/
 *.local.docx
 *.local.xlsx
 *.local.csv
+
+# screenshots from local test runs
+/*.png
