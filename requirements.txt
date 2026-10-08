@@ -1,0 +1,5 @@
+Django>=4.2,<5.3  # 4.2 for Python 3.9 (macOS built-in), 5.2 for 3.10+
+docxtpl==0.20.2
+python-docx>=1.1
+Jinja2>=3.1.4
+whitenoise>=6.6

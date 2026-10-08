@@ -1,0 +1,52 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    name: Back end · Python ${{ matrix.python }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.12"]   # 3.9 is the Mac's built-in Python (Django 4.2); 3.12 gets Django 5.2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: LibreOffice and look-alike fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-crosextra-carlito fonts-crosextra-caladea fonts-liberation2
+      - run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: python -m pyflakes renderer letterstudio tools tests_ui run_local.py manage.py
+      - name: Page is built from frontend_src
+        run: |
+          python tools/build_frontend.py
+          git diff --exit-code renderer/frontend/index.html || (echo "Run python tools/build_frontend.py and commit renderer/frontend/index.html" && exit 1)
+      - run: python manage.py check
+      - name: Tests (the PDF test needs LibreOffice)
+        run: python manage.py test renderer -v 2
+
+  page:
+    name: Page · click every button
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: LibreOffice and look-alike fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-crosextra-carlito fonts-crosextra-caladea fonts-liberation2
+      - run: pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - name: Sweep
+        run: python tests_ui/sweep.py

@@ -1,0 +1,5 @@
+emp_code,first_name,last_name,basic_mo,basic,hra_mo,hra,sa_mo,special_allowance,gratuity_mo,gratuity,ctc_mo,ctc,promotion,dept,name,effective_date,bonus,fbp_mo
+E1,Asha,Menon,45000,540000,22500,270000,25000,300000,2167,26000,95000,1140000,yes,Finance,Asha Menon,01-04-2026,5000,1000
+E2,Ravi,Kumar,40000,480000,20000,240000,0,0,,,,960000,no,R&D,Ravi Kumar,2026-04-01,0,0
+E3,Meera,Iyer,38000,456000,N/A,N/A,15000,180000,1500,18000,70000,"12,00,000",Yes,Sales,Meera Iyer,01-04-2026,,500
+E4,Arjun,Das,50000,600000,25000,300000,20000,240000,2400,28800,,1180000,no,,Arjun Das,01-04-2026,100,0

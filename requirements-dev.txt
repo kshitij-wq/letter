@@ -1,0 +1,3 @@
+-r requirements.txt
+playwright>=1.44   # tests_ui/sweep.py; then: python -m playwright install chromium
+pyflakes>=3.0
