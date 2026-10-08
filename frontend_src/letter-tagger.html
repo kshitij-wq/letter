@@ -118,6 +118,8 @@ button,input,select{font:inherit;color:inherit}
 .final{font-family:var(--font-mono);font-size:12.5px;background:var(--tag-bg);color:var(--tag);border-color:var(--tag-line)}
 .final.edited{border-style:dashed}
 .row-out{display:flex;gap:6px;align-items:center}
+.row-add{font-size:12.5px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.row-add[hidden]{display:none}
 .row-note{margin:0;font-size:12px;color:var(--muted)}
 .row-note .lvl{font-weight:700}
 .lvl.hi{color:var(--ok)} .lvl.mid{color:var(--warn)} .lvl.lo{color:var(--err)}
@@ -179,7 +181,7 @@ button,input,select{font:inherit;color:inherit}
 .b{font-weight:700} .i{font-style:italic} .u{text-decoration:underline}
 .hlr{background:var(--hl);color:var(--hl-ink)}
 /* collapsed rows */
-.row:not(.open) .row-map,.row:not(.open) .row-out,.row:not(.open) .row-note,.row:not(.open) .ctx{display:none}
+.row:not(.open) .row-map,.row:not(.open) .row-add,.row:not(.open) .row-out,.row:not(.open) .row-note,.row:not(.open) .ctx{display:none}
 .row.open .row-sum{display:none}
 .row-sum{display:flex;gap:8px;align-items:center;min-width:0;cursor:pointer}
 .row-sum code{font-family:var(--font-mono);font-size:12px;color:var(--tag);background:var(--tag-bg);border:1px solid var(--tag-line);border-radius:4px;padding:1px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -2663,11 +2665,14 @@ function setupReportText(r){
 }
 
 /* ======================= tags ======================= */
-function effFormat(r){ if (r.format!=='auto') return r.format; if (isMoney(r.key)) return state.settings.money; return 'none'; }
+function keyParts(key){ return String(key||'').split('+').map(x=>x.trim()).filter(Boolean); }
+function isMultiKey(key){ return !!key && !/\{\{|\{%/.test(key) && /\+/.test(key) && !/[()'"|]/.test(key) && keyParts(key).every(x=>/^[A-Za-z_][\w.:]*$/.test(x)); }
+function effFormat(r){ if (r.format!=='auto') return r.format; if (isMultiKey(r.key)) return keyParts(r.key).every(isMoney) ? state.settings.money : 'none'; if (isMoney(r.key)) return state.settings.money; return 'none'; }
 function wrapper(){ return state.settings.spaced ? e=>`{{ ${e} }}` : e=>`{{${e}}}`; }
 function buildTag(key, fmt){
   const w=wrapper();
   if (!key) return '';
+  if (isMultiKey(key)){ const parts=keyParts(key); return parts.length===1 ? buildTag(parts[0], fmt) : parts.map(k=>buildTag(k, fmt)).join(' '); }
   if (FX[key]) return FX[key].build(w);
   if (/\{\{|\{%/.test(key)) return straighten(key);
   const g=state.settings.guard, n0=g?' | default(0, true)':'', s0=g?" | default('—', true)":'';
@@ -3017,6 +3022,7 @@ function rowHtml(r){
       <div class="combo-wrap"><input class="key mono combo-in" autocomplete="off" id="key-${hid(r.id)}" value="${esc(FX[r.key]?r.key:r.key)}" placeholder="Pick or type a tag" aria-label="Tag" spellcheck="false"></div>
       <select class="fmt" id="fmt-${hid(r.id)}" aria-label="Format">${fmtOpts}</select>
     </div>
+    <div class="row-add"${r.key?'':' hidden'}><button class="linkish add-key" type="button">+ Add another field</button><span class="hint">printed side by side, e.g. first and last name</span></div>
     <div class="row-out">
       <input class="final${edited?' edited':''}" id="fin-${hid(r.id)}" value="${esc(finalTag(r))}" aria-label="Tag written into the letter" spellcheck="false">
       <button class="btn small reset" type="button" ${edited?'':'hidden'}>Reset</button>
@@ -3053,6 +3059,7 @@ function refreshRow(id){
   const edited = r.override!=null && state.edits[r.id] && 'override' in state.edits[r.id];
   fin.classList.toggle('edited', !!edited); li.querySelector('.reset').hidden=!edited;
   li.querySelector('.row-note').innerHTML=confText(r);
+  const ra=li.querySelector('.row-add'); if (ra) ra.hidden=!r.key;
   const fmt=li.querySelector('.fmt'); fmt.options[0].textContent=`Auto (${FORMATS.find(f=>f[0]===effFormat({...r,format:'auto'}))[1]})`;
   updateStats();
 }
@@ -3534,6 +3541,7 @@ rowsEl.addEventListener('change', e=>{
 rowsEl.addEventListener('click', e=>{
   const li=e.target.closest('.row'); if (!li) return; const id=li.dataset.id;
   if (e.target.closest('.twist') || e.target.closest('.row-sum')){ setOpen(id, !li.classList.contains('open')); if (li.classList.contains('open')) li.querySelector('.key').focus(); return; }
+  if (e.target.classList.contains('add-key')){ const k=li.querySelector('.key'); k.value=k.value.replace(/[\s+]+$/,'')+' + '; k.focus(); k.setSelectionRange(k.value.length, k.value.length); comboOpen(k); return; }
   if (e.target.classList.contains('ok')){ recordUndo(); edit(id,{reviewed:true}); refreshRow(id); setOpen(id,false); renderPaper(); scheduleBuild(); nextReview(id); return; }
   if (e.target.classList.contains('find')){ if (state.view!=='source') setView('source'); const sp=[...document.querySelectorAll('#paper .ph')].find(x=>x.dataset.row===id); if (sp){ sp.scrollIntoView({block:'center', inline:'nearest', behavior:'smooth'}); document.querySelectorAll('#paper .ph').forEach(x=>x.classList.toggle('flash', x.dataset.row===id)); setTimeout(()=>document.querySelectorAll('#paper .ph.flash').forEach(x=>x.classList.remove('flash')),1600); } }
   else if (e.target.classList.contains('reset')){ recordUndo(); const ed=state.edits[id]; if (ed) delete ed.override; const r=state.rows.find(x=>x.id===id); r.override = r.csv && r.csv.override && !(ed&&'key' in ed) ? r.csv.override : null; refreshRow(id); renderPaper(); scheduleBuild(); }
@@ -3568,7 +3576,11 @@ function comboOptions(){
   for (const h of state.csvHeaders) add({v:tagKeyOf(h), l:h===tagKeyOf(h)?'':h, g:'Your CSV columns'});
   if (state.team && state.team.use!==false) for (const h of state.team.columns||[]) if (!state.csvHeaders.includes(h)) add({v:tagKeyOf(h), l:h===tagKeyOf(h)?'':h, g:'Team library · '+state.team.name});
   for (const k of state.extraKeys) if (k && !state.csvHeaders.some(h=>tagKeyOf(h)===k) && !CAT[k] && !FX[k]) add({v:k, l:'', g:'From your CSV'});
-  for (const c of [...CATALOG, ...FORMULAS]) add({v:c.key, l:c.label, g:'CompUp · '+c.g});
+  for (const c of [...CATALOG, ...FORMULAS]){
+    if (c.key==='fx:full_name') continue;
+    add({v:c.key, l:c.label, g:'CompUp · '+c.g});
+    if (c.key==='last_name') add({v:'fx:full_name', l:'Full name (first + last)', g:'CompUp · '+c.g});
+  }
   [['custom_schema.column_heading','Custom cycle column'],['employee_schema.column_heading','Performance sheet column'],['component_current_amount','Salary component, revised'],['component_old_amount','Salary component, old'],['factor_name_new_amount','Factor'],['emp_variable_plan_formula.parameter_name','Plan parameter weightage']]
     .forEach(([v,l])=>add({v, l, g:'Patterns · edit the name'}));
   return out;
@@ -3577,7 +3589,7 @@ const pop=document.createElement('div'); pop.className='combo-pop'; pop.hidden=t
 let comboIn=null, comboItems=[], comboIdx=-1, comboAll=false, comboPicking=false;
 function comboRender(){
   if (!comboIn) return;
-  const q=comboAll ? '' : comboIn.value.trim().toLowerCase();
+  const q=comboAll ? '' : comboIn.value.split('+').pop().trim().toLowerCase();
   const opts=comboOptions().filter(o=>!(comboIn.id==='lgField' && o.v.startsWith('fx:'))).filter(o=>!q || o.v.toLowerCase().includes(q) || (o.l||'').toLowerCase().includes(q)).slice(0,160);
   comboItems=opts; if (comboIdx>=opts.length) comboIdx=opts.length-1;
   let h='', g='';
@@ -3594,7 +3606,12 @@ function comboPlace(){
 }
 function comboOpen(inp){ comboIn=inp; comboIdx=-1; comboAll=true; comboRender(); }
 function comboClose(){ pop.hidden=true; comboIn=null; comboItems=[]; }
-function comboPick(i){ const o=comboItems[i]; if (!o || !comboIn) return; const inp=comboIn; comboPicking=true; inp.value=o.v; inp.dispatchEvent(new Event('input',{bubbles:true})); comboPicking=false; comboClose(); if (/column_heading|parameter_name|component_|factor_name/.test(o.v)){ inp.focus(); const m=o.v.match(/column_heading|parameter_name|component|factor_name/); if (m) inp.setSelectionRange(o.v.indexOf(m[0]), o.v.indexOf(m[0])+m[0].length); } }
+function comboPick(i){ const o=comboItems[i]; if (!o || !comboIn) return; const inp=comboIn; comboPicking=true;
+  // with several fields (a + b), the pick replaces only the last one
+  const multi = inp.classList.contains('key') && inp.value.includes('+');
+  inp.value = multi ? inp.value.replace(/[^+]*$/, ' '+o.v) : o.v;
+  inp.dispatchEvent(new Event('input',{bubbles:true})); comboPicking=false; comboClose();
+  if (/column_heading|parameter_name|component_|factor_name/.test(o.v)){ inp.focus(); const m=o.v.match(/column_heading|parameter_name|component|factor_name/); const at=inp.value.lastIndexOf(o.v); if (m && at>=0) inp.setSelectionRange(at+o.v.indexOf(m[0]), at+o.v.indexOf(m[0])+m[0].length); } }
 document.addEventListener('focusin', e=>{ if (e.target.classList && e.target.classList.contains('combo-in')) comboOpen(e.target); });
 document.addEventListener('mousedown', e=>{ if (e.target.classList && e.target.classList.contains('combo-in') && e.target===document.activeElement && pop.hidden) setTimeout(()=>comboOpen(e.target)); });
 document.addEventListener('input', e=>{ if (!comboPicking && e.target===comboIn){ comboAll=false; comboIdx=-1; comboRender(); } }, true);
