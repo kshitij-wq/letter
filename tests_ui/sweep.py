@@ -28,7 +28,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 FIX = HERE / "fixtures"
 LETTERS = ["letterA.docx", "with_header.docx", "northwind.docx", "acme_tagged.docx", "oldtemplate.docx", "letterB.docx"]
-TAGGED = ["broken_tagged.docx", "tagged_missing_field.docx"]   # loaded through "Check a tagged template"
+TAGGED = ["broken_tagged.docx", "tagged_missing_field.docx", "conditions_tagged.docx"]   # loaded through "Check a tagged template"
 DATA = ["emps.csv", "emps.xlsx"]
 BAD_LETTERS = ["bad_not_a_docx.docx", "bad_no_body.docx"]
 BAD_DATA = ["bad_empty.csv", "bad_header_only.csv", "bad.xlsx"]
@@ -98,7 +98,7 @@ class Sweep:
         if await self.pg.evaluate("()=>!!window.__ltBusy"):
             await self.settle(500)
         await self.pg.keyboard.press("Escape")
-        for sel in ["#pdfClose", "#closeCancel", "#placeCancel", "#swCancel"]:
+        for sel in ["#pdfClose", "#closeCancel", "#placeCancel", "#swCancel", "#ceCancel"]:
             loc = self.pg.locator(sel)
             if await loc.count() and await loc.first.is_visible():
                 try:
@@ -183,6 +183,33 @@ class Sweep:
                 await locs.nth(k).click()
                 await self.settle(200)
         await self.click_all("#panel-check", limit=25)
+        # employees per block and "Change condition" need the data file
+        await self.load_data("emps.csv")
+        await self.settle(1500)
+        await self.tab("logic")
+        await self.pg.evaluate("()=>document.querySelectorAll('.block.collapsed').forEach(b=>setBlockCollapsed(b,false))")
+        edit = self.pg.locator("#logicList .lg-edit")
+        if await edit.count() and await edit.first.is_visible():
+            self.doing = f"changing a condition in {name}"
+            await edit.first.click()
+            await self.settle(300)
+            await self.pg.keyboard.press("Escape")
+            pick = self.pg.locator("#selTools .cb-pick")
+            if await pick.count():
+                await pick.first.click()
+                await self.settle(300)
+            if await self.pg.locator("#ceSave").count():
+                await self.pg.locator("#ceSave").click()
+                await self.settle(800)
+        await self.tab("check")
+        await self.pg.evaluate("()=>document.querySelectorAll('.block.collapsed').forEach(b=>setBlockCollapsed(b,false))")
+        fixes = self.pg.locator("#checks .ck-fix")
+        for k in range(min(3, await fixes.count())):
+            if await fixes.nth(0).is_visible():
+                self.doing = f"one-click fix in {name}"
+                await fixes.nth(0).click()
+                await self.settle(800)
+                await self.close_overlays()
 
     async def para_condition(self):
         """Click a paragraph, build a condition with the first value from the data, apply it."""

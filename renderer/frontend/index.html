@@ -138,7 +138,9 @@ button,input,select{font:inherit;color:inherit}
 .cb-join{font-size:12px;color:var(--muted);font-weight:600}.cb-join select{font-size:12px;padding:2px 6px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--ink)}
 .cb-foot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px}.cb-foot select{font-size:12.5px;padding:3px 6px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--ink)}
 .cb-info{font-size:12.5px;display:grid;gap:3px}.cb-en{font-weight:600}.cb-tag{font-size:11.5px;color:var(--muted);word-break:break-word}.cb-bad{color:var(--err)}.cb-count{color:var(--ink)}
-.lg-en{font-size:12.5px;color:var(--ink);margin:2px 0 4px;font-weight:600}
+.lg-en{font-size:12.5px;color:var(--ink);margin:2px 0 4px;font-weight:600;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:baseline}
+.lg-count{font-weight:500;color:var(--muted)}.lg-count.none{color:var(--err);font-weight:600}.lg-count.all{color:var(--muted)}
+.lg-edit{font-size:12px}
 @media (max-width:640px){ .cb-rule{grid-template-columns:1fr 1fr} .cb-rule .combo-wrap{grid-column:1/-1} }
 .locs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
 .loc{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:5px;padding:2px 7px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
@@ -1438,7 +1440,9 @@ function renderLogic(){
     const txt = e.src==='you' ? `<input class="lg-text mono" data-lid="${e.id}" id="lgt-${e.id}" value="${esc(e.full)}" spellcheck="false" aria-label="Tag text">` : `<code class="lg-code">${esc(e.text)}</code>`;
     const kwl = e.kw==='elif'?'else if':e.kw==='endif'?'end if':e.kw==='endfor'?'end for':e.kw||'tag';
     const en = (e.kw==='if'||e.kw==='elif') ? condEnglish(e.expr) : '';
-    const say = en ? `<div class="lg-en">${e.kw==='elif'?'Else, shown when':'Shown when'} ${esc(en)}</div>` : e.kw==='else' ? '<div class="lg-en">Otherwise</div>' : '';
+    const cnt = blockCountHtml(e);
+    const edit = (e.kw==='if'||e.kw==='elif') ? `<button class="linkish lg-edit" type="button" data-editc="${esc(e.key)}">Change condition</button>` : '';
+    const say = (en || e.kw==='else' || cnt || edit) ? `<div class="lg-en">${en?`${e.kw==='elif'?'Else, shown when':'Shown when'} ${esc(en)}`:e.kw==='else'?'Otherwise':''}${cnt?` · ${cnt}`:''}${edit?` ${edit}`:''}</div>` : '';
     return `<li class="lg-item${st}" style="--d:${e.depth}" data-key="${esc(e.key)}"><div class="lg-head"><span class="lg-page">${pageLabel(e.p)}</span><span class="lg-kw kw-${esc(e.kw||'x')}">${esc(kwl)}</span><button class="linkish lg-where" type="button" data-show="${esc(e.pid)}" title="Show in letter">${esc(snippet(e.p,34))}</button>${e.src==='you'?`<button class="del" type="button" data-del="${e.id}" aria-label="Delete tag">×</button>`:''}</div>${say}${txt}${pl}</li>`;
   }).join('') : `<li class="empty">No logic tags yet. Click a paragraph in the letter to add one.</li>`;
   updateTabBadges();
@@ -2575,7 +2579,7 @@ function renderBatch(){
   box.innerHTML=`${B.stale?'<div class="ck warn"><span class="badge">Check</span><span>The template changed after this test. Run it again for the current result.</span></div>':''}
     <p class="batch-sum"><b>${B.done}</b> employee${B.done>1?'s':''} tested in ${(B.ms/1000).toFixed(1)} s${B.cancelled?' (stopped early)':''}: <span class="good">${ok} fine</span>${bad?` · <span class="meh">${bad} to look at</span>`:''}</p>
     ${server.ok?`<p class="hint">${B.realRunning?'Now filling the same employees with real Jinja…':B.realErr?`Real Jinja check didn't finish: ${esc(B.realErr)}`:B.real&&B.real.employees?(()=>{ const n=new Set(B.real.employees.failed.map(f=>f.index)).size; return n?`Real Jinja (the engine CompUp uses) can't make the letter for <b>${n}</b> employee${n>1?'s':''}; marked <span class="src">Real Jinja</span> below.`:`Real Jinja (the engine CompUp uses) filled the letter for all ${B.real.employees.tested} employees.`; })():''}</p>`:''}
-    ${groups.length?`<ul class="checks">${groups.map(g=>`<li class="ck ${g.level}"><span class="badge">${lab[g.level]}</span><span>${g.msg}${g.real?'<span class="src">Real Jinja</span>':''} <b class="cnt">· ${g.count} employee${g.count>1?'s':''}</b>${g.real?locChips(locateTags(g.tag?[g.tag]:templateTagsWith(g.name),4)):''}<details class="emps"><summary>Show who</summary>${g.emps.slice(0,60).map(i=>`<button class="chip" type="button" data-emp="${i}">${esc(empLabel(i))}</button>`).join('')}${g.count>60?` <span class="hint">and ${g.count-60} more. Download the results for the full list.</span>`:''}</details></span></li>`).join('')}</ul>`:'<p class="hint">No problems found. Still preview one PDF in CompUp before generating the cycle.</p>'}`;
+    ${groups.length?`<ul class="checks">${groups.map(g=>`<li class="ck ${g.level}"><span class="badge">${lab[g.level]}</span><span>${g.msg}${g.real?'<span class="src">Real Jinja</span>':''} <b class="cnt">· ${g.count} employee${g.count>1?'s':''}</b>${g.real && g.name && g.tag && new RegExp(`${escRe(g.name)}\\s*\\|\\s*(float|int)\\b`).test(g.tag)?` <button class="btn small ck-fix" type="button" data-bfix="${esc(g.name)}">Add | default(0)</button>`:''}${g.real?locChips(locateTags(g.tag?[g.tag]:templateTagsWith(g.name),4)):''}<details class="emps"><summary>Show who</summary>${g.emps.slice(0,60).map(i=>`<button class="chip" type="button" data-emp="${i}">${esc(empLabel(i))}</button>`).join('')}${g.count>60?` <span class="hint">and ${g.count-60} more. Download the results for the full list.</span>`:''}</details></span></li>`).join('')}</ul>`:'<p class="hint">No problems found. Still preview one PDF in CompUp before generating the cycle.</p>'}`;
   $('#btnBatchCsv').hidden=!groups.length;
 }
 function renderBatchProgress(){ const B=state.batch; const pg=$('#batchProgress'); if (!B || !B.total || B.error){ pg.hidden=true; return; } pg.hidden=!B.running; pg.querySelector('.bar-fill').style.width=(100*B.done/B.total).toFixed(1)+'%'; pg.querySelector('.bar-txt').textContent=`${B.done} of ${B.total}`; }
@@ -2678,6 +2682,89 @@ function switchHtml(sw){
     ${sw.mode==='para'?`<select id="swWhere" aria-label="Where"><option value="replace"${sw.where==='replace'?' selected':''}>Replace the selected paragraph${sw.pids.length>1?'s':''} with these versions</option><option value="after"${sw.where==='after'?' selected':''}>Add these versions after it, keep the original for everyone</option></select>`:''}
     <div class="ins-row"><button class="btn small primary" id="swApply" type="button">Insert</button><button class="btn small" id="swCancel" type="button">Cancel</button></div>
     <div class="ins-hint mono" id="swPrev">${esc(switchPreview(sw))}</div></div>`;
+}
+
+/* ======================= change an existing condition ======================= */
+function startCondEdit(key){
+  computeLogic(); const e=state.lg.find(x=>x.key===key);
+  if (!e || !(e.kw==='if' || e.kw==='elif')){ toast('Only if and else if tags have a condition to change.'); return; }
+  state.condEdit={key, kw:e.kw, tag:e.text, src:e.src, id:e.id, pid:e.pid};
+  state.cb=cbNew(e.expr); state.sel={pids:[],anchor:null,text:''}; state.closing=null; state.inlineUi=null; state.switchUi=null; state.placing=null;
+  if (state.view!=='source') setView('source');
+  renderPaperSel(); renderSelTools(); showPid(e.pid);
+  $('#selTools')?.scrollIntoView({block:'nearest', behavior:'smooth'});
+}
+function condEditHtml(ce){
+  return `<div class="ins"><div class="ins-top"><b>Change the condition</b><span class="ins-ctx">Now: <code class="mono">${esc(ce.tag.slice(0,100))}</code></span></div>
+    <div class="cb-slot">${cbHtml(state.cb)}</div>
+    <div class="ins-row"><button class="btn small primary" id="ceSave" type="button">Save the condition</button><button class="btn small" id="ceCancel" type="button">Cancel</button></div></div>`;
+}
+const COND_TAG_RX=/^(\{%-?\s*(?:p\s+)?(?:if|elif)\s+)([\s\S]*?)(\s*-?%\})$/;
+function saveCondEdit(){
+  const ce=state.condEdit; if (!ce) return;
+  const expr=cbExpr(state.cb);
+  if (!expr){ toast('Pick a field, a test and a value first.'); return; }
+  const why=tagSyntaxProblem(`{% if ${expr} %}`); if (why){ toast(why); return; }
+  if (!COND_TAG_RX.test(straighten(ce.tag))){ toast("This tag can't be changed here; edit it in the Logic tab."); return; }
+  const en=cbEnglish(state.cb); const said=en?`: now shown when ${en}`:'';
+  const swap=t=>t.replace(COND_TAG_RX, (m,a,b,c)=>a+expr+c);
+  if (ce.src==='you'){
+    const l=state.logic.find(x=>x.id===ce.id); if (!l){ state.condEdit=null; renderSelTools(); return; }
+    recordUndo();
+    if (l.place==='at') l.text=String(l.text).split(ce.tag).join(swap(straighten(ce.tag)));
+    else l.text=swap(normalizeLogicText(l.text));
+    state.condEdit=null; state.cb=null; renderSelTools(); afterLogicChange(); toast(`Changed the condition${said}.`);
+    return;
+  }
+  state.condEdit=null; state.cb=null;
+  const target=squash(ce.tag);
+  fixTags(t=>squash(t)===target ? swap(t) : t, n=>`Changed the condition${n>1?` in ${n} places (the same tag was used ${n} times)`:''}${said}.`);
+  renderSelTools();
+}
+
+/* ======================= employees per condition block ======================= */
+// Fill the letter for every employee with a marker after each if / else if / else, and count
+// who gets each marker: that is who sees the block, nesting and else-if chains included.
+let blockTimer=null, blockSeq=0;
+function dataKey(){ return [state.csv&&state.csv.name, csvRows().length, (state.csvExtra||[]).map(f=>f.name).join(','), JSON.stringify(state.settings)].join('|'); }
+function blockKeyNow(){ return state.built ? state.built.sig+'|'+dataKey() : ''; }
+function blockCountsNow(){ const b=state.blockCounts; return b && b.key===blockKeyNow() ? b : null; }
+function scheduleBlockCounts(){ clearTimeout(blockTimer); if (!csvRows().length || !state.built){ return; } if (blockCountsNow()) return; blockTimer=setTimeout(computeBlockCounts, 500); }
+async function computeBlockCounts(){
+  if (!csvRows().length || !state.built) return;
+  const key=blockKeyNow(); if (state.blockCounts && state.blockCounts.key===key) return;
+  const seq=++blockSeq;
+  let nj; try{ nj=await loadEngine(); }catch(e){ return; }
+  if (!ENV){ installPyString(); ENV=makeEnv(nj); }
+  const marks=[], parts=[];
+  for (const part of state.parts){
+    let src=prepareTemplateXml(state.built.xml[part.path], {tags:[]});
+    src=src.replace(/\{%-?\s*(if|elif|else)\b[\s\S]*?%\}/g, m=>{ const k=marks.length; marks.push({tag:m, path:part.path}); return m+''+k+''; });
+    try{ parts.push(new nj.Template(src, ENV, part.path, true)); }catch(e){ return; }
+  }
+  const ctxs=allCtx(); const seen=marks.map(()=>0); const prev=RENDER_ISSUES; RENDER_ISSUES=null; let failed=0;  // employees the letter can't be filled for are left out of the counts
+  try{
+    for (let i=0;i<ctxs.length;i++){
+      const hit=new Set(); let bad=false;
+      for (const t of parts){ let out; try{ out=t.render(ctxs[i]); }catch(e){ bad=true; break; } for (const m of out.matchAll(/(\d+)/g)) hit.add(+m[1]); }
+      if (bad){ failed++; continue; }
+      for (const k of hit) seen[k]++;
+      if (i%25===24){ await new Promise(r=>setTimeout(r,0)); if (seq!==blockSeq) return; }
+    }
+  } finally { RENDER_ISSUES=prev; }
+  if (seq!==blockSeq || key!==blockKeyNow()) return;
+  // marks → Logic list entries, matched by tag text and order
+  computeLogic(); const byKey=new Map(); const idx=new Map(), used=new Map();
+  marks.forEach((m,k)=>{ const q=squash(m.tag)+'|'+m.path; if (!idx.has(q)) idx.set(q,[]); idx.get(q).push(k); });
+  for (const e of state.lg){ if (!['if','elif','else'].includes(e.kw)) continue; const q=squash(e.text)+'|'+e.path; const n=used.get(q)||0; used.set(q,n+1); const k=(idx.get(q)||[])[n]; if (k!=null) byKey.set(e.key, seen[k]); }
+  state.blockCounts={key, total:ctxs.length-failed, failed, byKey: ctxs.length-failed>0 ? byKey : new Map()};
+  renderLogic(); renderChecks();
+}
+function blockCountHtml(e){
+  const b=blockCountsNow(); if (!b || !b.byKey.has(e.key)) return '';
+  const n=b.byKey.get(e.key), T=b.total;
+  const txt = n===0 ? 'nobody in your data' : n===T ? `all ${T} employees` : `${n} of ${T} employees`;
+  return `<span class="lg-count${n===0?' none':n===T?' all':''}" title="Employees in your data file who get this part of the letter">${txt}</span>`;
 }
 
 /* ======================= condition builder ======================= */
@@ -3038,7 +3125,8 @@ function build(){
   const out = buildModel(docs);
   const checks = runChecks(out, {replaced, merged, fixedQ, ampFixed, joined:state.an.joined, fields:state.an.fields, condErr, filled, hiddenRows});
   const xml={}; for (const part of state.parts) xml[part.path]=serialize(docs[part.path]);
-  state.built={an:out, xml, checks, replaced};
+  state.built={an:out, xml, checks, replaced, sig:hashStr(state.parts.map(p=>xml[p.path]).join('\u0001'))};
+  scheduleBlockCounts();
   if (server.ok && realCheckTarget()==='built') scheduleRealCheck();
   renderChecks();
   if (state.view==='tagged') renderPaper();
@@ -3134,10 +3222,63 @@ function tagSyntaxProblem(tag){
   for (const m of bare.matchAll(/\|\s*([A-Za-z_]\w*)/g)) if (!JINJA_FILTERS.has(m[1])) return `“| ${m[1]}” isn't a filter Jinja knows. Check the spelling (for example | float, | int, | indian_comma, | lower).`;
   return '';
 }
+/* ======================= one-click fixes for tags ======================= */
+// Rewrite tags everywhere they live: tags already in the letter (through tag ops), tags the
+// tool added (logic tags, typed overrides in rows and table cells). fn gets one straightened tag
+// and returns it changed, or unchanged.
+function fixTags(fn, msg){
+  recordUndo(); let n=0;
+  const each=text=>String(text).replace(RX_TAG, t=>{ const t0=straighten(t); const t1=fn(t0); if (t1 && t1!==t0){ n++; return t1; } return t; });
+  for (const l of state.logic){ const nt=each(l.text); if (nt!==l.text) l.text=nt; }
+  for (const r of state.rows) if (r.override!=null){ const nt=each(r.override); if (nt!==r.override) edit(r.id,{override:nt}); }
+  for (const t of state.tables) for (const row of t.rows) for (const ci of row.empties){ const c=row.cells[ci]; if (c && c.override){ const nt=each(c.override); if (nt!==c.override) tEditCell(t,row,ci,{override:nt}); } }
+  const seen=new Set();
+  for (const p of state.an.paras) for (const m of (p.model.text||'').matchAll(RX_TAG)){
+    const t0=straighten(m[0]); if (seen.has(t0)) continue; seen.add(t0);
+    const t1=fn(t0); if (t1 && t1!==t0){ state.tagOps.push({id:'o'+Math.random().toString(36).slice(2,9), type:'map', from:t0, to:t1}); n++; }
+  }
+  if (!n){ HISTORY.undo.pop(); updateUndoButtons(); toast('Nothing to change.'); return 0; }
+  analyze(); fullRefresh(); renderOldTags(); toast(typeof msg==='function'?msg(n):msg);
+  return n;
+}
+// apply fn to the code parts of a tag, leaving quoted text alone
+function onCode(tag, fn){ return tag.replace(/('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*")|([^'"]+)/g, (m,lit,code)=>lit?lit:fn(code)); }
+function fixSingleEq(tag){
+  if (!/^\{%-?\s*(?:p\s+|tr\s+|tc\s+|r\s+)?(if|elif)\b/.test(tag)) return tag;
+  return onCode(tag, c=>c.replace(/(^|[^=!<>%{])=(?!=)/g, '$1=='));
+}
+function closestFilter(name){
+  let best='', d=9; for (const f of JINJA_FILTERS){ if (f.length<3) continue; const k=lev(name.toLowerCase(), f); if (k<d){ d=k; best=f; } }
+  return d<=2 ? best : '';
+}
+function replaceFilter(tag, bad, good){ return onCode(tag, c=>c.replace(new RegExp(`(\\|\\s*)${escRe(bad)}(?![\\w])`,'g'), `$1${good}`)); }
+// "field | float" → "field | default(0) | float": a missing value then counts as 0 instead of stopping the letter
+function addDefaultTo(tag, id){ return onCode(tag, c=>c.replace(new RegExp(`(^|[^\\w.])(${escRe(id)})(\\s*\\|\\s*)(float|int)\\b`,'g'), (m,pre,name,bar,f)=>`${pre}${name} | default(0)${bar}${f}`)); }
+function floatUsesWithoutDefault(expr){ const out=new Set(); onCode(expr, c=>{ for (const m of c.matchAll(/(?<![\w.|]\s*)([A-Za-z_][\w.]*)\s*\|\s*(float|int)\b/g)) out.add(m[1]); return c; }); return [...out].filter(id=>!KEYWORDS.has(id)); }
+// the fix button for a typing mistake, if there is a safe one
+function tagSyntaxFix(tag){
+  if (!tag) return null;
+  const why=tagSyntaxProblem(tag);
+  if (/Use == to compare/.test(why)){ const nt=fixSingleEq(tag); if (nt!==tag) return {label:'Change = to ==', fn:()=>fixTags(t=>squash(t)===squash(tag)?fixSingleEq(t):t, 'Changed = to ==.')}; }
+  const m=why.match(/^“\| (\w+)” isn't a filter/);
+  if (m){ const good=closestFilter(m[1]); if (good) return {label:`Use | ${good}`, fn:()=>fixTags(t=>replaceFilter(t, m[1], good), n=>`Changed | ${m[1]} to | ${good} in ${n} tag${n>1?'s':''}.`)}; }
+  return null;
+}
+function startClosing(key){
+  const e=state.lg && state.lg.find(x=>x.key===key); if (!e){ toast('Open the Logic tab to see the open block.'); return; }
+  state.closing=key; state.sel={pids:[],anchor:null,text:''}; state.condEdit=null;
+  if (state.view!=='source') setView('source'); renderPaperSel(); renderSelTools(); showPid(e.pid);
+  $('#selTools')?.scrollIntoView({block:'nearest', behavior:'smooth'});
+}
+function closingFixFor(tag){
+  computeLogic(); const open=(state.lg||[]).filter(e=>e.status==='open');
+  const e = tag ? open.find(x=>squash(x.text)===squash(tag)) : open[0];
+  return e ? {label:'Choose where it ends', fn:()=>startClosing(e.key)} : null;
+}
 function runChecks(an, st){
   const out=[]; state.fixes=[];
   const add=(level, html, fix, tags)=>{ const old=out.find(x=>x.html===html); if (old){ if (tags) old.tags.push(...tags); return; } const item={level, html, tags:tags?[...tags]:[]}; if (fix) item.fix={label:fix.label, idx:state.fixes.push(fix.fn)-1}; out.push(item); };
-  const idTags=new Map(); const tagsOf=ids=>[...ids].flatMap(id=>[...(idTags.get(id)||[])]);
+  const idTags=new Map(); const floatIds=new Map(); const tagsOf=ids=>[...ids].flatMap(id=>[...(idTags.get(id)||[])]);
   const U=csvKeyUniverse(); const usedIds=new Set(); const numericUse=new Map(); const floatPrint=new Set(); const trimless=new Set(); const ampLit=new Set(); const fixedAmt=new Set(); const bareIf=new Set();
   const mergedRuns=Math.max(0,(st.merged||0)-(st.joined||0)); if (mergedRuns) add('fixed', `Joined ${mergedRuns} tag${mergedRuns>1?'s':''} that Word had split across runs.`);
   if (st.joined) add('fixed', `Joined ${st.joined} tag${st.joined>1?'s':''} typed over two or more lines (Enter or Shift+Enter inside the braces) into one line. The engine reads them the same way; this only makes them safe to check and preview.`);
@@ -3174,7 +3315,8 @@ function runChecks(an, st){
       if (p.kind==='header' || p.kind==='footer') add('info', `There are tags in the ${p.kind}. They are filled like the rest of the letter; check the ${p.kind} once in a CompUp PDF.`, null, [tag]);
       if (p.kind==='notes') add('warn', 'Tags in footnotes or endnotes depend on the renderer. Test before going live.', null, [tag]);
       if (tag.startsWith('{#')) continue;
-      { const why=tagSyntaxProblem(tag); if (why) add('error', `${esc(why)} <code>${esc(tag.slice(0,90))}</code>`, null, [tag]); }
+      { const why=tagSyntaxProblem(tag); if (why) add('error', `${esc(why)} <code>${esc(tag.slice(0,90))}</code>`, tagSyntaxFix(tag), [tag]); }
+      if (!tag.startsWith('{#')){ const body=tag.replace(/^\{[{%]-?|-?[}%]\}$/g,''); for (const id of floatUsesWithoutDefault(body)){ if (!floatIds.has(id)) floatIds.set(id, new Set()); floatIds.get(id).add(tag); } }
       const inner=tag.replace(/^\{[{%]-?|-?[}%]\}$/g,'').trim();
       if ((inner.match(/'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"/g)||[]).some(l=>/[&<>]/.test(l))) ampLit.add(tag);
       { const mm=inner.match(/^(?:if|elif)\s+([A-Za-z_][\w.]*)$/); if (mm){ const id=mm[1]; const isTyped=typedKey(id); if (!isTyped && (/^custom_/.test(id) || keyStatus(id,U)==='csv')) bareIf.add(id); } }
@@ -3206,7 +3348,7 @@ function runChecks(an, st){
       if (tag.startsWith('{{') && pyResultType(inner)==='float') floatPrint.add(tag);
     }
   }
-  for (const [path, sk] of Object.entries(stacks)) for (const x of sk) add('error', `<code>${esc(x.tag.slice(0,70))}</code> is never closed. Add <code>{% end${x.kw} %}</code> where it should stop.`, null, [x.tag]);
+  for (const [path, sk] of Object.entries(stacks)) for (const x of sk) add('error', `<code>${esc(x.tag.slice(0,70))}</code> is never closed. Add <code>{% end${x.kw} %}</code> where it should stop.`, closingFixFor(x.tag), [x.tag]);
   if (U.size){
     let n=0; const noSug=[];
     for (const id of usedIds){
@@ -3215,7 +3357,12 @@ function runChecks(an, st){
       const pref=sug.replace(/^custom_schema\.|^custom_/,'')===id.replace(/^custom_schema\.|^custom_/,'');
       add('warn', `<code>${esc(id)}</code> isn't in your data file. Did you mean <code>${esc(sug)}</code>?${pref?' (If it comes from another upload, ignore this.)':''}`, {label:`Use ${sug}`, fn:()=>{ renameEverywhere(id, sug); toast(`Changed ${id} to ${sug}.`); }}, tagsOf([id]));
     }
-    if (noSug.length) add('warn', `${noSug.length} tag name${noSug.length>1?'s are':' is'} not in your data file or the CompUp tag list: ${noSug.slice(0,25).map(x=>`<code>${esc(x)}</code>`).join(', ')}${noSug.length>25?` and ${noSug.length-25} more`:''}. If they come from another upload or formula sheet, load that file to check them too; otherwise check the spelling.`, null, tagsOf(noSug));
+    { const noSugF=noSug.filter(id=>!floatIds.has(id));
+    if (noSugF.length) add('warn', `${noSugF.length} tag name${noSugF.length>1?'s are':' is'} not in your data file or the CompUp tag list: ${noSugF.slice(0,25).map(x=>`<code>${esc(x)}</code>`).join(', ')}${noSugF.length>25?` and ${noSugF.length-25} more`:''}. If they come from another upload or formula sheet, load that file to check them too; otherwise check the spelling.`, null, tagsOf(noSugF)); }
+  }
+  if (U.size){
+    const miss=[...floatIds.keys()].filter(id=>!localVars.has(id.split('.')[0]) && keyStatus(id,U)==='unknown' && !didYouMean(id,U));
+    for (const id of miss.slice(0,15)) add('warn', `<code>${esc(id)}</code> is used with <code>| ${[...floatIds.get(id)].some(t=>/\|\s*int\b/.test(t))?'int':'float'}</code> but isn't in your data file. For any employee without it, Jinja stops the whole letter with “${esc(id.split('.').pop())} is undefined”. Adding <code>| default(0)</code> makes a missing value count as 0.`, {label:'Add | default(0)', fn:()=>fixTags(t=>addDefaultTo(t,id), n=>`Added | default(0) to ${id} in ${n} tag${n>1?'s':''}.`)}, [...floatIds.get(id)]);
   }
   for (const [id,op] of numericUse){ const st=keyStatus(id,U); if (typedKey(id)) continue; if (st==='csv' || /^custom_schema\./.test(id)) add('warn', `<code>${esc(id)}</code> is used with <code>${esc(op)}</code> but without <code>| float</code>. Uploaded values are text, so CompUp can stop with an error or compare them as words. Write <code>(${esc(id)} | float)</code> instead.`, null, tagsOf([id])); }
   for (const x of rowCondMismatches(an)) if (x.dup) add('warn', `Row “${esc(x.label)}” uses ${x.dup.map(d=>`<code>${esc(d)}</code>`).join(' and ')}. They look like the same field with different prefixes, so one of them is probably wrong (only one will have a value).`); else add('warn', `Row “${esc(x.label)}” is shown or hidden by <code>${esc(x.cond.join(', '))}</code>, but its cells use ${x.cells.slice(0,4).map(c=>`<code>${esc(c)}</code>`).join(', ')}. Check that the row's condition uses the same field, or the row can disappear while it has values (or show while empty).`);
@@ -3234,7 +3381,7 @@ function runChecks(an, st){
   return out;
 }
 // where a tag sits in the letter as loaded (the paragraphs shown in "Client letter")
-function squash(t){ return straighten(String(t||'')).replace(/\s+/g,'').replace(/\{([{%])-/g,'{$1').replace(/-([}%])\}/g,'$1}'); }
+function squash(t){ return straighten(String(t||'')).replace(/\\u0026/gi,'&').replace(/\\u003c/gi,'<').replace(/\\u003e/gi,'>').replace(/\s+/g,'').replace(/\{([{%])-/g,'{$1').replace(/-([}%])\}/g,'$1}'); }
 function locateTags(tags, max=8){
   const out=[]; const seen=new Set(); if (!tags || !tags.length || !state.an) return out;
   const paras=state.an.paras.filter(p=>!p.fallback && p.model.text);
@@ -3461,11 +3608,24 @@ function renderChecks(){
   const lab={error:'Fix',warn:'Check',info:'Note',fixed:'Fixed'};
   const real=[]; const c=server.ok && server.check;
   if (c){
-    for (const x of c.syntax) real.push({level:'error', real:true, html:`${esc(x.friendly)}${x.tag?` <code>${esc(x.tag)}</code>`:''}${x.part_label && x.part_label!=='Body'?` (in the ${esc(x.part_label.toLowerCase())})`:''}`, tags:x.tag?[x.tag]:[], locs:realLocs(x, c.target)});
+    for (const x of c.syntax){
+      const fx = /never closed/.test(x.friendly) ? closingFixFor('') : tagSyntaxFix(x.tag);
+      const item={level:'error', real:true, html:`${esc(x.friendly)}${x.tag?` <code>${esc(x.tag)}</code>`:''}${x.part_label && x.part_label!=='Body'?` (in the ${esc(x.part_label.toLowerCase())})`:''}`, tags:x.tag?[x.tag]:[], locs:realLocs(x, c.target)};
+      if (fx) item.fix={label:fx.label, idx:state.fixes.push(fx.fn)-1};
+      real.push(item);
+    }
   }
   // the same mistake found by both: keep the real-Jinja wording
   const realTags=new Set(real.flatMap(x=>x.tags.map(squash)));
-  const list=[...real, ...own.filter(x=>!(x.level==='error' && x.tags.length && x.tags.every(t=>typeof t==='string' && realTags.has(squash(t)))))];
+  const bc=blockCountsNow(); const blockItems=[];
+  if (bc && state.lg) for (const e of state.lg){
+    if (!(e.kw==='if'||e.kw==='elif') || !bc.byKey.has(e.key)) continue;
+    const n=bc.byKey.get(e.key), en=condEnglish(e.expr);
+    if (n===0){ const it={level:'warn', html:`Nobody in your data file gets this part of the letter: <code>${esc(e.text.slice(0,90))}</code>${en?` (shown when ${esc(en)})`:''}, 0 of ${bc.total} employees. Check the value and the field name, or ignore this if your data has no such employee yet.`, tags:[e.text], locs:[e.pid]}; it.fix={label:'Change condition', idx:state.fixes.push(()=>startCondEdit(e.key))-1}; blockItems.push(it); }
+    else if (n===bc.total && e.kw==='if' && !(e.closer && state.lg.some(x=>x.opener===e && (x.kw==='else'||x.kw==='elif')))) blockItems.push({level:'info', html:`Every employee in your data file gets this part of the letter: <code>${esc(e.text.slice(0,90))}</code>, all ${bc.total}. Fine if that's expected; otherwise the condition isn't doing anything.`, tags:[e.text], locs:[e.pid]});
+  }
+  const list=[...real, ...blockItems, ...own.filter(x=>!(x.level==='error' && x.tags.length && x.tags.every(t=>typeof t==='string' && realTags.has(squash(t)))))];
+  { const rank={error:0,warn:1,fixed:2,info:3}; list.sort((a,b)=>rank[a.level]-rank[b.level]); }
   // mark the tags with a problem in the letter
   const marks=new Map(); for (const x of list){ if (x.level!=='error' && x.level!=='warn') continue; for (const t of (x.tags||[])){ if (typeof t!=='string') continue; const k=squash(t); const was=marks.get(k); if (!was || (was.level==='warn' && x.level==='error')) marks.set(k, {level:x.level, msg:x.html.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').slice(0,220)}); } }
   const sig=[...marks.entries()].map(([k,v])=>k+v.level).join('|');
@@ -3492,6 +3652,8 @@ function renderSelTools(){
     box.innerHTML=`<span>Click the paragraph where <code class="mono">${esc(e?e.text.slice(0,60):'this block')}</code> should end. The end ${e&&e.kw==='for'?'for':'if'} goes on a new line after it.</span><button class="btn small" id="closeCancel" type="button">Cancel</button>`;
     return;
   }
+  if (state.condEdit && (s.text || s.pids.length)) state.condEdit=null;
+  if (state.condEdit){ box.hidden=false; box.innerHTML=condEditHtml(state.condEdit); cbRefreshInfo(); return; }
   if (state.switchUi){ box.hidden=false; box.innerHTML=switchHtml(state.switchUi); return; }
   if (!s.text && !s.pids.length){ box.hidden=true; box.innerHTML=''; return; }
   box.hidden=false;
@@ -4092,6 +4254,8 @@ $('#selTools').addEventListener('click', e=>{
   }
   if (e.target.id==='selClear'){ state.sel={pids:[],anchor:null,text:''}; state.cb=null; window.getSelection()?.removeAllRanges(); renderPaperSel(); renderSelTools(); }
   if (e.target.id==='cbApply'){ applyParaCondition(); return; }
+  if (e.target.id==='ceSave'){ saveCondEdit(); return; }
+  if (e.target.id==='ceCancel'){ state.condEdit=null; state.cb=null; renderSelTools(); return; }
   if (e.target.id==='selTag'){ const t=state.sel.text; state.sel={pids:[],anchor:null,text:''}; window.getSelection()?.removeAllRanges(); renderSelTools(); addManual(t); }
   if (e.target.id==='lgInsert' || e.target.id==='lgWrap'){
     const raw=$('#lgText').value; const text=normalizeLogicText(raw);
@@ -4144,7 +4308,8 @@ logicBlock.addEventListener('click', e=>{
   const del=e.target.closest('[data-del]'); if (del){ recordUndo(); state.logic=state.logic.filter(l=>l.id!==del.dataset.del); afterLogicChange('Tag deleted.'); return; }
   const pl=e.target.closest('[data-place]'); if (pl){ const k=+pl.dataset.place; state.placing={k, ...state.unplaced[k]}; state.sel={pids:[],anchor:null,text:''}; if (state.view!=='source') setView('source'); renderPaperSel(); renderSelTools(); return; }
   const ud=e.target.closest('[data-undel]'); if (ud){ recordUndo(); state.unplaced.splice(+ud.dataset.undel,1); renderLogic(); return; }
-  const cl=e.target.closest('[data-close]'); if (cl){ state.closing=cl.dataset.close; state.sel={pids:[],anchor:null,text:''}; if (state.view!=='source') setView('source'); renderPaperSel(); renderSelTools(); const op=state.lg.find(x=>x.key===state.closing); if (op) showPid(op.pid); return; }
+  const cl=e.target.closest('[data-close]'); if (cl){ startClosing(cl.dataset.close); return; }
+  const ed=e.target.closest('[data-editc]'); if (ed){ startCondEdit(ed.dataset.editc); return; }
 });
 logicBlock.addEventListener('input', e=>{
   if (!e.target.classList.contains('lg-text')) return; const l=state.logic.find(x=>x.id===e.target.dataset.lid); if (!l) return;
@@ -4180,7 +4345,8 @@ $('#pvReset').addEventListener('click', ()=>{ recordUndo(); state.previewOverrid
 $('#btnBatch').addEventListener('click', runBatch);
 $('#btnBatchStop').addEventListener('click', ()=>{ if (state.batch) state.batch.cancel=true; });
 $('#btnBatchCsv').addEventListener('click', ()=>offer((state.fileName.replace(/\.docx$/i,'')||'letter')+'-employee-test.csv', batchCsv()));
-$('#batchOut').addEventListener('click', e=>{ const l=e.target.closest('.loc'); if (l){ showPid(l.dataset.pid); return; } const b=e.target.closest('[data-emp]'); if (!b) return; state.pvIdx=+b.dataset.emp; setView('filled'); });
+$('#batchOut').addEventListener('click', e=>{ const l=e.target.closest('.loc'); if (l){ showPid(l.dataset.pid); return; }
+  const bf=e.target.closest('[data-bfix]'); if (bf){ const id=bf.dataset.bfix; if (fixTags(t=>addDefaultTo(t,id), n=>`Added | default(0) to ${id} in ${n} tag${n>1?'s':''}. Run the test again to check.`)) { if (state.batch) state.batch.stale=true; renderBatch(); } return; } const b=e.target.closest('[data-emp]'); if (!b) return; state.pvIdx=+b.dataset.emp; setView('filled'); });
 $('#checksBlock').addEventListener('click', e=>{ const b=e.target.closest('.loc'); if (b) showPid(b.dataset.pid); });
 $('#checks').addEventListener('click', e=>{ const b=e.target.closest('[data-fix]'); if (!b) return; const fn=state.fixes[+b.dataset.fix]; if (fn) fn(); });
 // tags already in the letter
