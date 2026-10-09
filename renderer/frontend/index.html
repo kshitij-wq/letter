@@ -610,6 +610,139 @@ body.resizing{cursor:col-resize;user-select:none}
 /* §tags */
 /* §logic */
 /* §check */
+/* Validate: summary strip, engine line, grouped issues */
+.stats.err{color:var(--err);font-weight:600} .stats.warn{color:var(--warn);font-weight:600} .stats.ok{color:var(--ok);font-weight:600}
+.bt-tools .bt-h{margin:0}
+.check-intro{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
+.btn.quiet{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.quiet:not(:disabled):hover{background:var(--line-2);border-color:transparent;color:var(--ink)}
+.btn.quiet .ic{width:14px;height:14px}
+#btnRecheck:disabled .ic{animation:spin .8s linear infinite}
+.check-hint{margin:0 0 12px}
+.ck-sum{display:flex;flex-wrap:wrap;gap:3px;margin:0 0 12px}
+.ck-tog{display:inline-flex;align-items:center;gap:3px;min-height:28px;padding:0 5px;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--panel);color:var(--ink);font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}
+.ck-tog .ic{width:13px;height:13px}
+.ck-tog.err .ic{color:var(--err)} .ck-tog.warn .ic{color:var(--warn)} .ck-tog.ok .ic{color:var(--ok)} .ck-tog.info .ic{color:var(--info)}
+.ck-tog:not(:disabled):hover{border-color:var(--muted)}
+.ck-tog:active:not(:disabled){transform:translateY(.5px)}
+.ck-tog[aria-pressed="false"]{background:transparent;color:var(--muted);border-style:dashed}
+.ck-tog:disabled{opacity:.5;cursor:not-allowed}
+.engine{display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--panel);font-size:var(--fs-sm)}
+.engine .ic{margin-top:1px}
+.engine>div{flex:1;min-width:0}
+.engine p{margin:0}
+.engine .sub-line{margin-top:2px;color:var(--muted)}
+.engine.ok{background:var(--ok-soft);border-color:transparent} .engine.ok>.ic{color:var(--ok)}
+.engine.bad{background:var(--err-soft);border-color:transparent} .engine.bad>.ic{color:var(--err)}
+.engine.off{background:var(--line-2);border-color:transparent} .engine.off>.ic{color:var(--info)}
+.engine.busy>.ic{color:var(--muted)}
+.engine .btn{flex:none}
+.spinner{flex:none;display:inline-block;width:14px;height:14px;margin:1px 1px 0;border:2px solid var(--muted);border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+.ck-ok{display:flex;gap:10px;align-items:flex-start;margin:0 0 12px;padding:12px;border-radius:var(--r-ctl);background:var(--ok-soft);font-size:var(--fs-sm)}
+.ck-ok>.ic{width:20px;height:20px;margin-top:1px;color:var(--ok)}
+.ck-ok b{display:block;font-size:var(--fs-md);font-weight:600}
+.ck-ok p{margin:2px 0 0;color:var(--ink)}
+.ck-ok.bad{background:var(--err-soft)} .ck-ok.bad>.ic{color:var(--err)}
+.ck-group{margin:0}
+.ck-group+.ck-group{margin-top:4px}
+.ck-gh{display:flex;align-items:center;gap:8px;margin:16px 0 2px;font-size:var(--fs-sm);font-weight:600;color:var(--ink)}
+.ck-gh .n{font-weight:600;font-size:11px;min-width:18px;line-height:18px;padding:0 6px;border-radius:999px;text-align:center;background:var(--line-2);color:var(--muted)}
+.ck-gh .n.err{background:var(--err-soft);color:var(--err)} .ck-gh .n.warn{background:var(--warn-soft);color:var(--warn)}
+.ck-list{list-style:none;margin:0;padding:0}
+li.ck.ck-i{display:grid;gap:6px;padding:10px 8px;margin:0 -8px;border-top:1px solid var(--line-2);border-radius:var(--r-ctl);transition:background-color .15s}
+.ck-list>li.ck-i:first-child{border-top:0}
+li.ck.ck-i.on{background:var(--accent-soft)}
+li.ck.ck-i.hl{animation:flash 1.2s ease}
+.ck-top{display:flex;align-items:center;gap:6px;min-height:20px}
+.ck-top .badge{margin:0;min-width:0}
+.ck-top .src{margin:0}
+.ck-msg{font-size:var(--fs-sm);line-height:1.5;overflow-wrap:anywhere}
+.ck-msg code{color:var(--tag)}
+.ck-i .locs{margin-top:0}
+.ck-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.ck-acts .ck-fix{margin:0;vertical-align:baseline}
+li.ck.ck-i.fixed .ck-msg{color:var(--muted)}
+.chip-fl,.lg-flag{flex:none;display:inline-block;width:20px;height:18px;padding-right:4px;text-align:center;font:700 11px/18px var(--font-ui);color:var(--panel);clip-path:polygon(0 0,76% 0,100% 50%,76% 100%,0 100%);background:var(--muted);vertical-align:middle}
+.chip-fl.lvl-error{background:var(--err)} .chip-fl.lvl-warn{background:var(--warn)}
+.chip-fl.gone{background:var(--line);color:var(--muted)}
+.lg-flag{margin-right:4px;vertical-align:-4px;background:var(--warn)}
+.ck-resolved{margin:16px 0 0;border-top:1px solid var(--line-2);padding-top:8px}
+.ck-resolved>summary{cursor:pointer;display:flex;align-items:center;gap:8px;min-height:28px;list-style:none;font-size:var(--fs-sm);font-weight:600;color:var(--ink)}
+.ck-resolved>summary::-webkit-details-marker{display:none}
+.ck-resolved>summary::before{content:"";flex:none;width:14px;height:14px;background:var(--muted);-webkit-mask:var(--chev) center/contain no-repeat;mask:var(--chev) center/contain no-repeat;transform:rotate(-90deg);transition:transform .15s}
+.ck-resolved[open]>summary::before{transform:none}
+.ck-resolved>summary .n{font-weight:600;font-size:11px;min-width:18px;line-height:18px;padding:0 6px;border-radius:999px;text-align:center;background:var(--ok-soft);color:var(--ok)}
+.check-sum{margin:12px 0 0;font-size:var(--fs-xs)}
+/* issue inspector */
+.iv{display:grid;gap:16px;padding:16px}
+.iv-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.iv-cat{font-weight:600;font-size:var(--fs-sm)}
+.iv-msg{margin:0;font-size:var(--fs-md);line-height:1.5;overflow-wrap:anywhere}
+.iv-msg code{font-family:var(--font-mono);font-size:12px;color:var(--tag)}
+.iv h3{margin:0 0 4px;font-size:var(--fs-sm);font-weight:600;color:var(--muted)}
+.iv p{margin:0}
+.iv .locs{margin-top:0}
+.iv-acts{display:flex;flex-wrap:wrap;gap:8px}
+.iv-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:12px;border-top:1px solid var(--line-2)}
+.iv-nav .stats{flex:1;text-align:center}
+.iv-done{display:grid;gap:8px;justify-items:start}
+.iv-done>.ic{width:24px;height:24px;color:var(--ok)}
+.iv-done b{font-size:var(--fs-lg);font-weight:600}
+/* margin flags on the paper */
+.paper{position:relative}
+.flag-layer{position:absolute;inset:0;z-index:4;pointer-events:none}
+.mflag{position:absolute;pointer-events:auto;width:20px;height:18px;margin:0;padding:0;border:0;background:none;color:var(--panel);cursor:pointer;user-select:none;-webkit-user-select:none}
+.mflag::before{content:"";position:absolute;inset:-5px -4px}
+.mflag .fl{display:block;width:100%;height:100%;padding-right:4px;text-align:center;font:700 11px/18px var(--font-ui);clip-path:polygon(0 0,76% 0,100% 50%,76% 100%,0 100%);transition:filter .15s}
+.mflag.lvl-error .fl{background:var(--err)}
+.mflag.lvl-warn .fl{background:var(--warn)}
+.mflag:hover .fl{filter:brightness(.9)}
+.mflag:active{transform:translateY(.5px)}
+.mflag:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+.mflag.on{outline:2px solid var(--ink);outline-offset:2px;border-radius:2px}
+.flag-outline{position:absolute;pointer-events:none;border:2px solid var(--muted);border-radius:3px;opacity:0;transition:opacity .15s}
+.flag-outline.show{opacity:1}
+.flag-outline.lvl-error{border-color:var(--err)} .flag-outline.lvl-warn{border-color:var(--warn)}
+@media (max-width:980px){
+  .mflag{width:16px;height:16px}
+  .mflag .fl{font-size:10px;line-height:16px;padding-right:3px}
+}
+/* test every employee */
+.bt-src{margin:10px 0;font-size:var(--fs-sm);color:var(--muted)}
+.bt-src b{color:var(--ink);font-weight:600}
+.bt-empty{border:1px dashed var(--line);border-radius:var(--r-ctl);margin-bottom:4px;padding:16px 12px}
+.bt-empty .btn{margin-top:4px}
+#batchBlock .t-actions{display:flex;flex-wrap:wrap;gap:8px}
+#batchBlock .progress{margin-top:12px}
+.bt-sum{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:16px 0 4px;font-size:var(--fs-md);font-weight:600}
+.bt-sum span{display:inline-flex;align-items:center;gap:5px}
+.bt-sum .ok .ic{color:var(--ok)} .bt-sum .warn .ic{color:var(--warn)}
+.bt-meta{margin:0 0 12px;font-size:var(--fs-xs);color:var(--muted)}
+.bt-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 6px}
+.bt-wrap{border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--panel);max-height:320px;overflow:auto}
+table.bt{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+table.bt th{position:sticky;top:0;z-index:1;padding:6px 10px;text-align:left;font-size:var(--fs-xs);font-weight:600;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
+table.bt td{padding:4px 10px;border-top:1px solid var(--line-2);vertical-align:middle}
+table.bt tbody tr:first-child td{border-top:0}
+table.bt td.emp{max-width:0;width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.bt td.act{width:1%;text-align:right;white-space:nowrap}
+.bt-st{display:inline-flex;align-items:center;gap:5px;font-weight:600;white-space:nowrap}
+.bt-st .ic{width:14px;height:14px}
+.bt-st.ok .ic{color:var(--ok)} .bt-st.warn .ic{color:var(--warn)} .bt-st.err .ic{color:var(--err)}
+.bt-more{margin:6px 0 0;font-size:var(--fs-xs);color:var(--muted)}
+.bt-h{margin:16px 0 2px;font-size:var(--fs-sm);font-weight:600}
+details.bt-all>summary{cursor:pointer;min-height:28px;display:flex;align-items:center;font-size:var(--fs-sm);font-weight:600;color:var(--accent)}
+.bt-group{padding:10px 0;border-top:1px solid var(--line-2);display:grid;gap:6px}
+.bt-group:first-child{border-top:0}
+.bt-group .ck-top .cnt{margin-left:auto}
+.emps>summary{display:inline-flex;align-items:center;min-height:28px;margin-top:0}
+/* Claude */
+#aiBlock .t-actions{margin:8px 0}
+#aiBlock .ai-btn{border-color:var(--line)}
+#aiBlock .ai-btn:not(:disabled):hover{border-color:var(--muted)}
+#aiBlock .ai-answer{border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--panel);padding:8px 10px}
+#aiBlock .ai-setup{margin:8px 0;padding-left:20px}
+.ai-ask{margin-top:12px}
 /* §export */
 </style>
 
@@ -805,10 +938,14 @@ body.resizing{cursor:col-resize;user-select:none}
       <div class="tabpanel" id="panel-check" role="tabpanel" aria-labelledby="tab-check" hidden>
         <div class="block" id="checksBlock">
           <div class="block-head"><h2>Template check</h2><span class="stats" id="checkStats"></span></div>
-          <div class="check-intro"><p class="hint">Problems with tags and conditions in this letter, with where they are. Click a place to see it in the letter.</p><label class="btn small" for="inCheck">Check another tagged template…</label></div>
+          <div class="check-intro"><label class="btn small" for="inCheck" role="button" tabindex="0" id="lblCheck"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg>Check another tagged template…</label><span id="recheckSlot"></span></div>
+          <p class="hint check-hint">Problems with tags and conditions in this letter. A lettered flag in the letter's margin marks each one.</p>
           <div id="realCheck"></div>
-          <p class="check-sum" id="checkSum"></p>
+          <div id="checkSummary"></div>
+          <div id="checkOk"></div>
           <ul class="checks" id="checks"></ul>
+          <details class="ck-resolved" id="ckResolved" hidden><summary>Resolved <span class="n" id="ckResolvedN"></span></summary><ul class="checks" id="ckResolvedList"></ul></details>
+          <p class="check-sum" id="checkSum"></p>
         </div>
         <div class="block" id="aiBlock" hidden>
           <div class="block-head"><h2>Ask Claude</h2><span class="stats" id="aiStats"></span></div>
@@ -816,10 +953,11 @@ body.resizing{cursor:col-resize;user-select:none}
         </div>
         <div class="block" id="batchBlock">
           <div class="block-head"><h2>Test every employee</h2><span class="stats" id="batchStats"></span></div>
-          <p class="hint">Fills the letter for every row in your data file and lists anything that would come out wrong: empty values, text where a number is needed, dates in the wrong format, placeholders left in, or a file Word can't open.</p>
-          <p class="hint" id="batchNoRows">Load a CSV with one row per employee to run this test.</p>
-          <div class="t-actions"><button class="btn primary" id="btnBatch" type="button">Test every employee</button><button class="btn" id="btnBatchStop" type="button" hidden>Stop</button><button class="btn" id="btnBatchCsv" type="button" hidden>Download results (.csv)</button></div>
-          <div class="progress" id="batchProgress" hidden><div class="bar-track"><div class="bar-fill"></div></div><span class="bar-txt"></span></div>
+          <p class="hint">Fills the letter for every employee in your data file and lists what would come out wrong: empty values, text where a number is needed, wrong date formats, placeholders left in, or a file Word can't open.</p>
+          <div class="empty-state bt-empty" id="batchNoRows"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span class="es-title">No employee data loaded</span><span id="batchNoRowsText">Load a CSV or Excel file with one row per employee to run this test.</span><button class="btn small" id="btnBatchLoad" type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg>Load employee data</button></div>
+          <p class="bt-src" id="batchSrc" hidden></p>
+          <div class="t-actions"><button class="btn primary" id="btnBatch" type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-play"/></svg><span class="lbl">Test every employee</span></button><button class="btn" id="btnBatchStop" type="button" hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-stop"/></svg>Stop</button><button class="btn" id="btnBatchCsv" type="button" hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download results (.csv)</button></div>
+          <div class="progress" id="batchProgress" role="progressbar" aria-label="Testing employees" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><div class="bar-track"><div class="bar-fill"></div></div><span class="bar-txt"></span></div>
           <div id="batchOut"></div>
         </div>
       </div>
@@ -1261,7 +1399,7 @@ function joinSplitTags(doc){
 /* ======================= detection ======================= */
 const RX_TAG = /\{\{[\s\S]*?\}\}|\{%[\s\S]*?%\}|\{#[\s\S]*?#\}/g;
 // Letter Studio back end (real Jinja check); stays off on claude.ai
-const server={ok:false, info:null, check:null, checking:false, err:null, seq:0};
+const server={ok:false, probed:false, info:null, check:null, checking:false, err:null, seq:0};
 const RX_PH = [
   {kind:'Brackets', rx:/\[([^\[\]\n]{0,58}[A-Za-z][^\[\]\n]{0,58})\]/g, global:true},
   {kind:'Brackets', rx:/<<([^<>\n]{1,60})>>/g, global:true},
@@ -2913,23 +3051,46 @@ function renderPvPanel(){
 }
 function renderBatch(){
   const box=$('#batchOut'); if (!box) return; const rows=csvRows(); const B=state.batch;
-  const btn=$('#btnBatch'); btn.textContent = rows.length ? `Test ${rows.length} employee${rows.length>1?'s':''}` : 'Test every employee'; btn.disabled = !rows.length || !!(B&&B.running);
+  const btn=$('#btnBatch'); const lbl=btn.querySelector('.lbl'); const txt = rows.length ? `Test ${rows.length} employee${rows.length>1?'s':''}` : 'Test every employee';
+  if (lbl) lbl.textContent=txt; else btn.textContent=txt;
+  btn.disabled = !rows.length || !!(B&&B.running);
   $('#btnBatchStop').hidden=!(B&&B.running); $('#batchNoRows').hidden=!!rows.length;
+  const nt=$('#batchNoRowsText'); if (nt) nt.textContent = state.csv && !rows.length ? `Your data file (${state.csv.name}) has no employee rows. Load a CSV or Excel file with one row per employee.` : 'Load a CSV or Excel file with one row per employee to run this test.';
+  const src=$('#batchSrc');
+  if (src){
+    src.hidden=!rows.length;
+    if (rows.length){ const f=state.dataFilter; const total=state.csv.rows.length; src.innerHTML=`<b>${esc(state.csv.name)}</b> · ${rows.length} employee${rows.length>1?'s':''}${f&&f.col&&total!==rows.length?` of ${total} (only ${esc(f.col)} = ${esc(f.value)})`:''}`; }
+  }
   if (!B){ box.innerHTML=''; $('#batchStats').textContent=''; $('#btnBatchCsv').hidden=true; $('#batchProgress').hidden=true; return; }
-  if (B.error){ box.innerHTML=`<div class="ck error"><span class="badge">Fix</span><span>The template can't be filled: ${esc(B.error.msg)}${B.error.tag?` Near <code>${esc(B.error.tag)}</code>.`:''}</span></div>`; $('#batchProgress').hidden=true; $('#btnBatchCsv').hidden=true; return; }
+  if (B.error){ box.innerHTML=`<div class="ck-ok bad" role="alert">${icon('alert-circle')}<div><b>The template can't be filled</b><p>${esc(B.error.msg)}${B.error.tag?` Near <code>${esc(B.error.tag)}</code>.`:''}</p></div></div>`; $('#batchProgress').hidden=true; $('#btnBatchCsv').hidden=true; $('#batchStats').textContent=''; return; }
   renderBatchProgress();
-  if (B.running){ box.innerHTML=''; $('#btnBatchCsv').hidden=true; return; }
+  if (B.running){ box.innerHTML=''; $('#btnBatchCsv').hidden=true; $('#batchStats').textContent=''; return; }
   const bad=B.perEmp.filter(x=>x.n>0).length, ok=B.done-bad;
   $('#batchStats').textContent=`${ok} fine · ${bad} to look at`;
   const rank={error:0,warn:1,info:2}; const lab={error:'Fix',warn:'Check',info:'Note'};
   const groups=[...B.groups.values()].sort((a,b)=>rank[a.level]-rank[b.level] || (b.real?1:0)-(a.real?1:0) || b.count-a.count);
-  box.innerHTML=`${B.stale?'<div class="ck warn"><span class="badge">Check</span><span>The template changed after this test. Run it again for the current result.</span></div>':''}
-    <p class="batch-sum"><b>${B.done}</b> employee${B.done>1?'s':''} tested in ${(B.ms/1000).toFixed(1)} s${B.cancelled?' (stopped early)':''}: <span class="good">${ok} fine</span>${bad?` · <span class="meh">${bad} to look at</span>`:''}</p>
-    ${server.ok?`<p class="hint">${B.realRunning?'Now filling the same employees with real Jinja…':B.realErr?`Real Jinja check didn't finish: ${esc(B.realErr)}`:B.real&&B.real.employees?(()=>{ const n=new Set(B.real.employees.failed.map(f=>f.index)).size; return n?`Real Jinja (the engine CompUp uses) can't make the letter for <b>${n}</b> employee${n>1?'s':''}; marked <span class="src">Real Jinja</span> below.`:`Real Jinja (the engine CompUp uses) filled the letter for all ${B.real.employees.tested} employees.`; })():''}</p>`:''}
-    ${groups.length?`<ul class="checks">${groups.map(g=>`<li class="ck ${g.level}"><span class="badge">${lab[g.level]}</span><span>${g.msg}${g.real?'<span class="src">Real Jinja</span>':''} <b class="cnt">· ${g.count} employee${g.count>1?'s':''}</b>${g.real && g.name && g.tag && new RegExp(`${escRe(g.name)}\\s*\\|\\s*(float|int)\\b`).test(g.tag)?` <button class="btn small ck-fix" type="button" data-bfix="${esc(g.name)}">Add | default(0)</button>`:''}${g.real?locChips(locateTags(g.tag?[g.tag]:templateTagsWith(g.name),4)):''}<details class="emps"><summary>Show who</summary>${g.emps.slice(0,60).map(i=>`<button class="chip" type="button" data-emp="${i}">${esc(empLabel(i))}</button>`).join('')}${g.count>60?` <span class="hint">and ${g.count-60} more. Download the results for the full list.</span>`:''}</details></span></li>`).join('')}</ul>`:'<p class="hint">No problems found. Still preview one PDF in CompUp before generating the cycle.</p>'}`;
+  const realLine = server.ok ? (B.realRunning ? 'Now filling the same employees with real Jinja…' : B.realErr ? `Real Jinja check didn't finish: ${esc(B.realErr)}` : B.real&&B.real.employees ? (()=>{ const n=new Set(B.real.employees.failed.map(f=>f.index)).size; return n?`Real Jinja (the engine CompUp uses) can't make the letter for <b>${n}</b> employee${n>1?'s':''}; marked <span class="src">Real Jinja</span> below.`:`Real Jinja (the engine CompUp uses) filled the letter for all ${B.real.employees.tested} employees.`; })() : '') : '';
+  const groupHtml=g=>`<li class="ck ${g.level} bt-group"><div class="ck-top"><span class="badge">${lab[g.level]}</span>${g.real?'<span class="src">Real Jinja</span>':''}<b class="cnt">${g.count} employee${g.count>1?'s':''}</b></div><div class="ck-msg">${g.msg}</div>${g.real && g.name && g.tag && new RegExp(`${escRe(g.name)}\\s*\\|\\s*(float|int)\\b`).test(g.tag)?`<div class="ck-acts"><button class="btn small ck-fix" type="button" data-bfix="${esc(g.name)}">Add | default(0)</button></div>`:''}${g.real?locChips(locateTags(g.tag?[g.tag]:templateTagsWith(g.name),4)):''}<details class="emps"><summary>Show who</summary>${g.emps.slice(0,60).map(i=>`<button class="chip" type="button" data-emp="${i}">${esc(empLabel(i))}</button>`).join('')}${g.count>60?` <span class="hint">and ${g.count-60} more. Download the results for the full list.</span>`:''}</details></li>`;
+  box.innerHTML=`${B.stale?`<div class="notice warn" role="status">${icon('alert-triangle')}<span>The template changed after this test. Run it again for the current result.</span></div>`:''}
+    <p class="bt-sum"><span class="ok">${icon('check-circle')}${ok} fine</span>${bad?`<span class="warn">${icon('alert-triangle')}${bad} to look at</span>`:''}</p>
+    <p class="bt-meta">${B.done} employee${B.done>1?'s':''} tested in ${(B.ms/1000).toFixed(1)} s${B.cancelled?' (stopped early)':''}.${realLine?` ${realLine}`:''}</p>
+    ${bad?'':`<div class="ck-ok">${icon('check-circle')}<div><b>No problems found</b><p>Every employee's letter filled without a problem. Still preview one PDF in CompUp before generating the cycle.</p></div></div>`}
+    <div id="batchTable">${batchTableHtml(B)}</div>
+    ${groups.length?`<h3 class="bt-h">What went wrong</h3><ul class="checks">${groups.map(groupHtml).join('')}</ul>`:''}`;
   $('#btnBatchCsv').hidden=!groups.length;
 }
-function renderBatchProgress(){ const B=state.batch; const pg=$('#batchProgress'); if (!B || !B.total || B.error){ pg.hidden=true; return; } pg.hidden=!B.running; pg.querySelector('.bar-fill').style.width=(100*B.done/B.total).toFixed(1)+'%'; pg.querySelector('.bar-txt').textContent=`${B.done} of ${B.total}`; }
+// who passed and who didn't: one row per employee, problems first by default
+function batchTableHtml(B){
+  const bad=B.perEmp.filter(x=>x.n>0).length;
+  const only = bad>0 && (state.batchOnlyBad===undefined ? true : !!state.batchOnlyBad);
+  const list = only ? B.perEmp.filter(x=>x.n>0) : B.perEmp;
+  const shown=list.slice(0,500);
+  const tr=x=>{ const l=empLabel(x.i); return `<tr><td class="emp" title="${esc(l)}">${esc(l)}</td><td><span class="bt-st ${x.n?'warn':'ok'}">${icon(x.n?'alert-triangle':'check-circle')}${x.n?`${x.n} problem${x.n>1?'s':''}`:'OK'}</span></td><td class="act"><button class="btn small" type="button" data-emp="${x.i}" aria-label="Preview ${esc(l)}">Preview</button></td></tr>`; };
+  const table=`<div class="bt-wrap"><table class="bt"><thead><tr><th scope="col">Employee</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody>${shown.map(tr).join('')}</tbody></table></div>${list.length>shown.length?`<p class="bt-more">and ${list.length-shown.length} more. Download the results for the full list.</p>`:''}`;
+  if (!bad) return `<details class="bt-all"><summary>Show all ${B.done} employees</summary>${table}</details>`;
+  return `<div class="bt-tools"><h3 class="bt-h">Employees</h3><label class="check small"><input type="checkbox" id="batchOnlyBad"${only?' checked':''}><span>Only employees with problems</span></label></div>${table}`;
+}
+function renderBatchProgress(){ const B=state.batch; const pg=$('#batchProgress'); if (!B || !B.total || B.error){ pg.hidden=true; return; } pg.hidden=!B.running; const pct=100*B.done/B.total; pg.querySelector('.bar-fill').style.width=pct.toFixed(1)+'%'; pg.querySelector('.bar-txt').textContent=`${B.done} of ${B.total}`; pg.setAttribute('aria-valuenow', String(Math.round(pct))); pg.setAttribute('aria-valuetext', `${B.done} of ${B.total}`); }
 async function runBatch(){
   const rows=csvRows(); if (!rows.length){ toast('Load a CSV with one row per employee first.'); return; }
   let comp; try{ comp=await getCompiled(); }catch(e){ toast(e.message); return; }
@@ -3140,7 +3301,7 @@ function renderAi(){
   $('#aiStats').textContent = aiReady() ? (info.model||'') : 'not set up';
   if (!aiReady()){
     box.innerHTML=`<p class="hint">Claude can review this template, suggest tags, write conditions from a sentence and answer questions about the letter, using your own Anthropic API key.</p>
-      <ol class="ai-setup"><li>In the <code>letter-studio</code> folder, create a file named <code>.env</code> (PyCharm: right-click the folder → New → File).</li><li>Put this line in it, with your key from console.anthropic.com: <code>ANTHROPIC_API_KEY=sk-ant-…</code></li><li>Restart Letter Studio (red ■, then ▶) and refresh this page.</li></ol>
+      <ol class="ai-setup"><li>In the <code>letter-studio</code> folder, create a file named <code>.env</code> (PyCharm: right-click the folder → New → File).</li><li>Put this line in it, with your key from console.anthropic.com: <code>ANTHROPIC_API_KEY=sk-ant-…</code></li><li>Restart Letter Studio (stop it, then run it again) and refresh this page.</li></ol>
       <p class="hint">The .env file stays on your computer; git ignores it, so the key never goes to GitHub.</p>`;
     return;
   }
@@ -3148,7 +3309,7 @@ function renderAi(){
   const review = a.review ? `<p class="ai-sum">${esc(a.review.summary||'')}</p><ul class="checks">${(a.review.items||[]).map(x=>`<li class="ck ${lvl[x.severity]||'info'}"><span class="badge">${lab[x.severity]||'Note'}</span><span><b>${esc(x.title)}</b> ${esc(x.detail)}${x.suggestion?`<br>Suggested: <code>${esc(x.suggestion)}</code>`:''}${x.quote?locChips(locateTags([x.quote],3)):''}</span></li>`).join('')}</ul>` : '';
   const ans = a.answer ? `<div class="ai-answer"><p class="ai-q">${esc(a.answer.q)}</p><div>${esc(a.answer.answer).replace(/\n/g,'<br>')}</div>${(a.answer.tags||[]).length?`<div class="ai-tags">${a.answer.tags.map(t=>`<code class="mono">${esc(t)}</code>`).join(' ')}</div>`:''}</div>` : '';
   box.innerHTML=`<p class="hint">Sends this letter's text, its tags and your data's column names to Claude with your API key. No employee rows; only the values of columns with a few categories, such as levels or yes/no.</p>
-    <div class="t-actions"><button class="btn primary ai-btn" id="aiReview" type="button"${state.aiBusy?' disabled':''}>${state.aiBusy==='review'?'Claude is reading the letter…':'✦ Review this template'}</button></div>
+    <div class="t-actions"><button class="btn small ai-btn" id="aiReview" type="button"${state.aiBusy?' disabled':''}${state.aiBusy==='review'?' aria-busy="true"':''}>${state.aiBusy==='review'?'Claude is reading the letter…':'Review this template'}</button></div>
     ${a.reviewErr?`<p class="err-msg">${esc(a.reviewErr)}</p>`:''}${review}
     <div class="ai-ask"><input id="aiQ" placeholder="Ask about this letter, e.g. which amounts come from the old salary?" aria-label="Question for Claude" value="${esc(a.q||'')}"><button class="btn small ai-btn" id="aiAsk" type="button"${state.aiBusy?' disabled':''}>${state.aiBusy==='ask'?'Asking…':'Ask'}</button></div>
     ${a.askErr?`<p class="err-msg">${esc(a.askErr)}</p>`:''}${ans}`;
@@ -4101,11 +4262,9 @@ function renderPaper(){
   renderLegend();
   decoratePaper();
 }
-// Filled in by the checking phase: margin flags and the like. Runs after every write to the paper.
-function decoratePaper(){}
 function renderLegend(){
   const lg=$('#legend'); if (!lg) return;
-  if (state.view==='source') lg.innerHTML='<span><i style="background:var(--ok-soft);box-shadow:inset 0 -2px 0 var(--ok)"></i>Tagged</span><span><i style="background:var(--warn-soft);box-shadow:inset 0 -2px 0 var(--warn)"></i>To check</span><span><i style="background:var(--hl)"></i>Needs a tag</span>'+(state.tagMarks && [...state.tagMarks.values()].some(m=>m.level==='error')?'<span><i style="background:var(--err-soft);box-shadow:inset 0 -2px 0 var(--err)"></i>Tag with a problem</span>':'');
+  if (state.view==='source') lg.innerHTML='<span><i style="background:var(--ok-soft);box-shadow:inset 0 -2px 0 var(--ok)"></i>Tagged</span><span><i style="background:var(--warn-soft);box-shadow:inset 0 -2px 0 var(--warn)"></i>To check</span><span><i style="background:var(--hl)"></i>Needs a tag</span>'+(state.ckLegendHas?'<span><b class="lg-flag" aria-hidden="true">A</b>Flag = issue in the Validate list</span>':'')+(state.tagMarks && [...state.tagMarks.values()].some(m=>m.level==='error')?'<span><i style="background:var(--err-soft);box-shadow:inset 0 -2px 0 var(--err)"></i>Tag with a problem</span>':'');
   else if (state.view==='filled') lg.innerHTML='<span><i style="background:var(--ok-soft);box-shadow:inset 0 -1px 0 var(--ok)"></i>From the data</span><span><i style="border-bottom:1px dotted var(--muted);border-radius:0"></i>Made-up sample</span><span><i style="background:var(--err-soft);border:1px dashed var(--err)"></i>Empty</span>';
   else lg.innerHTML='';
   lg.hidden=!lg.innerHTML;
@@ -4137,17 +4296,14 @@ function renderChecks(){
   const marks=new Map(); for (const x of list){ if (x.level!=='error' && x.level!=='warn') continue; for (const t of (x.tags||[])){ if (typeof t!=='string') continue; const k=squash(t); const was=marks.get(k); if (!was || (was.level==='warn' && x.level==='error')) marks.set(k, {level:x.level, msg:x.html.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').slice(0,220)}); } }
   const sig=[...marks.entries()].map(([k,v])=>k+v.level).join('|');
   state.tagMarks=marks; if (sig!==state.tagMarksSig){ state.tagMarksSig=sig; if (state.view==='source' && state.an) setTimeout(renderPaper,0); }
-  const item=x=>`<li class="ck ${x.level}"><span class="badge">${lab[x.level]}</span><span>${x.html}${x.real?'<span class="src">Real Jinja</span>':''}${x.fix?` <button class="btn small ck-fix" type="button" data-fix="${x.fix.idx}">${esc(x.fix.label)}</button>`:''}${locChips(x.locs, x.tags && x.tags.length>8)}</span></li>`;
-  $('#checks').innerHTML=list.map(item).join('');
-  $('#realCheck').innerHTML=realCheckHtml();
   const e=list.filter(x=>x.level==='error').length, w=list.filter(x=>x.level==='warn').length;
-  $('#checkStats').textContent = e ? `${e} to fix${w?` · ${w} to check`:''}` : w ? `${w} to check` : 'No problems found';
-  $('#checkStats').style.color = e ? 'var(--err)' : w ? 'var(--warn)' : 'var(--ok)';
+  ckPrepare(list); ckRender(e, w);
   const sum=$('#checkSum'); if (sum){ const an=state.an; let tags=0, logic=0; if (an) for (const p of an.paras){ if (p.fallback) continue; for (const m of (p.model.text||'').matchAll(RX_TAG)){ tags++; if (/^\{%-?\s*(if|elif|for)\b/.test(m[0])) logic++; } }
     const hf=state.parts.filter(x=>x.kind==='header'||x.kind==='footer').length;
     sum.textContent = state.fileName ? `${state.fileName}: ${tags} tag${tags===1?'':'s'} in the letter as loaded, ${logic} of them condition${logic===1?'':'s'}${hf?`, body and ${hf} header/footer part${hf>1?'s':''}`:''}.` : ''; }
-  state.checkCounts={e, w};
+  state.checkCounts={e, w}; window.__validateCounts={errors:e, warnings:w};
   updateTabBadges();
+  decoratePaper(); renderIssueInspector();
 }
 function renderSelTools(){ renderSelToolsInner(); syncInspector(selToolsTitle()); }
 function renderSelToolsInner(){
@@ -4927,7 +5083,7 @@ $('#btnBatchStop').addEventListener('click', ()=>{ if (state.batch) state.batch.
 $('#btnBatchCsv').addEventListener('click', ()=>offer((state.fileName.replace(/\.docx$/i,'')||'letter')+'-employee-test.csv', batchCsv()));
 $('#batchOut').addEventListener('click', e=>{ const l=e.target.closest('.loc'); if (l){ showPid(l.dataset.pid); return; }
   const bf=e.target.closest('[data-bfix]'); if (bf){ const id=bf.dataset.bfix; if (fixTags(t=>addDefaultTo(t,id), n=>`Added | default(0) to ${id} in ${n} tag${n>1?'s':''}. Run the test again to check.`)) { if (state.batch) state.batch.stale=true; renderBatch(); } return; } const b=e.target.closest('[data-emp]'); if (!b) return; state.pvIdx=+b.dataset.emp; setView('filled'); });
-$('#checksBlock').addEventListener('click', e=>{ const b=e.target.closest('.loc'); if (b) showPid(b.dataset.pid); });
+$('#checksBlock').addEventListener('click', ckClick);
 $('#aiBlock').addEventListener('click', e=>{ const l=e.target.closest('.loc'); if (l){ showPid(l.dataset.pid); return; } if (e.target.id==='aiReview') aiReview(); if (e.target.id==='aiAsk') aiAsk(); });
 $('#aiBlock').addEventListener('keydown', e=>{ if (e.key==='Enter' && e.target.id==='aiQ'){ e.preventDefault(); aiAsk(); } });
 $('#aiTagsBar').addEventListener('click', e=>{ if (e.target.id==='aiTags') aiSuggestTags(); });
@@ -5037,8 +5193,9 @@ $('#rowsExpand').addEventListener('click', ()=>{ for (const r of state.rows){ st
 // Only when the page is served by the Letter Studio back end; on claude.ai this stays off.
 function csrfToken(){ const m=document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/); return m?decodeURIComponent(m[1]):''; }
 async function probeServer(){
-  if (window.claude) return;
-  try{ const r=await fetch('api/health', {headers:{'Accept':'application/json'}}); if (!r.ok) return; const j=await r.json(); if (j.app!=='Letter Studio' || !j.validate) return; server.info=j; server.ok=true; }catch(e){ return; }
+  if (window.claude){ server.probed=true; return; }
+  try{ const r=await fetch('api/health', {headers:{'Accept':'application/json'}}); if (!r.ok) throw 0; const j=await r.json(); if (j.app!=='Letter Studio' || !j.validate) throw 0; server.info=j; server.ok=true; }catch(e){ server.probed=true; renderChecks(); return; }
+  server.probed=true;
   scheduleRealCheck(); renderAi(); renderAiTagsBar();
 }
 // What to check: the file as uploaded, or (once you've changed something) the template you'd download.
@@ -5075,15 +5232,20 @@ function realLocs(x, target){
 }
 function templateTagsWith(name){ const out=[]; if (!state.an) return out; for (const p of state.an.paras) for (const m of (p.model.text||'').matchAll(RX_TAG)) if (identifiersIn(m[0].replace(/^\{[{%]-?|-?[}%]\}$/g,'')).includes(name)) out.push(m[0]); return out.slice(0,20); }
 function realCheckHtml(){
-  if (!server.ok) return '';
+  const line=(cls, ic, body)=>`<div class="engine ${cls}" role="status">${ic}<div>${body}</div></div>`;
+  if (!server.ok){
+    if (!window.claude && !server.probed) return '';
+    return line('off', icon('info'), `<p>Real Jinja check isn't available here; these are the page's own checks.</p>`);
+  }
   const what = server.check && server.check.target==='built' ? 'the template with your changes' : 'your file as uploaded';
-  if (server.checking && !server.check) return `<p class="real-line">Checking with real Jinja…</p>`;
-  if (server.err) return `<p class="real-line bad">Real Jinja check didn't run: ${esc(server.err)}</p>`;
-  const c=server.check; if (!c) return '';
+  if (server.err) return line('bad', icon('alert-circle'), `<p>Real Jinja check didn't run: ${esc(server.err)}</p>`);
+  if (server.checking) return line('busy', '<span class="spinner" aria-hidden="true"></span>', `<p>${server.check?'Checking again':'Checking'} with real Jinja…</p>`);
+  const c=server.check; if (!c) return line('busy', icon('info'), `<p>Real Jinja check hasn't run yet.</p>`);
   const v=(server.info&&server.info.versions)||{};
-  const eng=`real Jinja (docxtpl ${esc(v.docxtpl||'')}, the engine CompUp fills letters with)`;
-  return c.syntax.length ? `<p class="real-line bad">Checked ${what} with ${eng}: <b>${c.syntax.length} typing mistake${c.syntax.length>1?'s':''}</b>, listed first below. Jinja stops at the first mistake in each part (body, header, footer), so check again after fixing.${server.checking?' Rechecking…':''}</p>`
-    : `<p class="real-line good">Checked ${what} with ${eng}: no typing mistakes. ${c.variables.length} field${c.variables.length===1?'':'s'} used.${server.checking?' Rechecking…':''}</p>`;
+  const eng = v.docxtpl ? `docxtpl ${esc(v.docxtpl)}, the engine CompUp uses` : 'the engine CompUp uses';
+  const n=c.syntax.length;
+  return n ? line('bad', icon('alert-circle'), `<p><b>Real Jinja check failed: ${n} typing mistake${n>1?'s':''}</b>, listed first below.</p><p class="sub-line">Checked ${what} with ${eng}. Jinja stops at the first mistake in each part (body, header, footer), so check again after fixing.</p>`)
+    : line('ok', icon('check-circle'), `<p>Real Jinja check passed: ${eng}. ${c.variables.length} field${c.variables.length===1?'':'s'} used.</p><p class="sub-line">Checked ${what}.</p>`);
 }
 /* ======================= app shell: theme, side panel, inspector ======================= */
 const HOST_THEME=document.documentElement.getAttribute('data-theme');
@@ -5150,6 +5312,322 @@ document.addEventListener('keydown', e=>{ if ((e.ctrlKey||e.metaKey) && e.key===
 /* §tags-js */
 /* §logic-js */
 /* §check-js */
+// Validate step: every finding gets a category and (when it points at the letter) a flag letter.
+// The checks themselves live in runChecks / realCheck; this is presentation and navigation only.
+const CK_CATS={
+  syntax:{name:'Jinja syntax', why:"CompUp can't fill the letter at all while this is wrong.", fix:"Correct the tag; the one-click fix is offered when it's safe."},
+  fields:{name:'Unknown or undefined fields', why:'The value prints empty for every employee.', fix:"Pick the field from the list, or confirm it's a custom column.", act:'Open tags'},
+  mapping:{name:'Missing mappings', why:'The text stays as typed in every letter.', fix:'Map each placeholder to a field.', act:'Map field'},
+  review:{name:'Low-confidence suggestions', why:'A wrong guess puts the wrong value in every letter.', fix:'Check each suggested tag and confirm it, or pick another field.', act:'Review'},
+  cells:{name:'Empty table cells', why:'Empty cells stay blank in every letter.', fix:'Pick a tag for each empty cell in the table.', act:'Show table'},
+  conditions:{name:'Conditions', why:'A condition that never applies, or always applies, shows the wrong text.', fix:'Check the field and the value in the condition.', act:'Open conditions'},
+  format:{name:'Number and text format', why:'Numbers or text may print differently from what you expect.', fix:'Follow the note in the message, for example pick a comma format.'},
+  render:{name:'Rendering', why:'The letter fails or prints wrong for some employees.', fix:'Fix the tag named in the message, then test every employee again.'},
+  other:{name:'Other', why:"Worth knowing before the letters go out.", fix:'Read the message and decide whether it needs action.'},
+};
+const CK_ORDER=['syntax','fields','mapping','review','cells','conditions','format','render','other'];
+const CK_LAB={error:'Fix', warn:'Check', info:'Note', fixed:'Fixed'};
+function ckPlain(html){ return decodeXmlText(String(html||'').replace(/<[^>]+>/g,'')).replace(/\s+/g,' ').trim(); }
+// which group a finding belongs to, from where it came from and what it says
+function checkCategory(x){
+  if (x.level==='fixed') return 'fixed';
+  if (x.real) return 'syntax';
+  const t=ckPlain(x.html);
+  if (/still need a tag/.test(t)) return 'mapping';
+  if (/low-confidence guess/.test(t)) return 'review';
+  if (/empty cells? (has|have) no tag/.test(t)) return 'cells';
+  if (/inside a text box|inside a content control|Tags in footnotes|tracked changes|Word comments|^There are tags in the (header|footer)|tags? in the template\. Preview/.test(t)) return 'other';
+  if (/different table cells/.test(t)) return 'conditions';
+  if (x.level==='error') return 'syntax';
+  if (/isn't in your data file|not in your data file or the CompUp tag list|Not in the standard tag list/.test(t)) return 'fields';
+  if (/Nobody in your data file|Every employee in your data file|test a value directly|tests a value directly|on a line of its own|trim marks|is shown or hidden by|same field with different prefixes|will be left out when the value is empty/.test(t)) return 'conditions';
+  if (/without commas|decimal number|fixed amount|inside quotes|without <code>|but without|merge field is really|\| float/.test(t)) return 'format';
+  if (/shown or hidden|the letter shows/.test(t)) return 'format';
+  return 'other';
+}
+function ckLetterName(i){ let n=i+1, s=''; while (n>0){ const r=(n-1)%26; s=String.fromCharCode(65+r)+s; n=Math.floor((n-1)/26); } return s; }
+function ckKey(x, seen){
+  // one tag → the key follows the tag, so the same mistake keeps its letter whether the page or real Jinja found it
+  const tg=(x.tags||[]).filter(t=>typeof t==='string');
+  let k=x.cat+'|'+(tg.length===1 ? 'tag:'+squash(tg[0]) : ckPlain(x.html).replace(/\d+/g,'#').slice(0,200)); const n=(seen.get(k)||0)+1; seen.set(k,n); return n>1 ? k+'~'+n : k;
+}
+// categories, display order, stable flag letters, and the "resolved this session" memory
+function ckPrepare(list){
+  if (state.ckDoc!==state.srcBuf){
+    state.ckDoc=state.srcBuf; state.ckLetters=new Map(); state.ckSeen=new Map(); state.ckResolved=new Map();
+    if (state.insp){ state.insp=null; const b=$('#issueInspector'); if (b && !b.hidden){ b.hidden=true; syncInspector(); } }
+  }
+  const dup=new Map();
+  for (const x of list){ x.cat=checkCategory(x); x.key=ckKey(x, dup); }
+  const active=list.filter(x=>x.level!=='fixed');
+  const rank={error:0, warn:1, info:2};
+  const by=new Map(); for (const x of active){ if (!by.has(x.cat)) by.set(x.cat, []); by.get(x.cat).push(x); }
+  const groups=[...by.entries()].map(([cat, items])=>({cat, items, worst:Math.min(...items.map(x=>rank[x.level]))}))
+    .sort((a,b)=>a.worst-b.worst || CK_ORDER.indexOf(a.cat)-CK_ORDER.indexOf(b.cat));
+  const flat=groups.flatMap(g=>g.items);
+  flat.forEach((x,i)=>{
+    x.idx=i; x.letter='';
+    if ((x.level==='error' || x.level==='warn') && x.locs && x.locs.length){
+      let n=state.ckLetters.get(x.key); if (n==null){ n=state.ckLetters.size; state.ckLetters.set(x.key, n); }
+      x.letter=ckLetterName(n);
+    }
+  });
+  // an issue that was listed before and now is not, because of something you did, is "Resolved".
+  // Only when the page has finished building, and for engine findings only when the engine has answered.
+  if (state.built){
+    const cur=new Set(flat.map(x=>x.key));
+    const engineSure = !server.ok || !!(server.check && !server.checking && !server.err);
+    const dataSure = !csvRows().length || !!blockCountsNow();
+    const tagSet=new Set(); for (const x of flat) if (x.level!=='info') for (const t of (x.tags||[])) if (typeof t==='string') tagSet.add(squash(t));
+    for (const [k, snap] of [...state.ckSeen]){
+      if (cur.has(k)) continue;
+      if (snap.real && !engineSure) continue;
+      if (snap.data && !dataSure) continue;
+      state.ckSeen.delete(k);
+      const moved = snap.tags.length && snap.tags.every(t=>tagSet.has(t));
+      if (!moved) state.ckResolved.set(k, snap);
+    }
+    for (const x of flat){
+      state.ckResolved.delete(x.key);
+      if (x.level==='error' || x.level==='warn') state.ckSeen.set(x.key, {key:x.key, cat:x.cat, level:x.level, html:x.html, letter:x.letter, real:!!x.real, data:/^(Nobody|Every employee) in your data file/.test(ckPlain(x.html)), tags:(x.tags||[]).filter(t=>typeof t==='string').map(squash)});
+    }
+  }
+  state.issues=flat; state.issueGroups=groups; state.ckFixed=list.filter(x=>x.level==='fixed');
+}
+function ckEngineConfirmed(){ return server.ok ? !!(server.check && !server.check.syntax.length && !server.err && !server.checking) : !!(window.claude || server.probed); }
+function ckCatAction(cat){ const c=CK_CATS[cat]; return c && c.act ? c.act : ''; }
+function ckRowHtml(x){
+  const act=ckCatAction(x.cat);
+  const sel = state.insp && state.insp.key===x.key;
+  return `<li class="ck ck-i ${x.level}${sel?' on':''}" data-idx="${x.idx}" data-ik="${esc(x.key)}">
+    <div class="ck-top">${x.letter?`<span class="chip-fl lvl-${x.level}" role="img" aria-label="Flag ${x.letter}">${x.letter}</span>`:''}<span class="badge">${CK_LAB[x.level]}</span>${x.real?'<span class="src">Real Jinja</span>':''}</div>
+    <div class="ck-msg">${x.html}</div>
+    ${locChips(x.locs, x.tags && x.tags.length>8)}
+    <div class="ck-acts">${x.fix?`<button class="btn small ck-fix" type="button" data-fix="${x.fix.idx}">${esc(x.fix.label)}</button>`:''}${act?`<button class="btn small" type="button" data-catact="${x.cat}">${esc(act)}</button>`:''}<button class="btn small quiet" type="button" data-detail="${x.idx}" aria-label="Details${x.letter?` for flag ${x.letter}`:''}">Details${icon('chevron-right')}</button></div>
+  </li>`;
+}
+function ckDoneRowHtml(x){
+  return `<li class="ck ck-i fixed"><div class="ck-top">${x.letter?`<span class="chip-fl gone" role="img" aria-label="Flag ${x.letter}, resolved">${x.letter}</span>`:''}<span class="badge">${icon('check')}Fixed</span></div><div class="ck-msg">${x.html}</div></li>`;
+}
+function ckRender(e, w){
+  if (!state.ckShow) state.ckShow={error:true, warn:true, info:true};
+  const show=state.ckShow; const iss=state.issues||[]; const fixed=state.ckFixed||[]; const gone=state.ckResolved?[...state.ckResolved.values()]:[];
+  const notes=iss.filter(x=>x.level==='info').length; const resolvedN=fixed.length+gone.length;
+  const confirmed=ckEngineConfirmed();
+  const clean=!e && !w && !!state.an && confirmed;
+  // counts
+  const plural=(n,a,b)=>`${n} ${n===1?a:b}`;
+  const tog=(k, cls, ic, n, word, on)=>`<button class="ck-tog ${cls}" type="button" data-ckf="${k}" aria-pressed="${on}"${n?'':' disabled'}>${icon(ic)}<span>${word}</span></button>`;
+  $('#checkSummary').innerHTML=`<div class="ck-sum" role="group" aria-label="Show or hide findings">${tog('error','err','alert-circle',e,plural(e,'error','errors'),show.error)}${tog('warn','warn','alert-triangle',w,plural(w,'warning','warnings'),show.warn)}${tog('resolved','ok','check-circle',resolvedN,`${resolvedN} resolved`,!!state.ckResolvedOpen)}${tog('info','info','info',notes,plural(notes,'note','notes'),show.info)}</div>`;
+  // overall state
+  $('#checkOk').innerHTML = clean ? `<div class="ck-ok">${icon('check-circle')}<div><b>No problems found</b><p>${server.ok ? `Real Jinja${(server.info&&server.info.versions&&server.info.versions.docxtpl)?` (docxtpl ${esc(server.info.versions.docxtpl)})`:''} and the page's own checks found nothing wrong with the tags, fields, conditions and table cells.` : `The page's own checks found nothing wrong with the tags, fields, conditions and table cells. The real Jinja check isn't available here, so this is the page checks only.`}</p></div></div>` : '';
+  $('#realCheck').innerHTML=realCheckHtml();
+  $('#recheckSlot').innerHTML = server.ok ? `<button class="btn icon" id="btnRecheck" type="button" aria-label="Re-check" data-tip="Re-check with real Jinja" data-tip-end${server.checking?' disabled':''}>${icon('refresh')}</button>` : '';
+  // grouped list
+  const html=(state.issueGroups||[]).map(g=>{
+    const items=g.items.filter(x=>show[x.level]); if (!items.length) return '';
+    const ec=items.filter(x=>x.level==='error').length, wc=items.filter(x=>x.level==='warn').length;
+    const name=CK_CATS[g.cat].name;
+    return `<li class="ck-group" aria-label="${esc(name)}"><h3 class="ck-gh">${esc(name)}<span class="n ${ec?'err':wc?'warn':''}">${items.length}</span></h3><ul class="ck-list">${items.map(ckRowHtml).join('')}</ul></li>`;
+  }).join('');
+  $('#checks').innerHTML=html;
+  // resolved
+  const rd=$('#ckResolved'); rd.hidden=!resolvedN; $('#ckResolvedN').textContent=resolvedN||'';
+  if (rd.open!==!!state.ckResolvedOpen) rd.open=!!state.ckResolvedOpen;
+  $('#ckResolvedList').innerHTML=[...gone, ...fixed].map(ckDoneRowHtml).join('');
+  const cs=$('#checkStats'); cs.className='stats'+(e?' err':w?' warn':clean?' ok':'');
+  cs.textContent = e ? `${e} to fix${w?` · ${w} to check`:''}` : w ? `${w} to check` : clean ? 'No problems found' : server.ok && server.checking ? 'Checking…' : '';
+}
+function ckMarkSelected(){
+  const key=state.insp && state.insp.key;
+  document.querySelectorAll('#checks li.ck-i').forEach(li=>li.classList.toggle('on', !!key && li.dataset.ik===key));
+  const idx=key ? (state.issues||[]).findIndex(x=>x.key===key) : -1;
+  document.querySelectorAll('#paper .mflag').forEach(b=>b.classList.toggle('on', idx>=0 && +b.dataset.issue===idx));
+}
+function ckSetFilter(f){ const b=document.querySelector(`#filters [data-f="${f}"]`); if (b && !b.classList.contains('on')) b.click(); }
+function ckSeeSide(){ if (NARROW.matches && document.body.classList.contains('side-open')) setSide(false); }
+function ckRunAct(cat){
+  const open={open:true};
+  if (cat==='mapping'){ setTab('tags', open); ckSetFilter('need'); const r=state.rows.find(r=>r.count && rowStatus(r)==='need'); if (r) flashRow(r.id); }
+  else if (cat==='review'){ setTab('tags', open); ckSetFilter('check'); const r=state.rows.find(r=>r.count && rowStatus(r)==='check'); if (r) flashRow(r.id); }
+  else if (cat==='fields'){ setTab('tags', open); ckSetFilter('all'); }
+  else if (cat==='cells'){ setTab('tags', open); const b=$('#tablesBlock'); if (b){ if (b.classList.contains('collapsed')) setBlockCollapsed(b,false); b.scrollIntoView({block:'start', behavior:'smooth'}); } }
+  else if (cat==='conditions'){ setTab('logic', open); }
+}
+function ckLocate(x, closeInspectorToo){
+  if (!x || !x.locs || !x.locs.length) return;
+  ckSeeSide(); showPid(x.locs[0]);
+  if (closeInspectorToo && window.innerWidth<=980) closeInspector();
+}
+// ----- the issue inspector -----
+function openIssueInspector(idx){
+  const x=(state.issues||[])[idx]; if (!x) return;
+  const st=$('#selTools');
+  if (st && !st.hidden){
+    if (st.classList.contains('picking')){ toast('Finish or cancel what you are doing in the letter first.'); return; }
+    state.sel={pids:[],anchor:null,text:''}; state.switchUi=null; state.inlineUi=null; state.condEdit=null; renderPaperSel(); renderSelTools();
+  }
+  const ti=$('#tagInspector'); if (ti) ti.hidden=true;
+  $('#issueInspector').hidden=false;
+  state.insp={key:x.key};
+  renderIssueInspector(); syncInspector('Issue'); ckMarkSelected();
+}
+function renderIssueInspector(){
+  const box=$('#issueInspector'); if (!box || box.hidden || !state.insp) return;
+  const iss=state.issues||[]; const key=state.insp.key; const i=iss.findIndex(x=>x.key===key); const x=iss[i];
+  if (!x){
+    const snap=state.ckResolved && state.ckResolved.get(key);
+    box.innerHTML=`<div class="iv"><div class="iv-done">${icon('check-circle')}<b>Resolved</b>${snap?`<p class="iv-msg">${snap.html}</p>`:'<p class="iv-msg">This issue is no longer listed.</p>'}${iss.length?`<p class="hint">${iss.length} issue${iss.length===1?'':'s'} left in the Validate list.</p><button class="btn small" type="button" data-iv="next">Next issue${icon('chevron-right')}</button>`:`<p class="hint">Nothing left to fix in the Validate list.</p><button class="btn small" type="button" data-iv="close">Close</button>`}</div></div>`;
+    return;
+  }
+  const cat=CK_CATS[x.cat]; const act=ckCatAction(x.cat);
+  box.innerHTML=`<div class="iv">
+    <div class="iv-top">${x.letter?`<span class="chip-fl lvl-${x.level}" role="img" aria-label="Flag ${x.letter}">${x.letter}</span>`:''}<span class="badge">${CK_LAB[x.level]}</span><span class="iv-cat">${esc(cat.name)}</span>${x.real?'<span class="src">Real Jinja</span>':''}</div>
+    <p class="iv-msg">${x.html}</p>
+    <div><h3>Where</h3>${x.locs && x.locs.length ? locChips(x.locs, x.tags && x.tags.length>8) : '<p class="hint">Not tied to one place in the letter.</p>'}</div>
+    <div><h3>Why it matters</h3><p>${esc(cat.why)}</p></div>
+    <div><h3>How to fix</h3><p>${esc(cat.fix)}</p></div>
+    <div class="iv-acts">${x.locs&&x.locs.length?`<button class="btn small" type="button" data-iv="locate">${icon('search')}Locate in the letter</button>`:''}${x.fix?`<button class="btn small primary" type="button" data-fix="${x.fix.idx}">${esc(x.fix.label)}</button>`:''}${act?`<button class="btn small" type="button" data-catact="${x.cat}">${esc(act)}</button>`:''}</div>
+    <div class="iv-nav"><button class="btn small" type="button" data-iv="prev"${iss.length>1?'':' disabled'}>${icon('chevron-left')}Previous</button><span class="stats">${i+1} of ${iss.length}</span><button class="btn small" type="button" data-iv="next"${iss.length>1?'':' disabled'}>Next${icon('chevron-right')}</button></div>
+  </div>`;
+}
+function ckNav(step){
+  const iss=state.issues||[]; if (!iss.length) return;
+  const cur=state.insp ? iss.findIndex(x=>x.key===state.insp.key) : -1;
+  const next = cur<0 ? 0 : (cur+step+iss.length)%iss.length;
+  openIssueInspector(next); ckLocate(iss[next]); ckScrollRow(next);
+}
+function ckScrollRow(idx, flash){
+  const li=document.querySelector(`#checks li.ck-i[data-idx="${idx}"]`); if (!li) return;
+  li.scrollIntoView({block:'nearest', behavior:'smooth'});
+  if (flash){ li.classList.remove('hl'); void li.offsetWidth; li.classList.add('hl'); }
+}
+$('#issueInspector').addEventListener('click', e=>{
+  const t=e.target;
+  let b=t.closest('.loc'); if (b){ ckSeeSide(); showPid(b.dataset.pid); if (window.innerWidth<=980) closeInspector(); return; }
+  b=t.closest('[data-fix]'); if (b){ const fn=state.fixes[+b.dataset.fix]; if (fn) fn(); return; }
+  b=t.closest('[data-catact]'); if (b){ ckRunAct(b.dataset.catact); return; }
+  b=t.closest('[data-iv]'); if (!b) return;
+  const how=b.dataset.iv; const iss=state.issues||[];
+  if (how==='prev') ckNav(-1); else if (how==='next') ckNav(1);
+  else if (how==='close') closeInspector();
+  else if (how==='locate'){ const x=state.insp && iss.find(i=>i.key===state.insp.key); ckLocate(x, true); }
+});
+// only one inspector panel at a time; its title follows the panel that shows
+{
+  const baseSync=syncInspector;
+  syncInspector=function(title){
+    const iss=$('#issueInspector');
+    if (iss && !iss.hidden){
+      const other=['selTools','tagInspector'].some(id=>{ const el=$('#'+id); return el && !el.hidden; });
+      if (other){ iss.hidden=true; state.insp=null; } else title='Issue';
+    }
+    baseSync(title);
+    if (iss && iss.hidden && state.insp){ state.insp=null; }
+    ckMarkSelected();
+  };
+}
+// ----- the Validate list: filters, details, actions -----
+function ckClick(e){
+  const t=e.target;
+  let b=t.closest('.loc'); if (b){ ckSeeSide(); showPid(b.dataset.pid); return; }
+  b=t.closest('[data-ckf]'); if (b){
+    const k=b.dataset.ckf;
+    if (k==='resolved'){ state.ckResolvedOpen=!state.ckResolvedOpen; ckRender(state.checkCounts.e, state.checkCounts.w); if (state.ckResolvedOpen) $('#ckResolved').scrollIntoView({block:'nearest', behavior:'smooth'}); }
+    else { state.ckShow[k]=!state.ckShow[k]; ckRender(state.checkCounts.e, state.checkCounts.w); }
+    const again=document.querySelector(`#checkSummary [data-ckf="${k}"]`); if (again) again.focus();
+    return;
+  }
+  b=t.closest('[data-detail]'); if (b){ openIssueInspector(+b.dataset.detail); return; }
+  b=t.closest('[data-catact]'); if (b){ ckRunAct(b.dataset.catact); return; }
+  b=t.closest('#btnRecheck'); if (b){ b.disabled=true; scheduleRealCheck(); return; }
+}
+$('#ckResolved').addEventListener('toggle', e=>{ const d=e.currentTarget; if (!!state.ckResolvedOpen!==d.open){ state.ckResolvedOpen=d.open; const b=document.querySelector('#checkSummary [data-ckf="resolved"]'); if (b) b.setAttribute('aria-pressed', String(d.open)); } });
+$('#lblCheck').addEventListener('keydown', e=>{ if (e.key==='Enter' || e.key===' '){ e.preventDefault(); $('#inCheck').click(); } });
+// ----- margin flags on the paper -----
+function ckFlagSpecs(){
+  const out=[]; for (const x of (state.issues||[])){ if (!x.letter) continue; for (const pid of x.locs) out.push({fk:x.idx+'@'+pid, pid, x}); } return out;
+}
+function decoratePaper(){
+  const paper=$('#paper'); if (!paper) return;
+  let layer=paper.querySelector(':scope>.flag-layer');
+  const specs = state.view==='source' && state.an ? ckFlagSpecs() : [];
+  const has=specs.length>0;
+  if (has!==!!state.ckLegendHas){ state.ckLegendHas=has; renderLegend(); }
+  if (!has){ if (layer) layer.remove(); return; }
+  if (!layer){ layer=document.createElement('div'); layer.className='flag-layer'; paper.appendChild(layer); }
+  else if (layer!==paper.lastElementChild) paper.appendChild(layer);
+  const have=new Map([...layer.querySelectorAll('.mflag')].map(b=>[b.dataset.fk, b]));
+  const paras=new Map(); paper.querySelectorAll('p[data-pid]').forEach(p=>{ if (!paras.has(p.dataset.pid)) paras.set(p.dataset.pid, p); });
+  const count=new Map(); for (const s of specs) if (paras.has(s.pid)) count.set(s.pid, (count.get(s.pid)||0)+1);
+  const pr=paper.getBoundingClientRect(); const padL=parseFloat(getComputedStyle(paper).paddingLeft)||0;
+  const narrow=padL<=28; const size=narrow?16:20; const pitch=size+4;
+  const selKey=state.insp && state.insp.key;
+  const rects=new Map(); for (const [pid,p] of paras) if (count.has(pid)) rects.set(pid, p.getBoundingClientRect());
+  const slot=new Map(); const keep=new Set(); const frag=document.createDocumentFragment();
+  for (const s of specs){
+    const r=rects.get(s.pid); if (!r) continue;
+    const x=s.x; keep.add(s.fk);
+    let b=have.get(s.fk);
+    if (!b){ b=document.createElement('button'); b.type='button'; b.dataset.fk=s.fk; b.dataset.tipStart=''; b.innerHTML='<span class="fl" aria-hidden="true"></span>'; frag.appendChild(b); }
+    const plain=ckPlain(x.html);
+    b.className=`mflag lvl-${x.level}${selKey===x.key?' on':''}`; b.dataset.issue=x.idx; b.dataset.pid=s.pid;
+    b.setAttribute('aria-label', `Issue ${x.letter}: ${plain.slice(0,120)}`);
+    b.dataset.tip=`${x.letter}: ${CK_CATS[x.cat].name}. ${plain.slice(0,70)}${plain.length>70?'…':''}`;
+    const fl=b.firstChild; if (fl.textContent!==x.letter) fl.textContent=x.letter;
+    const k=slot.get(s.pid)||0; slot.set(s.pid, k+1);
+    const n=count.get(s.pid);
+    let left, top=r.top-pr.top+(narrow?1:2);
+    if (narrow){ left=2; top+=k*(size+3); } else { left=Math.max(0, Math.min(20, padL-8-n*pitch))+k*pitch; }
+    b.style.left=left+'px'; b.style.top=Math.round(top)+'px';
+  }
+  for (const [fk,b] of have) if (!keep.has(fk)) b.remove();
+  layer.appendChild(frag);
+}
+let ckFlagTimer;
+function ckFlagsLater(){ clearTimeout(ckFlagTimer); ckFlagTimer=setTimeout(decoratePaper, 120); }
+window.addEventListener('resize', ckFlagsLater);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>decoratePaper());
+if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', ckFlagsLater);
+if (window.ResizeObserver) new ResizeObserver(ckFlagsLater).observe($('#paper'));
+{
+  const pp=$('#paper');
+  const outline=(b, on)=>{
+    const layer=pp.querySelector(':scope>.flag-layer'); if (!layer) return;
+    let o=layer.querySelector('.flag-outline');
+    if (!on){ if (o) o.classList.remove('show'); return; }
+    const p=[...pp.querySelectorAll('p[data-pid]')].find(q=>q.dataset.pid===b.dataset.pid); if (!p) return;
+    if (!o){ o=document.createElement('div'); o.className='flag-outline'; layer.appendChild(o); }
+    const r=p.getBoundingClientRect(), pr=pp.getBoundingClientRect();
+    o.className='flag-outline show '+(b.classList.contains('lvl-error')?'lvl-error':'lvl-warn');
+    o.style.left=(r.left-pr.left-2)+'px'; o.style.top=(r.top-pr.top-2)+'px'; o.style.width=(r.width+4)+'px'; o.style.height=(r.height+4)+'px';
+  };
+  pp.addEventListener('mouseover', e=>{ const b=e.target.closest('.mflag'); if (b) outline(b, true); });
+  pp.addEventListener('mouseout', e=>{ const b=e.target.closest('.mflag'); if (b) outline(b, false); });
+  pp.addEventListener('focusin', e=>{ const b=e.target.closest('.mflag'); if (b) outline(b, true); });
+  pp.addEventListener('focusout', e=>{ const b=e.target.closest('.mflag'); if (b) outline(b, false); });
+  pp.addEventListener('mouseup', e=>{ if (e.target.closest('.mflag')) e.stopPropagation(); }, true);
+  pp.addEventListener('click', e=>{
+    const b=e.target.closest('.mflag'); if (!b) return;
+    e.stopPropagation();
+    const idx=+b.dataset.issue;
+    setTab('check', NARROW.matches ? undefined : {open:true});
+    openIssueInspector(idx);
+    ckScrollRow(idx, true);
+  });
+}
+// the empty state of "Test every employee" points at where the data goes
+$('#btnBatchLoad').addEventListener('click', ()=>{
+  setTab('doc', {open:true});
+  const fb=$('#filesBlock'); if (fb && fb.classList.contains('collapsed')) setBlockCollapsed(fb, false);
+  const d=$('#dropCsv'); if (d){ d.scrollIntoView({block:'center', behavior:'smooth'}); d.classList.add('over'); setTimeout(()=>d.classList.remove('over'), 1400); }
+});
+$('#batchOut').addEventListener('change', e=>{
+  if (e.target.id!=='batchOnlyBad') return;
+  state.batchOnlyBad=e.target.checked;
+  const B=state.batch; if (!B || B.running) return;
+  const t=$('#batchTable'); if (t){ t.innerHTML=batchTableHtml(B); const c=$('#batchOnlyBad'); if (c) c.focus(); }
+});
 /* §export-js */
 initTeam(); syncSettingsUI(); updateUndoButtons(); setTab(lsGet('lt.tab','doc')); renderLegend(); probeServer();
 (async ()=>{
