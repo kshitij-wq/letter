@@ -601,6 +601,202 @@ body.resizing{cursor:col-resize;user-select:none}
 @media (prefers-reduced-motion:reduce){.row.flash{animation:none}}
 /* §tags */
 /* §logic */
+/* inspector: selection, condition builder, picking */
+.sel-tools{display:block;padding:var(--s4)}
+.sel-tools input:not(.mono){font-family:var(--font-ui)}
+.sel-tools .notice{margin:0}
+.sel-tools .notice code{font-family:var(--font-mono);font-size:12px;word-break:break-word}
+.ins{display:grid;gap:var(--s4);width:100%;min-width:0}
+.ins-sec{display:grid;gap:var(--s2);min-width:0}
+.ins-h{margin:0;font-size:var(--fs-md);font-weight:600}
+.ins-sec textarea,.ins-sec>input{width:100%;min-width:0}
+.ins-sec textarea{resize:vertical}
+.ins-sel{display:grid;gap:4px;padding:10px 12px;border:1px solid var(--line-2);border-radius:var(--r-ctl);background:var(--surface-2);font-size:var(--fs-sm);min-width:0}
+.ins-sel-t{font-size:var(--fs-md);overflow-wrap:anywhere}
+.ins-sel-t b{font-weight:600}
+.ins-quote{font-family:var(--font-letter);color:var(--muted)}
+.ins-sel .ins-ctx{color:var(--muted)}
+.ins-sel .ins-ctx code{font-family:var(--font-mono);font-size:12px;color:var(--cond);word-break:break-word}
+.ins-acts-row{display:flex;gap:var(--s2);flex-wrap:wrap;align-items:center}
+.ins-hint{margin:0;font-size:var(--fs-sm);color:var(--muted)}
+.ins-adv{border-top:1px solid var(--line-2);padding-top:var(--s3);margin-top:0}
+.ins-adv>summary{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);min-height:28px;list-style:none;cursor:pointer;font-size:var(--fs-sm);font-weight:600;color:var(--muted)}
+.ins-adv>summary::-webkit-details-marker{display:none}
+.ins-adv>summary::after{content:"";flex:none;width:16px;height:16px;background:currentColor;-webkit-mask:var(--chev) center/contain no-repeat;mask:var(--chev) center/contain no-repeat;transition:transform .15s}
+.ins-adv>summary:hover{color:var(--ink)}
+.ins-adv[open]>summary{margin-bottom:var(--s3)}
+.ins-adv[open]>summary::after{transform:rotate(180deg)}
+.ins-adv>summary code{font-family:var(--font-mono);font-size:12px}
+.ins-adv .ins-quick,.ins-adv .ins-row{margin-bottom:var(--s2)}
+.ins-adv #lgText{margin-bottom:var(--s2);color:var(--ink)}
+.ins-row{gap:var(--s2)}
+.ins-row>select,.ins-row>.combo-wrap{flex:1 1 140px}
+.ins-quick .chip{min-height:28px}
+/* selected words: a list of options, each with a line on what it does */
+.ins-quote-box{margin:0;padding:10px 12px;border:1px solid var(--line-2);border-radius:var(--r-ctl);background:var(--surface-2);font-family:var(--font-letter);font-size:var(--fs-lg);overflow-wrap:anywhere}
+.ins-acts{display:grid;gap:var(--s2)}
+.act{display:grid;gap:2px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--panel);color:var(--ink);text-align:left;cursor:pointer;transition:background-color .15s,border-color .15s}
+.act:hover{border-color:var(--muted);background:var(--surface-2)}
+.act:active{transform:translateY(.5px)}
+.act .act-t{font-weight:600;font-size:var(--fs-md)}
+.act .act-d{color:var(--muted);font-size:var(--fs-sm)}
+.act.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.act.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.act.primary .act-d{color:inherit;opacity:.9}
+/* condition builder */
+.cb{display:grid;gap:var(--s3);padding:0;border:0;border-radius:0;background:none}
+.cb-mode{justify-self:start}
+.cb-mode button.cb-blocked{opacity:.55}
+.cb-rule{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s2);padding:var(--s3);border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--surface-2);min-width:0}
+.cb-f{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s2);align-items:center}
+.cb-f.solo{grid-template-columns:minmax(0,1fr)}
+.cb-rule .combo-wrap{grid-column:auto}
+.cb-t{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s2)}
+.cb-t.noval{grid-template-columns:minmax(0,1fr)}
+.cb-rule input,.cb-rule select{width:100%;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-ctl)}
+.cb-rule input.cb-field{font-family:var(--font-mono);font-size:12.5px}
+.cb-join{display:flex;align-items:center;gap:var(--s2);margin:-2px 0;color:var(--muted);font-size:var(--fs-sm);font-weight:600}
+.cb-join::before,.cb-join::after{content:"";flex:1;border-top:1px solid var(--line)}
+.cb-join select{width:auto;min-height:28px;padding:2px 24px 2px 8px;border:1px solid var(--line);border-radius:var(--r-ctl);background-color:var(--panel);font-size:var(--fs-sm)}
+.cb-chips{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;font-size:var(--fs-sm)}
+.cb-chips .hint{margin-right:2px}
+.cb-chips .chip{min-height:28px;font-size:var(--fs-sm);padding:0 10px}
+.cb-chips .chip .n{color:var(--muted);font-size:var(--fs-xs)}
+.cb-chips .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.cb-chips .chip.on .n{color:inherit}
+.cb-chips .chip .ic{width:12px;height:12px;stroke-width:2.2}
+.cb-foot{display:flex;gap:var(--s2);flex-wrap:wrap;align-items:center;font-size:var(--fs-sm)}
+.cb-foot select{flex:1 1 150px;min-width:0;min-height:32px;font-size:var(--fs-sm)}
+.cb-ai{display:flex;gap:var(--s2);align-items:center}
+.cb-ai input{flex:1;min-width:0}
+.cb-hand{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap;font-size:var(--fs-sm);color:var(--ink)}
+.cb-hand>span{flex:1 1 180px}
+.cb-hand .ic{color:var(--info);margin-right:4px}
+/* the Jinja editor: the textarea is the real input, a coloured copy of the text sits under it */
+.cb-code{display:grid;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--panel);transition:border-color .15s}
+.cb-code:focus-within{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:-1px}
+.cb-code.bad,.cb-code.bad:focus-within{border-color:var(--err)}
+.cb-code.bad:focus-within{outline-color:var(--err)}
+.cb-code>*{grid-area:1/1;margin:0;padding:6px 8px;border:0;font-family:var(--font-mono);font-size:12.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;letter-spacing:0;tab-size:2}
+.cb-hl{min-height:calc(3 * 1.55em + 12px);color:var(--ink);pointer-events:none}
+.cb-code textarea.cb-rawin{width:100%;height:100%;min-height:0;resize:none;overflow:hidden;background:transparent;color:transparent;caret-color:var(--ink);border-radius:var(--r-ctl);padding:6px 8px}
+.cb-code textarea.cb-rawin:focus-visible{outline:none}
+.cb-code textarea.cb-rawin::selection{background:var(--accent-soft);color:transparent}
+.cb-code textarea.cb-rawin::placeholder{color:var(--muted)}
+.tk-kw{color:var(--cond)}.tk-str{color:var(--ok)}.tk-num{color:var(--warn)}.tk-fn{color:var(--info)}.tk-field{color:var(--ink)}
+@media (forced-colors:active){.cb-code textarea.cb-rawin{color:CanvasText}.cb-hl{display:none}}
+/* live result */
+.cb-info{display:grid;gap:6px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--panel);font-size:var(--fs-sm);min-width:0}
+.cb-info:empty{display:none}
+.cb-en{font-size:var(--fs-md);font-weight:600;overflow-wrap:anywhere}
+.cb-bad{display:flex;gap:6px;align-items:flex-start;color:var(--err)}
+.cb-bad .ic{margin-top:1px}
+.cb-line{display:flex;gap:6px;flex-wrap:wrap;align-items:center;color:var(--ink)}
+.cb-line:empty{display:none}
+.cb-line .hint{color:var(--muted)}
+.cb-jinja summary{cursor:pointer;font-size:var(--fs-xs);font-weight:600;color:var(--muted)}
+.cb-jinja summary:hover{color:var(--ink)}
+.cb-tag{display:block;margin-top:6px;padding:6px 8px;border-radius:var(--r-ctl);background:var(--surface-2);font-family:var(--font-mono);font-size:12px;color:var(--ink);white-space:pre-wrap;word-break:break-word}
+.cb-note{font-size:var(--fs-sm);color:var(--muted);font-style:normal}
+/* text by value */
+.sw .set-row>span{font-size:var(--fs-sm);font-weight:600}
+.sw-cases{display:grid;gap:var(--s2)}
+.sw-case{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s2);align-items:center;padding:var(--s3);border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--surface-2)}
+.sw-case>textarea,.sw-case>.sw-fixed{grid-column:1/-1}
+.sw-case .sw-v{width:100%;min-width:0;font-family:var(--font-mono)}
+.sw-case textarea,.sw .set-row textarea,.sw .set-row select,#swWhere,#swMatch{width:100%;font-family:var(--font-ui);resize:vertical}
+.sw-fixed{padding:6px 8px;border:1px dashed var(--line);border-radius:var(--r-ctl);background:var(--panel);font-family:var(--font-letter);font-size:var(--fs-md);overflow-wrap:anywhere}
+#swPrev{display:block;padding:6px 8px;border-radius:var(--r-ctl);background:var(--surface-2);font-size:12px;color:var(--ink);white-space:pre-wrap;word-break:break-word}
+#swPrev:empty{display:none}
+/* picking: the notice sits in the inspector, the banner over the letter */
+.pick-banner{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;margin:12px var(--gutter) 0;padding:8px 12px;border-radius:var(--r-ctl);background:var(--warn-soft);color:var(--ink);font-size:var(--fs-sm)}
+.pick-banner .ic{color:var(--warn)}
+.pick-banner>span{flex:1;min-width:0}
+.pick-banner code{font-family:var(--font-mono);font-size:12px}
+body.picking #paper p.lp.body{cursor:crosshair}
+@media (max-width:1280px){
+  body.picking .inspector{top:auto;left:0;right:0;bottom:0;width:auto;max-height:45vh;border-top:1px solid var(--line)}
+}
+/* conditions on the paper */
+.paper .lg-line{display:flex;align-items:center;gap:8px;margin:.35em 0;padding:2px 4px 2px calc(var(--d,0) * 10px);font-family:var(--font-ui);font-size:12px;line-height:1.35;color:var(--paper-ink);cursor:pointer;border-radius:3px;transition:background-color .15s}
+.paper .lg-line:hover{background:var(--cond-soft)}
+.paper .lg-line::after{content:"";flex:1;min-width:12px;border-top:1px solid var(--paper-line)}
+.paper .lg-line .badge{flex:none}
+.paper .lg-line .lg-en-t{min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.paper .lg-line code{flex:0 1 auto;min-width:0;padding:0 5px;border:0;border-radius:3px;background:var(--cond-soft);color:var(--cond);font-family:var(--font-mono);font-size:11.5px;white-space:pre-wrap;word-break:break-word}
+.paper .lg-line .lg-meta{order:0;display:inline-flex;align-items:center;gap:4px;flex:none;padding:0 6px;border-radius:4px;background:var(--err-soft);color:var(--err);font-size:11px;font-weight:600}
+.paper .lg-line .lg-meta:empty{display:none}
+.paper .lg-line .lg-meta .ic{width:12px;height:12px}
+.paper .lg-line.st-open code,.paper .lg-line.st-stray code,.paper .lg-line.st-cells code{background:var(--err-soft);color:var(--err)}
+.paper .lg-chip{background:var(--cond-soft);color:var(--cond);border-color:var(--cond);font-family:var(--font-mono)}
+.paper p.lp.in-block,.paper p.lp.in-block.open-block{position:relative;padding-left:4px;background-image:none}
+.paper p.lp.in-block::after{content:"";position:absolute;left:calc(-16px - var(--d,1) * 6px);top:1px;bottom:-.4em;width:2px;border-radius:1px;background:var(--cond);pointer-events:none}
+.paper p.lp.in-block.in-else::after{background:repeating-linear-gradient(to bottom,var(--cond) 0 2px,transparent 2px 5px)}
+.paper p.lp.in-block.open-block::after{background:repeating-linear-gradient(to bottom,var(--err) 0 6px,transparent 6px 10px)}
+.paper td p.lp.in-block::after{left:-3px}
+@media (max-width:640px){.paper p.lp.in-block::after{left:calc(-8px - var(--d,1) * 4px)}}
+.legend .sw-cond{width:6px;height:12px;margin-right:6px;border-radius:0;outline:0;border-left:2px solid var(--cond);border-top:2px solid var(--cond);border-bottom:2px solid var(--cond);background:none}
+/* conditions step */
+.notice.err{background:var(--err-soft);color:var(--ink)}
+.notice.err>.ic{color:var(--err)}
+.lg-alerts{gap:var(--s2);margin:0 0 var(--s3)}
+.lg-alerts .notice,#logicUnplaced .notice{align-items:flex-start}
+.lg-alerts .notice b,#logicUnplaced .notice b{font-family:var(--font-mono);font-weight:500;font-size:12px;word-break:break-word}
+.lg-alert-act{display:flex;gap:6px;flex-wrap:wrap;flex:1 1 100%}
+#logicUnplaced{margin:0 0 var(--s3)}
+#logicUnplaced .notice{margin-bottom:var(--s2)}
+.lg-un{display:flex;gap:6px;align-items:center;flex-wrap:wrap;flex:1 1 100%;font-size:var(--fs-sm)}
+.lg-un code{font-family:var(--font-mono);font-size:12px;word-break:break-word}
+.lg-intro{margin:0 0 var(--s3)}
+.lg-list{margin:0;gap:0}
+.lg-item{display:grid;gap:6px;padding:12px 0 12px calc(var(--d,0) * 14px);border-top:1px solid var(--line-2);background-image:none;background-size:auto;position:relative}
+.lg-item:first-child{border-top:0}
+.lg-item.nest::before{content:"";position:absolute;left:calc(var(--d,0) * 14px - 8px);top:10px;bottom:10px;width:1px;background:var(--line)}
+.lg-head{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0}
+.lg-head .lg-del{margin-left:auto}
+.lg-en{display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline;margin:0;font-size:var(--fs-md);font-weight:600;overflow-wrap:anywhere}
+.lg-en .lg-count{font-size:var(--fs-sm)}
+.lg-count{font-weight:500;color:var(--muted)}
+.lg-count.none{color:var(--err);font-weight:600}
+.lg-where{display:inline-flex;align-items:baseline;gap:6px;max-width:100%;min-width:0;min-height:24px;font-size:var(--fs-sm);font-weight:500;color:var(--muted);text-decoration:none;text-align:left}
+.lg-where:hover{color:var(--accent);text-decoration:underline}
+.lg-where .lg-page{flex:none;font-variant-numeric:tabular-nums}
+.lg-where .lg-snip{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lg-row-act{display:flex;gap:var(--s2);flex-wrap:wrap;align-items:center}
+.lg-jinja{font-size:var(--fs-sm)}
+.lg-jinja>summary{cursor:pointer;min-height:24px;font-size:var(--fs-xs);font-weight:600;color:var(--muted);display:flex;align-items:center}
+.lg-jinja>summary:hover{color:var(--ink)}
+.lg-jinja[open]>summary{margin-bottom:var(--s2)}
+.lg-jinja .lg-text,.lg-jinja .lg-place{width:100%;margin-bottom:var(--s2)}
+.lg-jinja .lg-text{font-family:var(--font-mono);font-size:12.5px;color:var(--ink)}
+.lg-code{display:block;padding:6px 8px;border-radius:var(--r-ctl);background:var(--surface-2);font-family:var(--font-mono);font-size:12px;color:var(--ink);word-break:break-word}
+.lg-in{font-size:var(--fs-xs);color:var(--muted)}
+.lg-empty{list-style:none}
+.lg-empty .empty-state{padding:24px 8px}
+.lg-empty .empty-state .btn{margin-top:var(--s2)}
+.badge.cond{display:inline-flex;align-items:center;gap:4px;padding:0 6px;border-radius:4px;background:var(--cond-soft);font-weight:600}
+.badge .ic{width:12px;height:12px}
+/* the table-cell hint chip is also called .ghost: keep ghost buttons looking like buttons */
+.btn.ghost{display:inline-flex;max-width:none;padding:5px 12px;border-style:solid;border-radius:var(--r-ctl);font-family:var(--font-ui);font-size:var(--fs-md);overflow-wrap:normal;vertical-align:baseline}
+.btn.small.ghost{padding:3px 10px;font-size:var(--fs-sm)}
+.btn.icon.ghost{padding:0}
+/* combine two versions */
+.small-drop{display:flex;flex-direction:row;align-items:center;gap:10px;margin:var(--s3) 0}
+.small-drop>.ic{width:20px;height:20px;color:var(--muted)}
+.small-drop .drop-body{display:grid;gap:2px;min-width:0}
+.mg-list{margin:var(--s3) 0;gap:var(--s2)}
+.mg-h{border:1px solid var(--line);border-radius:var(--r-ctl);padding:var(--s3);gap:var(--s2);background:var(--panel)}
+.mg-cond{min-height:32px;padding:5px 8px;font-size:12.5px}
+#mergeBody .set-row{margin:var(--s3) 0}
+#mergeBody .t-actions{margin-top:var(--s3)}
+#mergeBody .check.small{margin-top:var(--s2)}
+#mgCond{flex:1 1 100%}
+.lg-en.quiet{font-size:var(--fs-sm);font-weight:500;color:var(--muted)}
+.lg-expr{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--cond);word-break:break-word}
+.notice .btn .ic{color:inherit}
+.notice .btn.primary{color:var(--accent-ink)}
+.ins-sec:has(#swPrev:empty){display:none}
+.paper .lg-line:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 /* §check */
 /* Validate: summary strip, engine line, grouped issues */
 .stats.err{color:var(--err);font-weight:600} .stats.warn{color:var(--warn);font-weight:600} .stats.ok{color:var(--ok);font-weight:600}
@@ -913,16 +1109,16 @@ details.bt-all>summary{cursor:pointer;min-height:28px;display:flex;align-items:c
 
       <div class="tabpanel" id="panel-logic" role="tabpanel" aria-labelledby="tab-logic" hidden>
         <div class="block" id="logicBlock">
-          <div class="block-head"><h2>Logic tags</h2><span class="stats" id="logicStats"></span></div>
+          <div class="block-head"><h2>Conditions</h2><span class="stats" id="logicStats"></span></div>
+          <p class="hint lg-intro">Click a paragraph in the letter to show it only for some employees. Select words to add a condition inside a sentence.</p>
           <div id="logicAlerts" class="lg-alerts"></div>
           <div id="logicUnplaced"></div>
-          <p class="hint">Click any paragraph in the letter to add <code class="mono">if</code>, <code class="mono">else if</code>, <code class="mono">else</code> or <code class="mono">end if</code> there, or select words to add a condition inside a sentence. Blocks can open on one page and close on another; open blocks are flagged here until you close them. Headers and footers work too, but each needs its own end if.</p>
           <ol class="lg-list" id="logicList"></ol>
         </div>
         <div class="block" id="mergeBlock">
           <div class="block-head"><h2>Combine two versions</h2><span class="stats" id="mergeStats"></span></div>
           <p class="hint">Have two versions of this letter, such as with and without promotion? Upload the other one as Letter B. Paragraphs that differ become if / else blocks in this letter.</p>
-          <label class="drop small-drop" id="dropMerge"><input type="file" id="inMerge" accept=".docx"><span class="drop-title">Letter B</span><span class="drop-hint">.docx · drop or click</span></label>
+          <label class="drop small-drop" id="dropMerge"><input type="file" id="inMerge" accept=".docx"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg><span class="drop-body"><span class="drop-title">Letter B</span><span class="drop-hint">.docx · drop or click</span></span></label>
           <div id="mergeBody"></div>
         </div>
       </div>
@@ -1790,12 +1986,13 @@ function logicEntries(an){
 }
 function logicRails(entries, an){
   an=an||state.an; const map=new Map(); let stack=[], i=0, path=null; const kinds=new Set(['body','header','footer']);
-  const apply=e=>{ if (e.kw==='if'||e.kw==='for') stack.push(e); else if ((e.kw==='endif'&&stack.length&&stack[stack.length-1].kw==='if') || (e.kw==='endfor'&&stack.length&&stack[stack.length-1].kw==='for')) stack.pop(); };
+  const branch=new Map();   // the branch each open if is in now: '' (the if itself), 'elif' or 'else'
+  const apply=e=>{ if (e.kw==='if'||e.kw==='for'){ stack.push(e); branch.set(e,''); } else if ((e.kw==='elif'||e.kw==='else') && stack.length && stack[stack.length-1].kw==='if') branch.set(stack[stack.length-1], e.kw); else if ((e.kw==='endif'&&stack.length&&stack[stack.length-1].kw==='if') || (e.kw==='endfor'&&stack.length&&stack[stack.length-1].kw==='for')) stack.pop(); };
   for (const p of an.paras){
     if (p.fallback || !kinds.has(p.kind)) continue;
     if (p.path!==path){ stack=[]; path=p.path; }
     while (i<entries.length && (entries[i].order<p.order || (entries[i].order===p.order && entries[i].rank<1))){ if (entries[i].path===p.path) apply(entries[i]); i++; }
-    if (stack.length) map.set(p.pid, {depth:stack.length, open:stack.some(e=>e.status==='open'), top:stack[stack.length-1]});
+    if (stack.length) map.set(p.pid, {depth:stack.length, open:stack.some(e=>e.status==='open'), top:stack[stack.length-1], branch:branch.get(stack[stack.length-1])||''});
     while (i<entries.length && entries[i].order===p.order){ apply(entries[i]); i++; }
   }
   return map;
@@ -1818,29 +2015,43 @@ function renderLogic(){
   const L=state.lg;
   const open=L.filter(e=>e.status==='open'), stray=L.filter(e=>e.status==='stray'), cells=L.filter(e=>e.status==='cells' && e.kw.startsWith('end'));
   const probs=open.length+stray.length+cells.length;
-  $('#logicStats').textContent = L.length ? (probs ? `${probs} to fix` : `${L.length} tag${L.length>1?'s':''} · all closed`) : '';
-  $('#logicStats').style.color = probs ? 'var(--err)' : 'var(--ok)';
+  const nCond=L.filter(e=>e.kw==='if').length;
+  const st=$('#logicStats');
+  st.textContent = L.length ? (probs ? `${probs} to fix` : `${nCond ? `${nCond} condition${nCond>1?'s':''}` : `${L.length} tag${L.length>1?'s':''}`} · all closed`) : '';
+  st.classList.toggle('bad', !!probs); st.classList.toggle('good', !!L.length && !probs);
   const where=e=>pageLabel(e.p) ? (e.p.kind==='body' ? 'on '+pageLabel(e.p)+' ' : 'in the '+e.p.kind+' ') : '';
+  const alert=(text, acts)=>`<div class="notice err" role="group">${icon('alert-circle')}<span>${text}</span><div class="lg-alert-act">${acts}</div></div>`;
+  const showBtn=e=>`<button class="btn small" type="button" data-show="${esc(e.pid)}">Show</button>`;
   let a='';
-  for (const e of open) a+=`<div class="lg-alert"><div><b>${esc(e.kw==='for'?'for':'if')} ${esc(e.expr.slice(0,60))}</b> is not closed yet. Opened ${where(e)}${e.src==='doc'?'(already in the letter) ':''}at “${esc(snippet(e.p,50))}”.${e.p.kind!=='body'?' A header or footer needs its own end if.':''}</div><div class="lg-alert-act"><button class="btn small primary" type="button" data-close="${esc(e.key)}">Choose where it ends</button><button class="btn small" type="button" data-show="${esc(e.pid)}">Show</button></div></div>`;
-  for (const e of stray) a+=`<div class="lg-alert"><div><b>${esc(e.text)}</b> ${where(e)}has no open ${e.kw==='endfor'?'for':'if'} above it. Delete it, or add the ${e.kw==='endfor'?'for':'if'} before it.</div><div class="lg-alert-act"><button class="btn small" type="button" data-show="${esc(e.pid)}">Show</button></div></div>`;
-  for (const e of cells) a+=`<div class="lg-alert"><div><b>${esc(e.opener.text.slice(0,50))}</b> and its <b>${esc(e.text)}</b> are in different table cells. In a table, keep both in the same cell.</div><div class="lg-alert-act"><button class="btn small" type="button" data-show="${esc(e.pid)}">Show</button></div></div>`;
+  for (const e of open) a+=alert(`<b>${esc(e.kw==='for'?'for':'if')} ${esc(e.expr.slice(0,60))}</b> is not closed yet. Opened ${where(e)}${e.src==='doc'?'(already in the letter) ':''}at “${esc(snippet(e.p,50))}”.${e.p.kind!=='body'?' A header or footer needs its own end if.':''}`, `<button class="btn small primary" type="button" data-close="${esc(e.key)}">Choose where it ends</button>${showBtn(e)}`);
+  for (const e of stray) a+=alert(`<b>${esc(e.text)}</b> ${where(e)}has no open ${e.kw==='endfor'?'for':'if'} above it. Delete it, or add the ${e.kw==='endfor'?'for':'if'} before it.`, showBtn(e));
+  for (const e of cells) a+=alert(`<b>${esc(e.opener.text.slice(0,50))}</b> and its <b>${esc(e.text)}</b> are in different table cells. In a table, keep both in the same cell.`, showBtn(e));
   $('#logicAlerts').innerHTML=a;
   const U=state.unplaced||[];
-  $('#logicUnplaced').innerHTML = U.length ? `<div class="lg-alert warnish"><div><b>${U.length} tag${U.length>1?'s':''} need${U.length>1?'':'s'} a place.</b> ${U.length>1?'Their paragraphs aren\'t':'Its paragraph isn\'t'} in this version of the letter.</div>${U.map((u,k)=>`<div class="lg-un"><code>${esc(String(u.text).slice(0,70))}</code><span class="hint">${u.anchor&&u.anchor.text?'was at “'+esc(u.anchor.text.slice(0,50))+'”':esc(u.reason||'')}</span><button class="btn small" type="button" data-place="${k}">Place it</button><button class="del" type="button" data-undel="${k}" aria-label="Discard this tag">×</button></div>`).join('')}</div>` : '';
+  $('#logicUnplaced').innerHTML = U.length ? `<div class="notice warn" role="group">${icon('flag')}<span><b>${U.length} tag${U.length>1?'s':''} need${U.length>1?'':'s'} a place.</b> ${U.length>1?'Their paragraphs aren\'t':'Its paragraph isn\'t'} in this version of the letter.</span>${U.map((u,k)=>`<div class="lg-un"><code>${esc(String(u.text).slice(0,70))}</code><span class="hint">${u.anchor&&u.anchor.text?'was at “'+esc(u.anchor.text.slice(0,50))+'”':esc(u.reason||'')}</span><button class="btn small" type="button" data-place="${k}">Place it</button><button class="btn icon small ghost" type="button" data-undel="${k}" aria-label="Discard this tag">${icon('x')}</button></div>`).join('')}</div>` : '';
   const rows=L.filter(e=>!(e.src==='you' && e.sub>0));
+  if (!state.lgOpen) state.lgOpen=new Set();
   $('#logicList').innerHTML = rows.length ? rows.map(e=>{
     const subs=e.src==='you' ? L.filter(x=>x.id===e.id) : [e];
     const stt=(subs.find(x=>x.status!=='ok')||{}).status||'ok'; const st=stt==='ok'?'':' st-'+stt;
-    const pl = e.src!=='you' ? `<span class="lg-in">already in the letter</span>` : e.place==='at' ? `<span class="lg-in">inside the paragraph</span>` : `<select class="lg-place" data-lid="${e.id}" id="lgp-${e.id}" aria-label="Where the tag goes">${PLACES.map(([v,l])=>`<option value="${v}"${e.place===v?' selected':''}>${esc(l)}</option>`).join('')}</select>`;
-    const txt = e.src==='you' ? `<input class="lg-text mono" data-lid="${e.id}" id="lgt-${e.id}" value="${esc(e.full)}" spellcheck="false" aria-label="Tag text">` : `<code class="lg-code">${esc(e.text)}</code>`;
-    const kwl = e.kw==='elif'?'else if':e.kw==='endif'?'end if':e.kw==='endfor'?'end for':e.kw||'tag';
-    const en = (e.kw==='if'||e.kw==='elif') ? condEnglish(e.expr) : '';
+    const problem = stt==='open' ? 'Not closed' : stt==='stray' ? `No matching ${e.kw==='endfor'||e.kw==='for'?'for':'if'}` : stt==='cells' ? 'Different cells' : '';
+    const isCond = e.kw==='if' || e.kw==='elif';
+    const en = isCond ? condEnglish(e.expr) : '';
+    const lead = e.kw==='elif' ? 'Else, shown when' : 'Shown when';
+    const opEn = (e.kw==='endif' && e.opener && e.opener.kw==='if') ? condEnglish(e.opener.expr) : '';
+    const say = isCond ? `${lead} ${en ? esc(en) : `<code class="lg-expr">${esc(e.expr.slice(0,70))}</code>`}` : e.kw==='else' ? 'Shown when none of the above match' : opEn ? `Ends the part shown when ${esc(opEn)}` : '';
     const cnt = blockCountHtml(e);
-    const edit = (e.kw==='if'||e.kw==='elif') ? `<button class="linkish lg-edit" type="button" data-editc="${esc(e.key)}">Change condition</button>` : '';
-    const say = (en || e.kw==='else' || cnt || edit) ? `<div class="lg-en">${en?`${e.kw==='elif'?'Else, shown when':'Shown when'} ${esc(en)}`:e.kw==='else'?'Otherwise':''}${cnt?` · ${cnt}`:''}${edit?` ${edit}`:''}</div>` : '';
-    return `<li class="lg-item${st}" style="--d:${e.depth}" data-key="${esc(e.key)}"><div class="lg-head"><span class="lg-page">${pageLabel(e.p)}</span><span class="lg-kw kw-${esc(e.kw||'x')}">${esc(kwl)}</span><button class="linkish lg-where" type="button" data-show="${esc(e.pid)}" title="Show in letter">${esc(snippet(e.p,34))}</button>${e.src==='you'?`<button class="del" type="button" data-del="${e.id}" aria-label="Delete tag">×</button>`:''}</div>${say}${txt}${pl}</li>`;
-  }).join('') : `<li class="empty">No logic tags yet. Click a paragraph in the letter to add one.</li>`;
+    const isEnd = e.kw==='endif' || e.kw==='endfor';
+    const pl = e.src!=='you' ? `<span class="lg-in">Already in the letter. Position can't be changed here.</span>` : e.place==='at' ? `<span class="lg-in">Inside the paragraph</span>` : `<select class="lg-place" data-lid="${e.id}" id="lgp-${e.id}" aria-label="Where the tag goes">${PLACES.map(([v,l])=>`<option value="${v}"${e.place===v?' selected':''}>${esc(l)}</option>`).join('')}</select>`;
+    const txt = e.src==='you' ? `<input class="lg-text mono" data-lid="${e.id}" id="lgt-${e.id}" value="${esc(e.full)}" spellcheck="false" aria-label="Tag text">` : `<code class="lg-code">${esc(e.text)}</code>`;
+    const edit = isCond ? `<button class="btn small lg-edit" type="button" data-editc="${esc(e.key)}">Change condition</button>` : '';
+    const page = pageLabel(e.p);
+    return `<li class="lg-item${st}${e.depth>0?' nest':''}" style="--d:${e.depth}" data-key="${esc(e.key)}">
+      <div class="lg-head"><span class="badge${isEnd?'':' cond'} kw-${esc(e.kw||'x')}">${esc(lgWord(e.kw))}</span>${problem?`<span class="badge err">${icon('alert-circle')}${esc(problem)}</span>`:''}${e.src==='you'?`<button class="btn icon small ghost lg-del" type="button" data-del="${e.id}" aria-label="Delete this tag" title="Delete this tag">${icon('x')}</button>`:''}</div>
+      ${say||cnt?`<div class="lg-en${isCond||e.kw==='else'?'':' quiet'}">${say?`<span>${say}</span>`:''}${cnt?`${say?'<span aria-hidden="true">·</span>':''}${cnt}`:''}</div>`:''}
+      <div class="lg-row-act"><button class="linkish lg-where" type="button" data-show="${esc(e.pid)}" aria-label="Show in the letter: ${esc(page)} ${esc(snippet(e.p,34))}" title="Show in the letter">${icon('eye')}${page?`<span class="lg-page">${esc(page)}</span>`:''}<span class="lg-snip">“${esc(snippet(e.p,34))}”</span></button>${edit}</div>
+      <details class="lg-jinja" data-jk="${esc(e.key)}"${state.lgOpen.has(e.key)?' open':''}><summary>${e.src==='you'?'Jinja and position':'Jinja'}</summary>${e.src==='you'?`<label class="set-row"><span>Tag</span>${txt}</label><label class="set-row"><span>Position</span>${pl}</label>`:`${txt}${pl}`}</details></li>`;
+  }).join('') : `<li class="lg-empty"><div class="empty-state">${icon('branch')}<span class="es-title">No conditions yet</span><span>Pick a paragraph in the letter, then choose who should see it.</span><button class="btn" type="button" id="lgStart">Select a paragraph</button></div></li>`;
   updateTabBadges();
 }
 function showPid(pid){
@@ -3163,25 +3374,32 @@ function renderMerge(){
 /* ======================= selection toolbar forms ======================= */
 function inlineHtml(ui, s){
   const q=`“${esc(s.text.slice(0,48))}${s.text.length>48?'…':''}”`;
-  if (ui.kind==='if') return `<div class="ins"><div class="ins-top"><b>Show ${q} only when</b><span class="ins-ctx">The words stay in the sentence for employees who match; the tool adds the if and end if around them.</span></div>
-    <div class="cb-slot">${cbHtml(state.cb||(state.cb=cbNew(ui.cond||'')))}</div>
-    <label class="set-row"><span>Otherwise show (optional)</span><input id="inOther" value="${esc(ui.other||'')}" placeholder="Leave empty to show nothing" aria-label="Otherwise show"></label>
-    <div class="ins-row"><button class="btn small primary" id="inApply" type="button">Add</button><button class="btn small" id="inBack" type="button">Back</button></div></div>`;
-  return `<div class="ins"><div class="ins-top"><b>Insert a tag at ${q}</b><span class="ins-ctx">Any tag, e.g. {{ first_name }} or {% if x %}.</span></div>
-    <input id="inTag" class="mono" value="${esc(ui.tag||'')}" placeholder="{{ tag }}" spellcheck="false" aria-label="Tag to insert">
-    <div class="ins-row"><select id="inWhere" aria-label="Where"><option value="before">Before the words</option><option value="after">After the words</option><option value="replace">Instead of the words</option></select><div class="combo-wrap"><input id="inField" class="combo-in mono" placeholder="Insert a field…" autocomplete="off" spellcheck="false" aria-label="Insert a field"></div></div>
-    <div class="ins-row"><button class="btn small primary" id="inApply" type="button">Insert</button><button class="btn small" id="inBack" type="button">Back</button></div></div>`;
+  if (ui.kind==='if') return `<div class="ins">
+    <div class="ins-sel"><div class="ins-sel-t"><b>Selected words</b> <span class="ins-quote">${q}</span></div><span class="ins-ctx">The words stay in the sentence for employees who match. The tool adds the if and end if around them.</span></div>
+    <section class="ins-sec"><h3 class="ins-h">Show these words only when</h3><div class="cb-slot">${cbHtml(state.cb||(state.cb=cbNew(ui.cond||'')))}</div></section>
+    <section class="ins-sec"><label class="ins-h" for="inOther">Otherwise show (optional)</label><input id="inOther" value="${esc(ui.other||'')}" placeholder="Leave empty to show nothing"></section>
+    ${cbInfoBox()}
+    <div class="ins-acts-row"><button class="btn primary" id="inApply" type="button">${icon('plus')}Add condition</button><button class="btn ghost" id="inBack" type="button">Back</button></div></div>`;
+  return `<div class="ins">
+    <div class="ins-sel"><div class="ins-sel-t"><b>Insert a tag</b> at <span class="ins-quote">${q}</span></div><span class="ins-ctx">Any tag, such as {{ first_name }} or {% if x %}.</span></div>
+    <section class="ins-sec"><label class="ins-h" for="inTag">Tag</label><input id="inTag" class="mono" value="${esc(ui.tag||'')}" placeholder="{{ tag }}" spellcheck="false"></section>
+    <section class="ins-sec"><label class="ins-h" for="inField">Or pick a field</label><div class="combo-wrap"><input id="inField" class="combo-in mono" placeholder="Insert a field…" autocomplete="off" spellcheck="false"></div></section>
+    <section class="ins-sec"><label class="ins-h" for="inWhere">Where it goes</label><select id="inWhere"><option value="before">Before the words</option><option value="after">After the words</option><option value="replace">Instead of the words</option></select></section>
+    <div class="ins-acts-row"><button class="btn primary" id="inApply" type="button">Insert</button><button class="btn ghost" id="inBack" type="button">Back</button></div></div>`;
 }
 function switchHtml(sw){
-  return `<div class="ins sw"><div class="ins-top"><b>Text by value</b><span class="ins-ctx">${sw.mode==='inline'?'Changes the selected words depending on a field.':'Shows a different version of the paragraph depending on a field, such as rating or band.'}</span></div>
-    <div class="ins-row"><div class="combo-wrap"><input id="swField" class="combo-in mono" value="${esc(sw.field)}" placeholder="Field, e.g. employee_schema.rating" autocomplete="off" spellcheck="false" aria-label="Field"></div>
-    <select id="swMatch" aria-label="How to compare"><option value="text"${sw.match==='text'?' selected':''}>Match text (ignores case)</option><option value="number"${sw.match==='number'?' selected':''}>Match numbers</option></select></div>
-    <div class="sw-cases">${sw.cases.map((c,k)=>`<div class="sw-case"><input class="sw-v mono" data-k="${k}" id="swv-${k}" value="${esc(c.v)}" placeholder="${k===0?'Value, e.g. A':'e.g. B'}" aria-label="Value ${k+1}" spellcheck="false">${sw.mode==='inline'&&k===0?`<div class="sw-fixed" title="The selected words">${esc(c.t)}</div>`:`<textarea class="sw-t" data-k="${k}" id="swt-${k}" rows="2" aria-label="Text for value ${k+1}" placeholder="Text for this value">${esc(c.t)}</textarea>`}${k>0?`<button class="del sw-del" type="button" data-k="${k}" aria-label="Remove this value">×</button>`:'<span></span>'}</div>`).join('')}</div>
-    <div class="ins-row"><button class="btn small" id="swAdd" type="button">+ Add a value</button><span class="ins-hint">Values can share a text: A, A+</span></div>
-    <label class="set-row"><span>Any other value (optional)</span><textarea id="swOther" rows="2" placeholder="Leave empty to show nothing" aria-label="Text for any other value">${esc(sw.other)}</textarea></label>
-    ${sw.mode==='para'?`<select id="swWhere" aria-label="Where"><option value="replace"${sw.where==='replace'?' selected':''}>Replace the selected paragraph${sw.pids.length>1?'s':''} with these versions</option><option value="after"${sw.where==='after'?' selected':''}>Add these versions after it, keep the original for everyone</option></select>`:''}
-    <div class="ins-row"><button class="btn small primary" id="swApply" type="button">Insert</button><button class="btn small" id="swCancel" type="button">Cancel</button></div>
-    <div class="ins-hint mono" id="swPrev">${esc(switchPreview(sw))}</div></div>`;
+  const inline=sw.mode==='inline';
+  return `<div class="ins sw">
+    <div class="ins-sel"><div class="ins-sel-t"><b>Text by value</b></div><span class="ins-ctx">${inline?'Changes the selected words depending on a field.':'Shows a different version of the paragraph depending on a field, such as rating or band.'}</span></div>
+    <section class="ins-sec"><label class="ins-h" for="swField">Field</label><div class="combo-wrap"><input id="swField" class="combo-in mono" value="${esc(sw.field)}" placeholder="Field, e.g. employee_schema.rating" autocomplete="off" spellcheck="false"></div>
+      <select id="swMatch" aria-label="How to compare"><option value="text"${sw.match==='text'?' selected':''}>Match text (ignores case)</option><option value="number"${sw.match==='number'?' selected':''}>Match numbers</option></select></section>
+    <section class="ins-sec"><h3 class="ins-h">Text for each value</h3>
+      <div class="sw-cases">${sw.cases.map((c,k)=>`<div class="sw-case"><input class="sw-v mono" data-k="${k}" id="swv-${k}" value="${esc(c.v)}" placeholder="${k===0?'Value, e.g. A':'e.g. B'}" aria-label="Value ${k+1}" spellcheck="false">${k>0?`<button class="btn icon small ghost sw-del" type="button" data-k="${k}" aria-label="Remove value ${k+1}">${icon('x')}</button>`:''}${inline&&k===0?`<div class="sw-fixed" title="The selected words">${esc(c.t)}</div>`:`<textarea class="sw-t" data-k="${k}" id="swt-${k}" rows="2" aria-label="Text for value ${k+1}" placeholder="Text for this value">${esc(c.t)}</textarea>`}</div>`).join('')}</div>
+      <div class="ins-row"><button class="btn small ghost" id="swAdd" type="button">${icon('plus')}Add a value</button><span class="ins-hint">Values can share a text: A, A+</span></div></section>
+    <section class="ins-sec"><label class="ins-h" for="swOther">Any other value (optional)</label><textarea id="swOther" rows="2" placeholder="Leave empty to show nothing">${esc(sw.other)}</textarea></section>
+    ${sw.mode==='para'?`<section class="ins-sec"><label class="ins-h" for="swWhere">Where it goes</label><select id="swWhere"><option value="replace"${sw.where==='replace'?' selected':''}>Replace the selected paragraph${sw.pids.length>1?'s':''} with these versions</option><option value="after"${sw.where==='after'?' selected':''}>Add these versions after it, keep the original for everyone</option></select></section>`:''}
+    <section class="ins-sec"><h3 class="ins-h">What the tool writes</h3><div class="mono" id="swPrev">${esc(switchPreview(sw))}</div></section>
+    <div class="ins-acts-row"><button class="btn primary" id="swApply" type="button">Insert</button><button class="btn ghost" id="swCancel" type="button">Cancel</button></div></div>`;
 }
 
 /* ======================= Claude (your API key, on the Letter Studio server) ======================= */
@@ -3347,9 +3565,12 @@ function startCondEdit(key){
   $('#selTools')?.scrollIntoView({block:'nearest', behavior:'smooth'});
 }
 function condEditHtml(ce){
-  return `<div class="ins"><div class="ins-top"><b>Change the condition</b><span class="ins-ctx">Now: <code class="mono">${esc(ce.tag.slice(0,100))}</code></span></div>
-    <div class="cb-slot">${cbHtml(state.cb)}</div>
-    <div class="ins-row"><button class="btn small primary" id="ceSave" type="button">Save the condition</button><button class="btn small" id="ceCancel" type="button">Cancel</button></div></div>`;
+  const cur=parseLogic(ce.tag); const en=condEnglish(cur.expr); const elif=ce.kw==='elif';
+  return `<div class="ins">
+    <div class="ins-sel"><div class="ins-sel-t"><b>${elif?'Else if':'If'}</b> condition now${en?`: shown when ${esc(en)}`:''}</div><span class="ins-ctx"><code class="mono">${esc(ce.tag.slice(0,100))}</code></span></div>
+    <section class="ins-sec"><h3 class="ins-h">${elif?'Else show this part only when':'Show this part only when'}</h3><div class="cb-slot">${cbHtml(state.cb)}</div></section>
+    ${cbInfoBox()}
+    <div class="ins-acts-row"><button class="btn primary" id="ceSave" type="button">Save condition</button><button class="btn ghost" id="ceCancel" type="button">Cancel</button></div></div>`;
 }
 const COND_TAG_RX=/^(\{%-?\s*(?:p\s+)?(?:if|elif)\s+)([\s\S]*?)(\s*-?%\})$/;
 function saveCondEdit(){
@@ -3531,39 +3752,87 @@ async function cbCount(expr){
   let n=0, m=0; for (const c of allCtx()){ try{ if (t.render(c).trim()==='1') n++; m++; }catch(e){ return {error:true}; } }
   return {n, total:m, more:rows.length>m};
 }
+function cbInfoBox(){ return `<div class="cb-info" id="cbInfo" aria-live="polite"></div>`; }
+// the builder and the Jinja editor are two views of one condition: Builder | Jinja
+function cbModeHtml(raw){
+  return `<div class="seg cb-mode" role="group" aria-label="Write the condition with"><button type="button" class="cb-b${raw?' cb-tobuilder':' on'}" aria-pressed="${raw?'false':'true'}">Builder</button><button type="button" class="cb-j${raw?' on':' cb-toraw'}" aria-pressed="${raw?'true':'false'}">Jinja</button></div>`;
+}
+const CB_KW=new Set(['and','or','not','in','is','if','else','true','false','none','True','False','None']);
+// colours for the Jinja editor: strings, numbers, filters after |, keywords, field names
+function cbHl(src){
+  let out='', last=0; const rx=/("(?:\\.|[^"\\])*"?|'(?:\\.|[^'\\])*'?)|(\|\s*)([A-Za-z_]\w*)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][\w.]*)/g; let m;
+  while ((m=rx.exec(src))){
+    out+=esc(src.slice(last, m.index)); last=rx.lastIndex;
+    if (m[1]) out+=`<span class="tk-str">${esc(m[1])}</span>`;
+    else if (m[3]) out+=`${esc(m[2])}<span class="tk-fn">${esc(m[3])}</span>`;
+    else if (m[4]) out+=`<span class="tk-num">${esc(m[4])}</span>`;
+    else out+=`<span class="${CB_KW.has(m[5])?'tk-kw':/^\s*\(/.test(src.slice(last,last+3))?'tk-fn':'tk-field'}">${esc(m[5])}</span>`;
+  }
+  out+=esc(src.slice(last));
+  return out + (src.endsWith('\n')?' ':'');
+}
+function cbHlSync(ta){ const hl=ta && ta.parentNode && ta.parentNode.querySelector('.cb-hl'); if (hl) hl.innerHTML=cbHl(ta.value); }
+function cbHandOk(raw){ return !String(raw||'').trim() || !!cbParse(raw); }
 function cbHtml(cb){
-  const foot=`<div class="cb-info" aria-live="polite"></div>`;
-  if (cb.raw!=null) return `<div class="cb raw"><input class="cb-rawin mono" value="${esc(cb.raw)}" placeholder='e.g. employee_schema.rating | lower == "a"' spellcheck="false" aria-label="Condition">
-    <div class="cb-foot">${cbParse(cb.raw)?'<button class="linkish cb-tobuilder" type="button">Back to the builder</button>':cb.raw.trim()?'<span class="hint">Written by hand, so the builder can\'t show it.</span><button class="linkish cb-reset" type="button">Start again with the builder</button>':'<button class="linkish cb-tobuilder" type="button">Back to the builder</button>'}</div>${foot}</div>`;
+  if (cb.raw!=null){
+    const ok=cbHandOk(cb.raw);
+    return `<div class="cb raw">${cbModeHtml(true)}
+    <div class="cb-code"><div class="cb-hl mono" aria-hidden="true">${cbHl(cb.raw)}</div><textarea class="cb-rawin mono" rows="3" placeholder='e.g. employee_schema.rating | lower == "a"' spellcheck="false" autocomplete="off" aria-label="Condition written in Jinja">${esc(cb.raw)}</textarea></div>
+    <div class="cb-hand"${ok?' hidden':''}>${icon('info')}<span>Written by hand, so the builder can't show it. Keep editing it here, or start again with the builder.</span><button class="btn small cb-reset" type="button">Start again with the builder</button></div></div>`;
+  }
   const rules=cb.rules.map((r,k)=>{
     const vals=CB_NOVAL.has(r.op)?[]:cbValues(r.field);
     const multi=r.op==='in'||r.op==='notin';
     const hint = multi ? 'A, A+ (a comma between)' : CB_NUM[r.op] ? 'a number, e.g. 3' : 'value, e.g. yes';
     const picked=new Set(multi?cbList(r.value).map(x=>x.toLowerCase()):[String(r.value).trim().toLowerCase()]);
+    const many=cb.rules.length>1;
     return `${k?`<div class="cb-join">${k===1?`<select class="cb-joinsel" aria-label="And or or"><option value="and"${cb.join==='and'?' selected':''}>and</option><option value="or"${cb.join==='or'?' selected':''}>or</option></select>`:`<span>${cb.join}</span>`}</div>`:''}
     <div class="cb-rule" data-k="${k}">
-      <div class="combo-wrap"><input class="combo-in mono cb-field" data-k="${k}" id="cbf-${k}" value="${esc(r.field)}" placeholder="Field, e.g. employee_schema.rating" autocomplete="off" spellcheck="false" aria-label="Field ${k+1}"></div>
-      <select class="cb-op" data-k="${k}" id="cbo-${k}" aria-label="Test ${k+1}">${CB_OPS.map(([v,l])=>`<option value="${v}"${r.op===v?' selected':''}>${esc(l)}</option>`).join('')}</select>
-      ${CB_NOVAL.has(r.op)?'<span class="cb-noval"></span>':`<input class="cb-val" data-k="${k}" id="cbv-${k}" value="${esc(r.value)}" placeholder="${hint}" aria-label="Value ${k+1}" spellcheck="false">`}
-      ${cb.rules.length>1?`<button class="del cb-del" data-k="${k}" type="button" aria-label="Remove this rule">×</button>`:''}
-      ${vals.length?`<div class="cb-chips"><span class="hint">In your data:</span>${vals.map(v=>`<button type="button" class="chip cb-pick${picked.has(v.v.toLowerCase())?' on':''}" data-k="${k}" data-v="${esc(v.v)}" title="${v.n} employee${v.n>1?'s':''}">${esc(v.v||'(empty)')} <span class="n">${v.n}</span></button>`).join('')}</div>`:''}
+      <div class="cb-f${many?'':' solo'}"><div class="combo-wrap"><input class="combo-in mono cb-field" data-k="${k}" id="cbf-${k}" value="${esc(r.field)}" placeholder="Choose a field…" autocomplete="off" spellcheck="false" aria-label="Field${many?' '+(k+1):''}"></div>${many?`<button class="btn icon small ghost cb-del" data-k="${k}" type="button" aria-label="Remove rule ${k+1}" title="Remove this rule">${icon('x')}</button>`:''}</div>
+      <div class="cb-t${CB_NOVAL.has(r.op)?' noval':''}"><select class="cb-op" data-k="${k}" id="cbo-${k}" aria-label="Test${many?' '+(k+1):''}">${CB_OPS.map(([v,l])=>`<option value="${v}"${r.op===v?' selected':''}>${esc(l)}</option>`).join('')}</select>
+      ${CB_NOVAL.has(r.op)?'':`<input class="cb-val" data-k="${k}" id="cbv-${k}" value="${esc(r.value)}" placeholder="${hint}" aria-label="Value${many?' '+(k+1):''}" spellcheck="false">`}</div>
+      ${vals.length?`<div class="cb-chips"><span class="hint">In your data:</span>${vals.map(v=>`<button type="button" class="chip cb-pick${picked.has(v.v.toLowerCase())?' on':''}" data-k="${k}" data-v="${esc(v.v)}" aria-pressed="${picked.has(v.v.toLowerCase())?'true':'false'}" title="${v.n} employee${v.n>1?'s':''}">${picked.has(v.v.toLowerCase())?icon('check'):''}${esc(v.v||'(empty)')} <span class="n">${v.n}</span></button>`).join('')}</div>`:''}
     </div>`;
   }).join('');
   const ai = aiReady() ? `<div class="cb-ai"><input class="cb-ai-in" placeholder="Or describe it, e.g. promoted employees whose PLI changed" aria-label="Describe the condition" value="${esc(state.cbAsk||'')}"><button class="btn small ai-btn cb-ai-go" type="button">Ask Claude</button></div>` : '';
-  return `<div class="cb">${rules}${ai}<div class="cb-foot"><button class="linkish cb-add" type="button">+ Add a rule</button><select class="cb-start" aria-label="Start from a common condition"><option value="">Common conditions…</option>${COND_PRESETS.filter(p=>p.expr).map(p=>`<option value="${p.id}">${esc(p.label)}</option>`).join('')}</select><button class="linkish cb-toraw" type="button">Write it myself</button></div>${foot}</div>`;
+  return `<div class="cb">${cbModeHtml(false)}${rules}<div class="cb-foot"><button class="btn small ghost cb-add" type="button">${icon('plus')}Add a rule</button><select class="cb-start" aria-label="Start from a common condition"><option value="">Common conditions…</option>${COND_PRESETS.filter(p=>p.expr).map(p=>`<option value="${p.id}">${esc(p.label)}</option>`).join('')}</select></div>${ai}</div>`;
+}
+// Does the condition show the letter to this employee? Same engine and same test as the count.
+async function cbEmployee(expr){
+  const rows=csvRows(); const idx=rows.length ? Math.min(state.pvIdx||0, rows.length-1) : null;
+  const who = rows.length ? empLabel(idx) : 'sample employee (made-up values)';
+  const src=unicodeEscapes(straighten(`{% if ${decodeXmlText(expr)} %}`))+'1{% else %}0{% endif %}';
+  try{
+    const nj=await loadEngine(); if (!ENV){ installPyString(); ENV=makeEnv(nj); }
+    const t=new nj.Template(src, ENV, 'condition', true);
+    return {who, shown:t.render(buildCtx(idx).ctx).trim()==='1'};
+  }catch(e){ return {who, error:describeEngineError(e, src, 'condition').msg}; }
 }
 let cbInfoTimer, cbInfoSeq=0;
 function cbRefreshInfo(){
   const box=document.querySelector('#selTools .cb-info'); if (!box || !state.cb) return;
-  const expr=cbExpr(state.cb); const en=cbEnglish(state.cb);
+  const cb=state.cb; const raw=cb.raw!=null;
+  const expr=cbExpr(cb); const en=cbEnglish(cb);
   const why = expr ? tagSyntaxProblem(`{% if ${expr} %}`) : '';
+  if (raw){
+    const ta=document.querySelector('#selTools .cb-rawin');
+    if (ta){ if (why){ ta.setAttribute('aria-invalid','true'); ta.setAttribute('aria-describedby','cbInfo'); } else { ta.removeAttribute('aria-invalid'); ta.removeAttribute('aria-describedby'); } const w=ta.closest('.cb-code'); if (w) w.classList.toggle('bad', !!why); }
+    const ok=cbHandOk(cb.raw); const hand=document.querySelector('#selTools .cb-hand'); if (hand) hand.hidden=ok;
+    const bb=document.querySelector('#selTools .cb-mode .cb-b'); if (bb){ bb.classList.toggle('cb-blocked', !ok); if (ok) bb.removeAttribute('title'); else bb.title="The builder can't show a condition written by hand."; }
+  }
   const note = state.cbNote ? `<div class="cb-note">${esc(state.cbNote)}</div>` : '';
-  box.innerHTML = note + (!expr ? '<span class="hint">Pick a field, a test and a value.</span>'
-    : `${en?`<div class="cb-en">Shown when ${esc(en)}.</div>`:''}<code class="cb-tag mono">{% if ${esc(expr)} %}</code>${why?`<div class="cb-bad">${esc(why)}</div>`:''}<span class="cb-count"></span>`);
+  box.innerHTML = note + (!expr ? `<span class="hint">${raw?'Type a condition in Jinja, e.g. employee_schema.rating | lower == "a".':'Pick a field, a test and a value.'}</span>`
+    : `${why?'':`<div class="cb-en">${en?`Shown when ${esc(en)}.`:'Written in Jinja, so there is no plain-English version.'}</div>`}${why?`<div class="cb-bad">${icon('alert-circle')}<span>${esc(why)}</span></div>`:''}<div class="cb-line cb-count"></div><div class="cb-line cb-emp"></div>${raw?'':`<details class="cb-jinja"${state.cbJinjaOpen?' open':''}><summary>Show Jinja</summary><code class="cb-tag mono">{% if ${esc(expr)} %}</code></details>`}`);
   clearTimeout(cbInfoTimer); const seq=++cbInfoSeq;
-  if (!expr || why || !csvRows().length) return;
-  cbInfoTimer=setTimeout(async ()=>{ const r=await cbCount(expr); if (seq!==cbInfoSeq) return; const c=document.querySelector('#selTools .cb-count'); if (!c || !r) return;
-    c.innerHTML = r.error ? '<span class="hint">Can\'t test this one on your data.</span>' : `True for <b>${r.n}</b> of ${r.total} employee${r.total===1?'':'s'}${r.more?' (first 3,000)':''}${r.n===0?' — check the value':r.n===r.total?' — everyone':''}.`; }, 200);
+  if (!expr || why) return;
+  cbInfoTimer=setTimeout(async ()=>{
+    const hasRows=csvRows().length>0;
+    const [r, emp]=await Promise.all([hasRows ? cbCount(expr).catch(()=>({error:true})) : null, cbEmployee(expr)]);
+    if (seq!==cbInfoSeq) return;
+    const c=document.querySelector('#selTools .cb-count'), m=document.querySelector('#selTools .cb-emp');
+    if (c) c.innerHTML = !hasRows ? '<span class="hint">Load a data file to see how many employees this covers.</span>' : !r || r.error ? '<span class="hint">Can\'t test this one on your data.</span>' : `<span>True for <b>${r.n}</b> of ${r.total} employee${r.total===1?'':'s'}${r.more?' (first 3,000)':''}${r.n===0?'. Check the value':r.n===r.total?'. That is everyone':''}.</span>`;
+    if (m) m.innerHTML = emp.error ? `<span class="hint">Can't test this condition on ${esc(emp.who)}: ${esc(emp.error)}</span>` : `<span>For <b>${esc(emp.who)}</b>:</span>${emp.shown?`<span class="badge ok">${icon('check')}Shown</span>`:'<span class="badge">Hidden</span>'}`;
+  }, 200);
 }
 // redraw after the current event (redrawing inside a blur or change breaks the browser's focus handling)
 let cbRerenderTimer=null, cbRerenderFocus=null;
@@ -3582,7 +3851,7 @@ function cbBind(root){
     const cb=state.cb; if (!cb) return; const t=e.target; const k=+t.dataset.k;
     if (t.classList.contains('cb-field')){ cb.rules[k].field=t.value.trim(); if (comboPicking){ const r=cb.rules[k]; if (!r.value && cbIsNumeric(r.field) && !CB_NUM[r.op]) r.op='gt'; cbRerender(`#cbv-${k}`); } else cbRefreshInfo(); }
     else if (t.classList.contains('cb-val')){ cb.rules[k].value=t.value; cbRefreshInfo(); }
-    else if (t.classList.contains('cb-rawin')){ cb.raw=t.value; cbRefreshInfo(); }
+    else if (t.classList.contains('cb-rawin')){ cb.raw=t.value; cbHlSync(t); cbRefreshInfo(); }
   });
   root.addEventListener('change', e=>{
     const cb=state.cb; if (!cb) return; const t=e.target; const k=+t.dataset.k;
@@ -3597,7 +3866,7 @@ function cbBind(root){
     else if (t.classList.contains('cb-del')){ cb.rules.splice(k,1); cbRerender(); }
     else if (t.classList.contains('cb-pick')){ const r=cb.rules[k]; const v=t.dataset.v; if (r.op==='in'||r.op==='notin'){ const L=cbList(r.value); const i=L.findIndex(x=>x.toLowerCase()===v.toLowerCase()); if (i>=0) L.splice(i,1); else L.push(v); r.value=L.join(', '); } else if (String(r.value).trim().toLowerCase()===v.toLowerCase() && r.op==='is'){ r.op='in'; } else { if (r.value && r.op==='is' && String(r.value).trim().toLowerCase()!==v.toLowerCase()){ r.op='in'; r.value=r.value+', '+v; } else r.value=v; } if (v==='' && (r.op==='is'||r.op==='in')){ r.op='empty'; r.value=''; } cbRerender(); }
     else if (t.classList.contains('cb-toraw')){ cb.raw=cbExpr(cb); cbRerender('.cb-rawin'); }
-    else if (t.classList.contains('cb-tobuilder')){ const p=cbParse(cb.raw||''); state.cb = p || {rules:[cbBlank()], join:'and', raw:null}; cbRerender(); }
+    else if (t.classList.contains('cb-tobuilder')){ const p=cbParse(cb.raw||''); if (!p && (cb.raw||'').trim()){ toast("The builder can't show a condition written by hand. Keep editing it here, or start again with the builder."); cbRerender(); return; } state.cb = p || {rules:[cbBlank()], join:'and', raw:null}; cbRerender(); }
     else if (t.classList.contains('cb-reset')){ state.cb={rules:[cbBlank()], join:'and', raw:null}; cbRerender('#cbf-0'); }
     else if (t.classList.contains('cb-ai-go')){ aiCondition(t); }
   });
@@ -4212,15 +4481,18 @@ function renderPara(p, ctx){
   if (info.kind==='body' && info.page && ctx.lastPage!=null && info.page>ctx.lastPage && !ancestor(p,['tc'])){ pre+=`<div class="page-div" title="${ctx.an.pageSource==='rendered'?'Page breaks as Word last laid out the letter':'From page breaks in the letter'}"><span>Page ${info.page}</span></div>`; ctx.lastPage=info.page; }
   if (view==='source'){
     const rail=state.lgRails.get(info.pid);
-    if (rail){ cls.push('in-block'); if (rail.open) cls.push('open-block'); }
+    if (rail){ cls.push('in-block'); if (rail.open) cls.push('open-block'); if (rail.branch) cls.push('in-else'); }
     state.lg.forEach((e,i)=>{
       if (e.src!=='you' || e.pid!==info.pid || e.sub>0) return;
       const stt=(state.lg.filter(x=>x.id===e.id).find(x=>x.status!=='ok')||{}).status||'ok';
       const st=stt==='ok'?'':' st-'+stt;
-      const label=stt==='open'?'not closed':stt==='stray'?'no matching if':stt==='cells'?'different cells':'';
-      if (e.place==='at'){ inserts.push({o:e.offset||0, k:i, html:`<span class="tg blk lg-chip${st}" data-key="${esc(e.key)}" title="${esc(label||'Tag inside the sentence')}">${esc(e.full)}</span>`}); return; }
-      const line=`<div class="lg-line${st}" data-key="${esc(e.key)}" style="--d:${e.depth}"><code>${esc(e.text)}</code><span class="lg-meta">${label}</span></div>`;
-      const chip=`<span class="tg blk lg-chip${st}" data-key="${esc(e.key)}">${esc(e.text)}</span>`;
+      const label=stt==='open'?'Not closed':stt==='stray'?'No matching if':stt==='cells'?'Different cells':'';
+      const en=(e.kw==='if'||e.kw==='elif') ? condEnglish(e.expr) : '';
+      const say=en ? (e.kw==='elif'?'Else, shown when ':'Shown when ')+en : '';
+      if (e.place==='at'){ inserts.push({o:e.offset||0, k:i, html:`<span class="tg blk lg-chip${st}" data-key="${esc(e.key)}" title="${esc(label||say||'Tag inside the sentence')}">${esc(e.full)}</span>`}); return; }
+      const bare=e.kw==='else'||e.kw==='endif'||e.kw==='endfor';
+      const line=`<div class="lg-line${st}" data-key="${esc(e.key)}" style="--d:${e.depth}" role="button" tabindex="0" title="${esc(say||e.text)}"><span class="badge cond">${esc(lgWord(e.kw))}</span>${en?`<span class="lg-en-t">${esc(en)}</span>`:bare?'':`<code>${esc(e.text)}</code>`}<span class="lg-meta">${label?icon('alert-circle')+label:''}</span></div>`;
+      const chip=`<span class="tg blk lg-chip${st}" data-key="${esc(e.key)}" title="${esc(label||say||'Logic tag')}">${esc(e.text)}</span>`;
       if (e.place==='before') pre+=line; else if (e.place==='after') post+=line; else if (e.place==='start') startChips+=chip; else endChips+=chip;
     });
   }
@@ -4256,7 +4528,7 @@ function renderPaper(){
 }
 function renderLegend(){
   const lg=$('#legend'); if (!lg) return;
-  if (state.view==='source') lg.innerHTML='<span><i style="background:var(--ok-soft);box-shadow:inset 0 -2px 0 var(--ok)"></i>Tagged</span><span><i style="background:var(--warn-soft);box-shadow:inset 0 -2px 0 var(--warn)"></i>To check</span><span><i style="background:var(--hl)"></i>Needs a tag</span>'+(state.ckLegendHas?'<span><b class="lg-flag" aria-hidden="true">A</b>Flag = issue in the Validate list</span>':'')+(state.tagMarks && [...state.tagMarks.values()].some(m=>m.level==='error')?'<span><i style="background:var(--err-soft);box-shadow:inset 0 -2px 0 var(--err)"></i>Tag with a problem</span>':'');
+  if (state.view==='source') lg.innerHTML='<span><i style="background:var(--ok-soft);box-shadow:inset 0 -2px 0 var(--ok)"></i>Tagged</span><span><i style="background:var(--warn-soft);box-shadow:inset 0 -2px 0 var(--warn)"></i>To check</span><span><i style="background:var(--hl)"></i>Needs a tag</span>'+(state.ckLegendHas?'<span><b class="lg-flag" aria-hidden="true">A</b>Flag = issue in the Validate list</span>':'')+(state.tagMarks && [...state.tagMarks.values()].some(m=>m.level==='error')?'<span><i style="background:var(--err-soft);box-shadow:inset 0 -2px 0 var(--err)"></i>Tag with a problem</span>':'')+(state.lg && state.lg.length?'<span><i class="sw-cond"></i>Condition</span><span>Bracket = shown only when the condition is true</span>':'');
   else if (state.view==='filled') lg.innerHTML='<span><i style="background:var(--ok-soft);box-shadow:inset 0 -1px 0 var(--ok)"></i>From the data</span><span><i style="border-bottom:1px dotted var(--muted);border-radius:0"></i>Made-up sample</span><span><i style="background:var(--err-soft);border:1px dashed var(--err)"></i>Empty</span>';
   else lg.innerHTML='';
   lg.hidden=!lg.innerHTML;
@@ -4298,25 +4570,38 @@ function renderChecks(){
   decoratePaper(); renderIssueInspector();
 }
 function renderSelTools(){ renderSelToolsInner(); syncInspector(selToolsTitle()); }
+// "Click the paragraph where … should go / end": a notice in the inspector and a banner over the letter
+function setPickBanner(html){
+  let b=$('#pickBanner');
+  if (!html){ if (b) b.remove(); document.body.classList.remove('picking'); return; }
+  if (!b){ b=document.createElement('div'); b.id='pickBanner'; b.className='pick-banner'; const wrap=$('#paperWrap'); wrap.parentNode.insertBefore(b, wrap); }
+  b.innerHTML=`${icon('flag')}<span>${html}</span><button class="btn small" type="button" data-pickcancel>Cancel</button>`;
+  document.body.classList.add('picking');
+}
 function renderSelToolsInner(){
   const box=$('#selTools'); const s=state.sel;
   box.classList.remove('picking');
-  if (state.view!=='source'){ box.hidden=true; box.innerHTML=''; return; }
-  if (state.placing){ box.hidden=false; box.classList.add('picking'); box.innerHTML=`<span>Click the paragraph where <code class="mono">${esc(String(state.placing.text).slice(0,60))}</code> should go${state.placing.place&&state.placing.place!=='at'?' ('+esc(PLACE_SHORT[state.placing.place])+')':state.placing.ctxB?' (it goes after “'+esc(state.placing.ctxB.slice(-24).trim())+'” if those words are there, otherwise at the end)':' (it goes at the end of the paragraph)'}.</span><button class="btn small" id="placeCancel" type="button">Cancel</button>`; return; }
-  if (state.closing){
-    const e=state.lg.find(x=>x.key===state.closing);
-    box.hidden=false; box.classList.add('picking');
-    box.innerHTML=`<span>Click the paragraph where <code class="mono">${esc(e?e.text.slice(0,60):'this block')}</code> should end. The end ${e&&e.kw==='for'?'for':'if'} goes on a new line after it.</span><button class="btn small" id="closeCancel" type="button">Cancel</button>`;
-    return;
+  let pickMsg='', pickId='';
+  if (state.view==='source'){
+    if (state.placing){ pickId='placeCancel'; pickMsg=`Click the paragraph where <code>${esc(String(state.placing.text).slice(0,60))}</code> should go${state.placing.place&&state.placing.place!=='at'?' ('+esc(PLACE_SHORT[state.placing.place])+')':state.placing.ctxB?' (it goes after “'+esc(state.placing.ctxB.slice(-24).trim())+'” if those words are there, otherwise at the end)':' (it goes at the end of the paragraph)'}.`; }
+    else if (state.closing){ const e=state.lg.find(x=>x.key===state.closing); pickId='closeCancel'; pickMsg=`Click the paragraph where <code>${esc(e?e.text.slice(0,60):'this block')}</code> should end. The end ${e&&e.kw==='for'?'for':'if'} goes on a new line after it.`; }
   }
+  setPickBanner(pickMsg);
+  if (state.view!=='source'){ box.hidden=true; box.innerHTML=''; return; }
+  if (pickMsg){ box.hidden=false; box.innerHTML=`<div class="notice warn" role="status">${icon('flag')}<span>${pickMsg}</span><button class="btn small" id="${pickId}" type="button">Cancel</button></div>`; return; }
   if (state.condEdit && (s.text || s.pids.length)) state.condEdit=null;
   if (state.condEdit){ box.hidden=false; box.innerHTML=condEditHtml(state.condEdit); cbRefreshInfo(); return; }
   if (state.switchUi){ box.hidden=false; box.innerHTML=switchHtml(state.switchUi); return; }
   if (!s.text && !s.pids.length){ box.hidden=true; box.innerHTML=''; return; }
   box.hidden=false;
   if (s.text){
-    if (state.inlineUi && s.range){ box.innerHTML=inlineHtml(state.inlineUi, s); return; }
-    box.innerHTML=`<span>Selected <span class="sel-quote">“${esc(s.text)}”</span></span><button class="btn small primary" id="selTag" type="button">Tag this text</button>${s.range?'<button class="btn small" id="selIf" type="button">Show only when…</button><button class="btn small" id="selSwitch" type="button">Text by value…</button><button class="btn small" id="selInsert" type="button">Insert a tag here…</button>':''}<button class="btn small" id="selClear" type="button">Cancel</button>`;
+    if (state.inlineUi && s.range){ box.innerHTML=inlineHtml(state.inlineUi, s); if (state.inlineUi.kind==='if') cbRefreshInfo(); return; }
+    box.innerHTML=`<div class="ins"><blockquote class="ins-quote-box">“${esc(s.text)}”</blockquote>
+      <div class="ins-acts"><button class="act primary" id="selTag" type="button"><span class="act-t">Tag this text</span><span class="act-d">Replace these words with a field from your data, such as a name or an amount.</span></button>
+      ${s.range?`<button class="act" id="selIf" type="button"><span class="act-t">Show only when…</span><span class="act-d">Show these words only for employees who match a condition.</span></button>
+      <button class="act" id="selSwitch" type="button"><span class="act-t">Text by value…</span><span class="act-d">Show different words depending on a field, such as rating.</span></button>
+      <button class="act" id="selInsert" type="button"><span class="act-t">Insert a tag here…</span><span class="act-d">Add any tag before, after or instead of these words.</span></button>`:''}</div>
+      <div class="ins-acts-row"><button class="btn ghost" id="selClear" type="button">Cancel</button></div></div>`;
     return;
   }
   const ps=s.pids.map(id=>state.an.byPid.get(id)).sort((a,b)=>a.order-b.order); const first=ps[0], last=ps[ps.length-1];
@@ -4326,17 +4611,17 @@ function renderSelToolsInner(){
   const place0 = openTop ? 'after' : 'before';
   if (!state.cb) state.cb=cbNew('');
   const what = ps.length>1 ? `these ${ps.length} paragraphs` : 'this paragraph';
+  const onPage = first.kind==='body' ? (first.page ? `on page ${first.page}` : 'in the letter') : `in the ${first.kind}`;
   box.innerHTML=`<div class="ins">
-    <div class="ins-top"><span><b>${pageLabel(first)?'Page '+first.page+' · ':''}${ps.length>1?ps.length+' paragraphs':'“'+esc(snippet(first,70))+'”'}</b></span>
-      <span class="ins-ctx">${stack.length?`Inside: <code class="mono">${esc(top.text.slice(0,70))}</code>${pageLabel(top.p)?' from '+pageLabel(top.p):''}`:'Not inside any if block'}</span></div>
-    <div class="ins-main">
-      <b class="ins-q">Show ${what} only when</b>
-      <div class="cb-slot">${cbHtml(state.cb)}</div>
-      <label class="set-row"><span>Otherwise show (optional)</span><textarea id="cbOther" rows="2" placeholder="Leave empty to show nothing. One paragraph per line." aria-label="Otherwise show"></textarea></label>
-      <div class="ins-row"><button class="btn small primary" id="cbApply" type="button">Add the condition</button><button class="btn small" id="lgSwitch" type="button">Different text by value…</button><button class="btn small" id="selClear" type="button">Cancel</button></div>
-      <p class="ins-hint">The tool puts the if before ${ps.length>1?'the first paragraph':'it'} and the end if after ${ps.length>1?'the last':'it'}, so nothing is left open.</p>
-    </div>
-    <details class="ins-adv"${openTop?' open':''}><summary>${openTop?`Close the open <code class="mono">${esc(openTop.text.slice(0,40))}</code> here, or insert another single tag`:'Insert a single logic tag yourself (else if, else, end if, set…)'}</summary>
+    <div class="ins-sel">
+      <div class="ins-sel-t">${ps.length>1?`<b>${ps.length} paragraphs</b> ${onPage}`:`<b>Paragraph ${onPage}</b>`}: <span class="ins-quote">“${esc(snippet(first,70))}”</span></div>
+      <span class="ins-ctx">${stack.length?`Inside: <code class="mono">${esc(top.text.slice(0,70))}</code>${pageLabel(top.p)?' from '+pageLabel(top.p):''}`:'Not inside any condition'}</span></div>
+    <section class="ins-sec"><h3 class="ins-h">Show ${what} only when</h3><div class="cb-slot">${cbHtml(state.cb)}</div></section>
+    <section class="ins-sec"><label class="ins-h" for="cbOther">Otherwise (alternative text, optional)</label><textarea id="cbOther" rows="2" placeholder="Leave empty to show nothing. One paragraph per line."></textarea></section>
+    ${cbInfoBox()}
+    <div class="ins-acts-row"><button class="btn primary" id="cbApply" type="button">${icon('plus')}Add condition</button><button class="btn" id="lgSwitch" type="button">Different text by value…</button><button class="btn ghost" id="selClear" type="button">Cancel</button></div>
+    <p class="ins-hint">The tool puts the if before ${ps.length>1?'the first paragraph':'it'} and the end if after ${ps.length>1?'the last':'it'}, so nothing is left open.</p>
+    <details class="ins-adv"${openTop?' open':''}><summary>${openTop?`Advanced: close the open <code>${esc(openTop.text.slice(0,40))}</code> here, or insert another single tag`:'Advanced: insert a single logic tag'}</summary>
       <div class="ins-quick" role="group" aria-label="Tag type">${LOGIC_QUICK.map(q=>`<button type="button" class="chip${q.k===kw0?' on':''}" data-kw="${q.k}">${esc(q.label)}${openTop && q.k===kw0 ? ' · closes '+esc(openTop.expr.slice(0,24)) : ''}</button>`).join('')}</div>
       <input id="lgText" class="mono" value="${esc(logicTpl(kw0,''))}" spellcheck="false" aria-label="Tag text">
       <div class="ins-row">
@@ -4344,7 +4629,7 @@ function renderSelToolsInner(){
         <div class="combo-wrap"><input id="lgField" class="combo-in mono" placeholder="Insert a field…" autocomplete="off" spellcheck="false" aria-label="Insert a field"></div>
         <select id="lgPlace" aria-label="Where">${PLACES.map(([v,l])=>`<option value="${v}"${v===place0?' selected':''}>${esc(l)}</option>`).join('')}</select>
       </div>
-      <div class="ins-row"><button class="btn small primary" id="lgInsert" type="button">Insert tag</button><span class="ins-hint">Type any tag, e.g. <code class="mono">{%- elif x == "y" -%}</code>.</span></div>
+      <div class="ins-row"><button class="btn primary" id="lgInsert" type="button">Insert tag</button><span class="ins-hint">Type any tag, e.g. <code class="mono">{%- elif x == "y" -%}</code>.</span></div>
     </details>
   </div>`;
   cbRefreshInfo();
@@ -4355,9 +4640,10 @@ function selToolsTitle(){
   if (state.placing || state.closing) return 'Pick a place';
   if (state.condEdit && !(s.text || s.pids.length)) return 'Change condition';
   if (state.switchUi) return 'Text by value';
-  if (s.text) return state.inlineUi && s.range ? 'Condition' : 'Tag selected text';
+  if (s.text) return state.inlineUi && s.range ? (state.inlineUi.kind==='if' ? 'Condition' : 'Insert a tag') : 'Selected text';
   return 'Condition';
 }
+
 // The inspector shows while any of its [data-insp] panels is showing.
 function syncInspector(title){
   const insp=$('#inspector'); if (!insp) return;
@@ -4855,7 +5141,7 @@ paper.addEventListener('mouseup', e=>{
   const ph=e.target.closest('.ph');
   if (ph){ const id=ph.dataset.row; setTab('tags'); if (state.filter!=='all'){ state.filter='all'; document.querySelectorAll('#filters .chip').forEach(x=>x.classList.toggle('on', x.dataset.f==='all')); renderRows(); } flashRow(id); return; }
   const lgEl=e.target.closest('[data-key]');
-  if (lgEl){ setTab('logic'); const li=[...document.querySelectorAll('#logicList .lg-item')].find(x=>x.dataset.key===lgEl.dataset.key || x.dataset.key===lgEl.dataset.key.replace(/#\d+$/,'')); if (li){ li.scrollIntoView({block:'nearest', inline:'nearest', behavior:'smooth'}); li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash'); li.querySelector('input')?.focus({preventScroll:true}); } return; }
+  if (lgEl){ openLogicEntry(lgEl.dataset.key); return; }
   const p=e.target.closest('p.lp.body'); if (!p) return;
   const pid=p.dataset.pid; const s=state.sel; s.text=''; s.range=null; state.switchUi=null; state.inlineUi=null;
   const info=state.an.byPid.get(pid);
@@ -4942,15 +5228,16 @@ $('#selTools').addEventListener('input', e=>{
 $('#selTools').addEventListener('keydown', e=>{ if (e.key!=='Enter') return; if (e.target.id==='lgText'){ e.preventDefault(); $('#lgInsert')?.click(); } if (e.target.id==='inTag'){ e.preventDefault(); $('#inApply')?.click(); } });
 $('#selTools').addEventListener('click', e=>{
   const q=e.target.closest('.ins-quick .chip'); if (q){ lgSetKw(q.dataset.kw); return; }
-  if (e.target.id==='closeCancel'){ state.closing=null; renderSelTools(); return; }
-  if (e.target.id==='placeCancel'){ state.placing=null; renderSelTools(); return; }
+  const bt=e.target.closest('button'); const bid=bt ? bt.id : '';
+  if (bid==='closeCancel'){ state.closing=null; renderSelTools(); return; }
+  if (bid==='placeCancel'){ state.placing=null; renderSelTools(); return; }
   const sw=state.switchUi; const s=state.sel;
-  if (e.target.id==='selIf'){ state.inlineUi={kind:'if', cond:'', other:''}; state.cb=cbNew(''); renderSelTools(); $('#cbf-0')?.focus(); return; }
-  if (e.target.id==='selInsert'){ state.inlineUi={kind:'tag', tag:''}; renderSelTools(); $('#inTag')?.focus(); return; }
-  if (e.target.id==='selSwitch' && s.range){ state.switchUi={mode:'inline', range:{...s.range}, field:'', match:'text', cases:[{v:'',t:s.range.text},{v:'',t:''}], other:''}; renderSelTools(); $('#swField')?.focus(); return; }
-  if (e.target.id==='lgSwitch'){ const ps=s.pids.map(id=>state.an.byPid.get(id)).sort((a,b)=>a.order-b.order); state.switchUi={mode:'para', pids:ps.map(p=>p.pid), field:'', match:'text', cases:[{v:'',t:ps.map(p=>p.model.text).join('\n')},{v:'',t:''}], other:'', where:'replace'}; renderSelTools(); $('#swField')?.focus(); return; }
-  if (e.target.id==='inBack'){ state.inlineUi=null; state.cb=null; renderSelTools(); return; }
-  if (e.target.id==='inApply' && s.range){
+  if (bid==='selIf'){ state.inlineUi={kind:'if', cond:'', other:''}; state.cb=cbNew(''); renderSelTools(); $('#cbf-0')?.focus(); return; }
+  if (bid==='selInsert'){ state.inlineUi={kind:'tag', tag:''}; renderSelTools(); $('#inTag')?.focus(); return; }
+  if (bid==='selSwitch' && s.range){ state.switchUi={mode:'inline', range:{...s.range}, field:'', match:'text', cases:[{v:'',t:s.range.text},{v:'',t:''}], other:''}; renderSelTools(); $('#swField')?.focus(); return; }
+  if (bid==='lgSwitch'){ const ps=s.pids.map(id=>state.an.byPid.get(id)).sort((a,b)=>a.order-b.order); state.switchUi={mode:'para', pids:ps.map(p=>p.pid), field:'', match:'text', cases:[{v:'',t:ps.map(p=>p.model.text).join('\n')},{v:'',t:''}], other:'', where:'replace'}; renderSelTools(); $('#swField')?.focus(); return; }
+  if (bid==='inBack'){ state.inlineUi=null; state.cb=null; renderSelTools(); return; }
+  if (bid==='inApply' && s.range){
     const {pid, s:a, e:b}=s.range; const ui=state.inlineUi;
     if (ui.kind==='if'){
       const cond=cbExpr(state.cb); if (!cond){ toast('Pick a field, a test and a value first.'); document.querySelector('#selTools .cb-field, #selTools .cb-rawin')?.focus(); return; }
@@ -4969,24 +5256,24 @@ $('#selTools').addEventListener('click', e=>{
     state.inlineUi=null; state.sel={pids:[],anchor:null,text:''}; window.getSelection()?.removeAllRanges(); renderSelTools(); afterLogicChange('Inserted the tag.'); return;
   }
   if (sw){
-    if (e.target.id==='swAdd'){ sw.cases.push({v:'',t:''}); renderSelTools(); $('#swv-'+(sw.cases.length-1))?.focus(); return; }
+    if (bid==='swAdd'){ sw.cases.push({v:'',t:''}); renderSelTools(); $('#swv-'+(sw.cases.length-1))?.focus(); return; }
     const d=e.target.closest('.sw-del'); if (d){ sw.cases.splice(+d.dataset.k,1); renderSelTools(); return; }
-    if (e.target.id==='swCancel'){ state.switchUi=null; renderSelTools(); return; }
-    if (e.target.id==='swApply'){ applySwitch(); return; }
+    if (bid==='swCancel'){ state.switchUi=null; renderSelTools(); return; }
+    if (bid==='swApply'){ applySwitch(); return; }
   }
-  if (e.target.id==='selClear'){ state.sel={pids:[],anchor:null,text:''}; state.cb=null; window.getSelection()?.removeAllRanges(); renderPaperSel(); renderSelTools(); }
-  if (e.target.id==='cbApply'){ applyParaCondition(); return; }
-  if (e.target.id==='ceSave'){ saveCondEdit(); return; }
-  if (e.target.id==='ceCancel'){ state.condEdit=null; state.cb=null; renderSelTools(); return; }
-  if (e.target.id==='selTag'){ const t=state.sel.text; state.sel={pids:[],anchor:null,text:''}; window.getSelection()?.removeAllRanges(); renderSelTools(); addManual(t); }
-  if (e.target.id==='lgInsert' || e.target.id==='lgWrap'){
+  if (bid==='selClear'){ state.sel={pids:[],anchor:null,text:''}; state.cb=null; window.getSelection()?.removeAllRanges(); renderPaperSel(); renderSelTools(); }
+  if (bid==='cbApply'){ applyParaCondition(); return; }
+  if (bid==='ceSave'){ saveCondEdit(); return; }
+  if (bid==='ceCancel'){ state.condEdit=null; state.cb=null; renderSelTools(); return; }
+  if (bid==='selTag'){ const t=state.sel.text; state.sel={pids:[],anchor:null,text:''}; window.getSelection()?.removeAllRanges(); renderSelTools(); addManual(t); }
+  if (bid==='lgInsert' || bid==='lgWrap'){
     const raw=$('#lgText').value; const text=normalizeLogicText(raw);
     if (text && !/CONDITION/.test(text)) recordUndo();
     if (!text){ toast('Write the tag first.'); return; }
     if (/CONDITION/.test(text)){ toast('Replace CONDITION with your condition, or pick one from “Condition…”.'); $('#lgText').focus(); return; }
     const pr=parseLogic(text);
     const ps=state.sel.pids.map(id=>state.an.byPid.get(id)).sort((a,b)=>a.order-b.order); const first=ps[0], last=ps[ps.length-1];
-    if (e.target.id==='lgWrap'){
+    if (bid==='lgWrap'){
       const expr = (pr.kw==='if'||pr.kw==='elif') ? pr.expr : '';
       if (!expr){ toast('Write the if condition first, then wrap.'); return; }
       if (first.el.parentNode!==last.el.parentNode){ toast('The first and last paragraphs are in different places (e.g. different table cells). Place the if and end if separately instead.'); return; }
@@ -5303,6 +5590,38 @@ document.addEventListener('keydown', e=>{ if ((e.ctrlKey||e.metaKey) && e.key===
 
 /* §tags-js */
 /* §logic-js */
+// words for the kinds of logic tag, shown on the paper and in the Conditions step
+function lgWord(kw){ return ({if:'Only when', elif:'Else when', else:'Otherwise', endif:'End', for:'Repeat for', endfor:'End repeat', set:'Set value'})[kw] || (kw || 'Tag'); }
+// a click on a condition line or chip in the letter: go to the Conditions step, flash the item, open the condition editor
+function openLogicEntry(key){
+  setTab('logic');
+  const base=String(key).replace(/#\d+$/,'');
+  const li=[...document.querySelectorAll('#logicList .lg-item')].find(x=>x.dataset.key===key || x.dataset.key===base);
+  if (li){ li.scrollIntoView({block:'nearest', inline:'nearest', behavior:'smooth'}); li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash'); }
+  const e=(state.lg||[]).find(x=>x.key===key) || (state.lg||[]).find(x=>x.key===base);
+  if (e && (e.kw==='if' || e.kw==='elif')) startCondEdit(e.key);
+}
+paper.addEventListener('keydown', e=>{
+  if (e.key!=='Enter' && e.key!==' ') return;
+  const ln=e.target.closest && e.target.closest('.lg-line'); if (!ln) return;
+  e.preventDefault(); openLogicEntry(ln.dataset.key);
+});
+// empty state in the Conditions step: take the user to the letter, to the first paragraph of text
+function lgSelectFirst(){
+  if (state.view!=='source') setView('source');
+  if (NARROW.matches && sideIsOpen()) setSide(false);
+  const all=[...document.querySelectorAll('#paper p.lp.body')];
+  const p=all.find(x=>x.textContent.replace(/ /g,' ').trim().length>25) || all[0]; if (!p) return;
+  p.scrollIntoView({block:'center', behavior:'smooth'}); p.classList.remove('flash-p'); void p.offsetWidth; p.classList.add('flash-p');
+  toast('Click a paragraph to choose who should see it.');
+}
+document.addEventListener('click', e=>{
+  if (e.target.closest('[data-pickcancel]')){ const c=$('#placeCancel')||$('#closeCancel'); if (c) c.click(); return; }
+  if (e.target.closest('#lgStart')) lgSelectFirst();
+});
+// keep the Jinja disclosures as the user left them when the list is redrawn
+$('#logicBlock').addEventListener('toggle', e=>{ const d=e.target; if (!d.matches || !d.matches('details.lg-jinja')) return; if (!state.lgOpen) state.lgOpen=new Set(); if (d.open) state.lgOpen.add(d.dataset.jk); else state.lgOpen.delete(d.dataset.jk); }, true);
+$('#selTools').addEventListener('toggle', e=>{ const d=e.target; if (d.matches && d.matches('details.cb-jinja')) state.cbJinjaOpen=d.open; }, true);
 /* §check-js */
 // Validate step: every finding gets a category and (when it points at the letter) a flag letter.
 // The checks themselves live in runChecks / realCheck; this is presentation and navigation only.
