@@ -9,11 +9,15 @@ UI text plain and short. There is no PDF feature on purpose (removed at the user
 - Run: `python run_local.py` (checks packages, opens the browser) or `python manage.py runserver` → http://127.0.0.1:8000
 - PyCharm run configurations live in `.idea/runConfigurations/`
 - Tests: `python manage.py test renderer`
-- After editing the page: `python tools/build_frontend.py`, then `python tests_ui/sweep.py` (clicks through the page, fails on any JS error)
+- After editing the page: `python tools/build_frontend.py`, then `python tests_ui/sweep.py` (clicks through the page, fails on any JS error; `--quick` covers only 3 letters, so run the full sweep before merging). In a container without Playwright's own browser, set `CHROMIUM_PATH`.
 
 ## Where things are
 
 - `frontend_src/letter-tagger.html` — source of the page (also published as a claude.ai artifact). One file: CSS, HTML, JS.
+  - Layout: header, step bar (`setTab`: doc / tags / logic / check / export, counts in `updateTabBadges`), left step panel, the letter (`#paper`), right inspector (`#inspector` with `#selTools`, `#tagInspector`, `#issueInspector`; `syncInspector`). Starts with no letter (first-run screen); the sample is one click away.
+  - Tags: inventory `renderRows`, editor `openTagInspector`. Validate: `checkCategory`, `openIssueInspector`, margin flags `decoratePaper`. Preview & export: `renderPvBar`, `#exportSummary`.
+  - Shared UI helpers: `icon(name)` (SVG sprite, no glyph icons), `confirmDialog()`, `.btn` / `.btn.primary` / `.btn.ghost` / `.btn.danger` / `.btn.icon` (needs `aria-label` + `data-tip`).
+- `DESIGN.md` / `.impeccable/design.json` — the design system (tokens, components, rules); `PRODUCT.md` — product record. Use only CSS tokens from `:root` so light and dark both work.
   - `runChecks` / `tagSyntaxProblem` / `locateTags`: the Check tab's findings and where they are
   - `realCheck` / `realBatch`: calls `/api/validate` when the back end is there
   - condition builder: `cbHtml`, `cbExpr`, `cbParse`, `cbEnglish`, `applyParaCondition`
