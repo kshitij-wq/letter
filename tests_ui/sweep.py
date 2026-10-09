@@ -125,6 +125,10 @@ class Sweep:
         # a PDF opens a second or two after its button is clicked
         if await self.pg.evaluate("()=>!!window.__ltBusy"):
             await self.settle(500)
+        # a confirm window opened by the click before (Accept all suggestions, Delete): say yes, so the action runs
+        if await self.pg.locator("#dlg[open]").count():
+            await self.pg.locator("#dlgOk").click()
+            await self.settle(250)
         # Esc also closes the inspector (and the side drawer on a narrow screen); between clicks inside the
         # inspector only close a field list, by leaving the field
         if keep_inspector and await self.pg.locator("#inspector").is_visible():
