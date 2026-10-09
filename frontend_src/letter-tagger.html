@@ -1050,11 +1050,9 @@ body.no-letter .viewer-bar{display:none}
 /* Before a letter is loaded the middle of the screen owns the upload; the Document step only points to it. */
 .doc-start{display:none}
 .doc-start p{margin:0 0 var(--s3);font-size:var(--fs-md)}
-.doc-start .hint{margin:0 0 var(--s2)}
 body.no-letter .doc-start{display:block}
 body.no-letter #dropDoc,body.no-letter #dropCsv,body.no-letter #teamBlock,body.no-letter #setupBlock,body.no-letter #filesBlock .block-head{display:none!important}
-body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
-.save-line{display:none;margin:0 0 var(--s3);font-size:var(--fs-sm);color:var(--muted)}
+body.no-letter #filesBlock{display:none}
 
 .need-letter .btn{margin-top:6px}
 @media (max-width:600px){
@@ -1192,11 +1190,8 @@ body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
     <aside class="side" id="side" aria-label="Current step">
       <div class="side-scroll">
       <div class="tabpanel" id="panel-doc" role="tabpanel" aria-labelledby="tab-doc">
-        <p class="save-line" id="saveLine"></p>
         <div class="block doc-start" id="docStart">
           <p>Start by choosing the client's letter in the middle of the screen.</p>
-          <p class="hint">Saved a setup file before? Load it to carry on.</p>
-          <label class="btn small" for="inSetup" data-pick>Load setup file…</label>
         </div>
         <div class="block" id="filesBlock">
           <div class="block-head"><h2>Files</h2><span class="stats" id="filesStats"></span></div>
@@ -1266,7 +1261,7 @@ body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
           <div class="inv-search">
             <svg class="ic inv-search-ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>
             <input id="tagSearch" type="search" placeholder="Search text or field" aria-label="Search placeholders by text or field" autocomplete="off" spellcheck="false">
-            <button class="btn icon ghost inv-search-x" id="tagSearchClear" type="button" aria-label="Clear search" hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
+            <button class="btn icon ghost inv-search-x" id="tagSearchClear" type="button" aria-label="Clear search" data-tip="Clear search" data-tip-end hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
           </div>
           <div class="filters" id="filters" role="group" aria-label="Filter placeholders">
             <button class="chip on" data-f="all" type="button" aria-pressed="true">All</button>
@@ -1349,7 +1344,7 @@ body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
       <div class="tabpanel" id="panel-check" role="tabpanel" aria-labelledby="tab-check" hidden>
         <div class="block" id="checksBlock">
           <div class="block-head"><h2>Template check</h2><span class="stats" id="checkStats"></span></div>
-          <div class="check-intro"><label class="btn small" for="inCheck" role="button" tabindex="0" id="lblCheck"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg>Check another tagged template…</label><span id="recheckSlot"></span></div>
+          <div class="check-intro"><label class="btn small" for="inCheck" id="lblCheck" data-pick><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg>Check another tagged template…</label><span id="recheckSlot"></span></div>
           <p class="hint check-hint">Problems with tags and conditions in this letter. A lettered flag in the letter's margin marks each one.</p>
           <div id="realCheck"></div>
           <div id="checkSummary"></div>
@@ -1394,7 +1389,7 @@ body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
           </div>
         </div>
         <div class="block" id="pvBlock">
-          <div class="block-head"><h2>Preview settings</h2><span class="stats" id="pvStats"></span></div>
+          <div class="block-head"><h2>Preview settings</h2></div>
           <p class="hint" id="pvInfo"></p>
           <div class="set-grid">
             <label class="set-row"><span>Your CSV columns are available in the template as</span>
@@ -1424,7 +1419,7 @@ body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
         </div>
         <div class="legend" id="legend"></div>
         <div class="legend-pop" id="legendPop" role="group" aria-label="Key to the marks in the letter" hidden></div>
-        <button class="btn icon small ghost btn-top" id="btnTop" type="button" aria-label="Back to top of letter" data-tip="Back to top of letter" data-tip-end><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow-up"/></svg></button>
+        <button class="btn icon ghost btn-top" id="btnTop" type="button" aria-label="Back to top of letter" data-tip="Back to top of letter" data-tip-end><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow-up"/></svg></button>
       </div>
       <div class="notice" id="sampleBanner" hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><span>Sample letter for a made-up company (Northwind Appliances).</span><label class="btn small" for="inDoc" data-pick>Upload a client letter</label></div>
       <div class="notice warn" id="restoreBanner" hidden></div>
@@ -1460,7 +1455,7 @@ body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
             <li class="fr-sep" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></li>
             <li><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download</li>
           </ul>
-          <p class="fr-privacy" id="frPrivacy"></p>
+          <p class="fr-privacy">Your files stay in this browser. Checks with real Jinja send the template to this tool's own server, never to anyone else; Test every employee also sends the employee values there. Claude helpers, if you use them, get the letter text and column names, never employee rows.</p>
         </section>
         <article class="paper" id="paper" tabindex="-1" hidden></article>
       </div>
@@ -1480,7 +1475,6 @@ body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
     </aside>
   </main>
   <div class="scrim" id="scrim" hidden></div>
-  <datalist id="tagList"></datalist>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   <dialog class="dlg" id="dlg" aria-labelledby="dlgTitle" aria-describedby="dlgBody">
     <form method="dialog">
@@ -1628,17 +1622,17 @@ function confirmDialog({title, body, confirm='Continue', cancel='Cancel', danger
     const onBack=e=>{ if (e.target===d) d.close(); };
     const onClose=()=>{ ok.removeEventListener('click',onOk); no.removeEventListener('click',onNo); d.removeEventListener('click',onBack); d.removeEventListener('close',onClose); resolve(result); };
     ok.addEventListener('click',onOk); no.addEventListener('click',onNo); d.addEventListener('click',onBack); d.addEventListener('close',onClose);
-    d.showModal(); ok.focus();
+    d.showModal(); (danger?no:ok).focus();
   });
 }
 
 /* ======================= state ======================= */
 const state = {
-  fileName:'', srcBuf:null, xml:{}, parts:[], isSample:true, comments:false, mainPath:'word/document.xml',
+  fileName:'', srcBuf:null, xml:{}, parts:[], isSample:false, comments:false, mainPath:'word/document.xml',
   an:null, rows:[], edits:{}, csv:null, csvAlias:new Map(), extraKeys:new Set(),
   settings:{ money:'indian', spaced:true, guard:false, removeHl:true },
   logic:[], lg:[], lgRails:new Map(), closing:null, sel:{pids:[], anchor:null, text:''}, view:'source', filter:'all', built:null, learned: lsGet('lt.learned', {}),
-  tables:[], tableEdits:{}, ghostMap:new Map(), learnedCells: lsGet('lt.cells', {}), csvHeaders:[], openRows:new Set(), closedRows:new Set(),
+  tables:[], tableEdits:{}, ghostMap:new Map(), learnedCells: lsGet('lt.cells', {}), csvHeaders:[],
   tagOps:[], origXml:{}, origHash:'', previewOverrides:{}, unplaced:[], tab:'doc', pv:{}, pvIdx:0, batch:null, compiled:null, fixes:[],
   team:null, teamClients:[], teamSetups:[], teamStatus:'', teamReadOnly:false, mergeB:null, switchUi:null, inlineUi:null, placing:null, typed:new Set(), switchOps:[], tColl:new Set(), tOpts:new Set(), csvExtra:[],
 };
@@ -2279,6 +2273,14 @@ function openStackAt(pid, entries){
 function snippet(p, n=60){ const t=(p && p.model.text || '').replace(/\s+/g,' ').trim(); return t.length>n ? t.slice(0,n)+'…' : (t || 'empty line'); }
 function pageLabel(p){ if (!p) return ''; if (p.kind==='header') return 'Header'; if (p.kind==='footer') return 'Footer'; return p.page ? `p.${p.page}` : ''; }
 function computeLogic(){ state.lg = logicEntries(); state.lgRails = logicRails(state.lg); }
+// status, problem label and plain-English reading of one logic tag: the margin lines and the Conditions list say the same
+function lgInfo(e){
+  const subs=e.src==='you' ? state.lg.filter(x=>x.id===e.id) : [e];
+  const stt=(subs.find(x=>x.status!=='ok')||{}).status||'ok';
+  const isCond=e.kw==='if' || e.kw==='elif';
+  return {st: stt==='ok'?'':' st-'+stt, isCond, en: isCond ? condEnglish(e.expr) : '', lead: e.kw==='elif' ? 'Else, shown when' : 'Shown when',
+    label: stt==='open' ? 'Not closed' : stt==='stray' ? `No matching ${e.kw==='endfor'||e.kw==='for'?'for':'if'}` : stt==='cells' ? 'Different cells' : ''};
+}
 function renderLogic(){
   computeLogic();
   const L=state.lg;
@@ -2297,16 +2299,11 @@ function renderLogic(){
   for (const e of cells) a+=alert(`<b>${esc(e.opener.text.slice(0,50))}</b> and its <b>${esc(e.text)}</b> are in different table cells. In a table, keep both in the same cell.`, showBtn(e));
   $('#logicAlerts').innerHTML=a;
   const U=state.unplaced||[];
-  $('#logicUnplaced').innerHTML = U.length ? `<div class="notice warn" role="group">${icon('flag')}<span><b>${U.length} tag${U.length>1?'s':''} need${U.length>1?'':'s'} a place.</b> ${U.length>1?'Their paragraphs aren\'t':'Its paragraph isn\'t'} in this version of the letter.</span>${U.map((u,k)=>`<div class="lg-un"><code>${esc(String(u.text).slice(0,70))}</code><span class="hint">${u.anchor&&u.anchor.text?'was at “'+esc(u.anchor.text.slice(0,50))+'”':esc(u.reason||'')}</span><button class="btn small" type="button" data-place="${k}">Place it</button><button class="btn icon small ghost" type="button" data-undel="${k}" aria-label="Discard this tag">${icon('x')}</button></div>`).join('')}</div>` : '';
+  $('#logicUnplaced').innerHTML = U.length ? `<div class="notice warn" role="group">${icon('flag')}<span><b>${U.length} tag${U.length>1?'s':''} need${U.length>1?'':'s'} a place.</b> ${U.length>1?'Their paragraphs aren\'t':'Its paragraph isn\'t'} in this version of the letter.</span>${U.map((u,k)=>`<div class="lg-un"><code>${esc(String(u.text).slice(0,70))}</code><span class="hint">${u.anchor&&u.anchor.text?'was at “'+esc(u.anchor.text.slice(0,50))+'”':esc(u.reason||'')}</span><button class="btn small" type="button" data-place="${k}">Place it</button><button class="btn icon ghost" type="button" data-undel="${k}" aria-label="Discard this tag" data-tip="Discard this tag" data-tip-end>${icon('x')}</button></div>`).join('')}</div>` : '';
   const rows=L.filter(e=>!(e.src==='you' && e.sub>0));
   if (!state.lgOpen) state.lgOpen=new Set();
   $('#logicList').innerHTML = rows.length ? rows.map(e=>{
-    const subs=e.src==='you' ? L.filter(x=>x.id===e.id) : [e];
-    const stt=(subs.find(x=>x.status!=='ok')||{}).status||'ok'; const st=stt==='ok'?'':' st-'+stt;
-    const problem = stt==='open' ? 'Not closed' : stt==='stray' ? `No matching ${e.kw==='endfor'||e.kw==='for'?'for':'if'}` : stt==='cells' ? 'Different cells' : '';
-    const isCond = e.kw==='if' || e.kw==='elif';
-    const en = isCond ? condEnglish(e.expr) : '';
-    const lead = e.kw==='elif' ? 'Else, shown when' : 'Shown when';
+    const {st, label:problem, isCond, en, lead}=lgInfo(e);
     const opEn = (e.kw==='endif' && e.opener && e.opener.kw==='if') ? condEnglish(e.opener.expr) : '';
     const say = isCond ? `${lead} ${en ? esc(en) : `<code class="lg-expr">${esc(e.expr.slice(0,70))}</code>`}` : e.kw==='else' ? 'Shown when none of the above match' : opEn ? `Ends the part shown when ${esc(opEn)}` : '';
     const cnt = blockCountHtml(e);
@@ -2316,7 +2313,7 @@ function renderLogic(){
     const edit = isCond ? `<button class="btn small lg-edit" type="button" data-editc="${esc(e.key)}">Change condition</button>` : '';
     const page = pageLabel(e.p);
     return `<li class="lg-item${st}${e.depth>0?' nest':''}" style="--d:${e.depth}" data-key="${esc(e.key)}">
-      <div class="lg-head"><span class="badge${isEnd?'':' cond'} kw-${esc(e.kw||'x')}">${esc(lgWord(e.kw))}</span>${problem?`<span class="badge err">${icon('alert-circle')}${esc(problem)}</span>`:''}${e.src==='you'?`<button class="btn icon small ghost lg-del" type="button" data-del="${e.id}" aria-label="Delete this tag" title="Delete this tag">${icon('x')}</button>`:''}</div>
+      <div class="lg-head"><span class="badge${isEnd?'':' cond'} kw-${esc(e.kw||'x')}">${esc(lgWord(e.kw))}</span>${problem?`<span class="badge err">${icon('alert-circle')}${esc(problem)}</span>`:''}${e.src==='you'?`<button class="btn icon ghost lg-del" type="button" data-del="${e.id}" aria-label="Delete this tag" data-tip="Delete this tag" data-tip-end>${icon('x')}</button>`:''}</div>
       ${say||cnt?`<div class="lg-en${isCond||e.kw==='else'?'':' quiet'}">${say?`<span>${say}</span>`:''}${cnt?`${say?'<span aria-hidden="true">·</span>':''}${cnt}`:''}</div>`:''}
       <div class="lg-row-act"><button class="linkish lg-where" type="button" data-show="${esc(e.pid)}" aria-label="Show in the letter: ${esc(page)} ${esc(snippet(e.p,34))}" title="Show in the letter">${icon('eye')}${page?`<span class="lg-page">${esc(page)}</span>`:''}<span class="lg-snip">“${esc(snippet(e.p,34))}”</span></button>${edit}</div>
       <details class="lg-jinja" data-jk="${esc(e.key)}"${state.lgOpen.has(e.key)?' open':''}><summary>${e.src==='you'?'Jinja and position':'Jinja'}</summary>${e.src==='you'?`<label class="set-row"><span>Tag</span>${txt}</label><label class="set-row"><span>Position</span>${pl}</label>`:`${txt}${pl}`}</details></li>`;
@@ -2327,7 +2324,7 @@ function showPid(pid){
   ckSeeSide();   // on a phone the side panel covers the letter: close it so the place is visible
   if (state.view!=='source') setView('source');
   const el=[...document.querySelectorAll('#paper [data-pid]')].find(x=>x.dataset.pid===pid);
-  if (el){ el.scrollIntoView({block:'center', inline:'nearest', behavior:'smooth'}); el.classList.remove('flash-p'); void el.offsetWidth; el.classList.add('flash-p'); }
+  if (el){ el.scrollIntoView({block:'center', inline:'nearest', behavior:scrollBehavior()}); el.classList.remove('flash-p'); void el.offsetWidth; el.classList.add('flash-p'); }
 }
 function addLogic(pid, place, text, extra){
   const t=normalizeLogicText(text); if (!t) return null;
@@ -3045,15 +3042,15 @@ function doAutosave(){
   }catch(e){ state.autosaveFailed=true; renderAutosaveStats(); renderSaveState(); }
 }
 // the status line in the header: only ever says what this browser did
-function renderSaveState(){
-  const el=$('#saveState'); if (!el) return;
-  const line=$('#saveLine');   // the same text inside the Document step, shown on phones where the header hides it
-  if (!state.an){ el.textContent=''; if (line) line.textContent=''; return; }
-  el.textContent = state.isSample ? 'Sample letter'
+function saveStatusText(){
+  return state.isSample ? "Sample letter isn't saved"
     : state.autosaveFailed ? 'Not saved: browser storage is full or blocked'
     : state.lastAutosave ? 'Saved in this browser · '+fmtWhen(state.lastAutosave)
     : HISTORY.undo.length ? 'Saves in this browser as you work' : 'Not changed yet';
-  if (line) line.textContent=el.textContent;
+}
+function renderSaveState(){
+  const el=$('#saveState'); if (!el) return;
+  el.textContent = state.an ? saveStatusText() : '';
 }
 setInterval(()=>{ if (state.lastAutosave) renderSaveState(); }, 30000);
 function readAutosave(hash){ try{ const s=localStorage.getItem('lt.auto.'+hash); return s?JSON.parse(s):null; }catch(e){ return null; } }
@@ -3403,10 +3400,9 @@ function syncSettingsUI(){
 /* ======================= steps ======================= */
 const STEPS=['doc','tags','logic','check','export'];
 function setTab(t, opts){
-  if (t==='lib') t='doc';
   if (!STEPS.includes(t)) t='doc';
   const changed=state.tab!==t;
-  state.tab=t; lsSet('lt.tab', t);
+  state.tab=t;
   document.querySelectorAll('#tabs .tab').forEach(b=>{ const on=b.dataset.tab===t; b.classList.toggle('on', on); b.setAttribute('aria-selected', on?'true':'false'); b.tabIndex=on?0:-1; });
   for (const k of STEPS){ const el=$('#panel-'+k); if (el) el.hidden = k!==t; }
   if (changed){ const sc=document.querySelector('.side-scroll'); if (sc) sc.scrollTop=0; }
@@ -3414,26 +3410,30 @@ function setTab(t, opts){
   if (t==='tags'){ renderOldTags(); renderRows(); } else closeTagInspector();
   if (t==='logic') renderMerge();
   if (t==='check'){ renderChecks(); renderBatch(); renderAi(); }
-  if (t==='export') renderPvPanel();
-  if (opts && opts.open && typeof setSide==='function' && !sideIsOpen()) setSide(true);
+  if (t==='export'){ renderPvPanel(); renderExportSummary(); }
+  if (opts && opts.open && !sideIsOpen()) setSide(true);
   revealTab();
 }
 // On a phone the step bar scrolls sideways: keep the active step fully in view.
 function revealTab(){ const on=document.querySelector('#tabs .tab.on'); if (on && on.scrollIntoView) on.scrollIntoView({inline:'nearest', block:'nearest'}); }
 // A step is only marked done from what the page can see, never from clicks or navigation.
+// what the step badges and the export checklist both read: Validate's counts and the condition problems
+function readiness(){
+  const lg=state.lg||[];
+  const bad=lg.filter(e=>e.status==='open'||e.status==='stray'||(e.status==='cells'&&(e.kw||'').startsWith('end'))).length+(state.unplaced||[]).length;
+  let errs, warns;
+  if (state.checkCounts){ errs=state.checkCounts.e; warns=state.checkCounts.w; }
+  else { const ch=state.built?state.built.checks:[]; errs=ch.filter(x=>x.level==='error').length; warns=ch.filter(x=>x.level==='warn').length; }
+  return {lg, bad, errs, warns};
+}
 function updateTabBadges(){
   const inDoc=state.rows.filter(r=>r.count);
   const need=inDoc.filter(r=>['need','check'].includes(rowStatus(r))).length + state.tables.reduce((s,t)=>{ if (!t.enabled) return s; const c=tableCounts(t); return s+c.all-c.done; },0);
   const taggedAny=inDoc.some(r=>rowStatus(r)==='tagged') || state.tables.some(t=>t.enabled && tableCounts(t).done>0);
-  const lg=state.lg||[]; const bad=lg.filter(e=>e.status==='open'||e.status==='stray'||(e.status==='cells'&&(e.kw||'').startsWith('end'))).length+(state.unplaced||[]).length;
+  const {lg, bad, errs, warns}=readiness();
   const hasCond=lg.some(e=>e.kw==='if');
   // an error from Validate that points at a condition (an if / elif / for tag) keeps Conditions from showing done
   const logicErr=(state.issues||[]).some(x=>x.level==='error' && (x.cat==='conditions' || (x.cat==='syntax' && (x.tags||[]).some(t=>typeof t==='string' && /^\s*\{%/.test(t)))));
-  let errs, warns;
-  const vc = typeof window.__validateCounts==='function' ? window.__validateCounts() : window.__validateCounts;
-  if (vc && typeof vc==='object'){ errs=+vc.errors||0; warns=+vc.warnings||0; }
-  else if (state.checkCounts){ errs=state.checkCounts.e; warns=state.checkCounts.w; }
-  else { const ch=state.built?state.built.checks:[]; errs=ch.filter(x=>x.level==='error').length; warns=ch.filter(x=>x.level==='warn').length; }
   const realOk = !server.ok || !!(server.check && !server.check.syntax.length);
   const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
   const done={
@@ -3457,6 +3457,7 @@ function updateTabBadges(){
     b.classList.toggle('done', !!done[k]);
     b.setAttribute('aria-label', i.label); if (i.title) b.title=i.title; else b.removeAttribute('title');
   }
+  renderExportSummary();
 }
 function updateHeaderActions(){
   const off=!state.an;
@@ -3556,12 +3557,11 @@ function filledHtml(text, fc){
   out+=wrap(esc(text.slice(last).replace(/[-]/g,'')));
   return out;
 }
-function renderCheckTab(){ renderPvPanel(); renderBatch(); renderAi(); }
+function renderCheckTab(){ renderBatch(); renderAi(); }
 function renderPvPanel(){
   const box=$('#pvInfo'); if (!box) return;
   const rows=csvRows();
   box.innerHTML = rows.length ? `<span class="badge ok">Real data</span> ${rows.length} employee${rows.length>1?'s':''} in <b>${esc(state.csv.name)}</b>.` : `<span class="badge warn">Sample data</span> ${state.csv ? `Your CSV has no employee rows (${state.csv.mode==='keys'?'only column names':'a text-to-tag list'}), so the preview uses made-up values.` : 'No CSV loaded, so the preview uses made-up values.'}`;
-  $('#pvStats').textContent = rows.length ? 'Real data' : 'Sample data';
   const ids=[...templateIdentifiers().keys()].sort();
   $('#pvValuesN').textContent = ids.length ? `(${ids.length})` : '';
   const {ctx, sampled, fromCsv}=buildCtx(rows.length?(state.pvIdx||0):null);
@@ -3595,23 +3595,23 @@ function renderBatch(){
   const rank={error:0,warn:1,info:2}; const lab={error:'Fix',warn:'Check',info:'Note'};
   const groups=[...B.groups.values()].sort((a,b)=>rank[a.level]-rank[b.level] || (b.real?1:0)-(a.real?1:0) || b.count-a.count);
   const realLine = server.ok ? (B.realRunning ? 'Now filling the same employees with real Jinja…' : B.realErr ? `Real Jinja check didn't finish: ${esc(B.realErr)}` : B.real&&B.real.employees ? (()=>{ const n=new Set(B.real.employees.failed.map(f=>f.index)).size; return n?`Real Jinja (the engine CompUp uses) can't make the letter for <b>${n}</b> employee${n>1?'s':''}; marked <span class="src">Real Jinja</span> below.`:`Real Jinja (the engine CompUp uses) filled the letter for all ${B.real.employees.tested} employees.`; })() : '') : '';
-  const groupHtml=g=>`<li class="ck ${g.level} bt-group"><div class="ck-top"><span class="badge">${lab[g.level]}</span>${g.real?'<span class="src">Real Jinja</span>':''}<b class="cnt">${g.count} employee${g.count>1?'s':''}</b></div><div class="ck-msg">${g.msg}</div>${g.real && g.name && g.tag && new RegExp(`${escRe(g.name)}\\s*\\|\\s*(float|int)\\b`).test(g.tag)?`<div class="ck-acts"><button class="btn small ck-fix" type="button" data-bfix="${esc(g.name)}">Add | default(0)</button></div>`:''}${g.real?locChips(locateTags(g.tag?[g.tag]:templateTagsWith(g.name),4)):''}<details class="emps"><summary>Show who</summary>${g.emps.slice(0,60).map(i=>`<button class="chip" type="button" data-emp="${i}">${esc(empLabel(i))}</button>`).join('')}${g.count>60?` <span class="hint">and ${g.count-60} more. Download the results for the full list.</span>`:''}</details></li>`;
+  const groupHtml=g=>`<li class="ck ${g.level} bt-group"><div class="ck-top"><span class="badge">${lab[g.level]}</span>${g.real?'<span class="src">Real Jinja</span>':''}<b class="cnt">${g.count} employee${g.count>1?'s':''}</b></div><div class="ck-msg">${g.msg}</div>${g.real && g.name && g.tag && new RegExp(`${escRe(g.name)}\\s*\\|\\s*(float|int)\\b`).test(g.tag)?`<div class="ck-acts"><button class="btn small ck-fix" type="button" data-bfix="${esc(g.name)}">Add | default(0)</button></div>`:''}${g.real?locChips(locateTags(g.tag?[g.tag]:templateTagsWith(g.name),4)):''}</li>`;
   box.innerHTML=`${B.stale?`<div class="notice warn" role="status">${icon('alert-triangle')}<span>The template changed after this test. Run it again for the current result.</span></div>`:''}
-    <p class="bt-sum"><span class="ok">${icon('check-circle')}${ok} fine</span>${bad?`<span class="warn">${icon('alert-triangle')}${bad} to look at</span>`:''}</p>
     <p class="bt-meta">${B.done} employee${B.done>1?'s':''} tested in ${(B.ms/1000).toFixed(1)} s${B.cancelled?' (stopped early)':''}.${realLine?` ${realLine}`:''}</p>
-    ${bad?'':`<div class="ck-ok">${icon('check-circle')}<div><b>No problems found</b><p>Every employee's letter filled without a problem. Before generating the cycle, preview one employee's PDF in CompUp.</p></div></div>`}
+    ${bad || (server.ok && !(B.real && !B.realErr && !B.realRunning))?'':`<div class="ck-ok">${icon('check-circle')}<div><b>No problems found</b><p>Every employee's letter filled without a problem. Before generating the cycle, preview one employee's PDF in CompUp.</p></div></div>`}
     <div id="batchTable">${batchTableHtml(B)}</div>
     ${groups.length?`<h3 class="bt-h">What went wrong</h3><ul class="checks">${groups.map(groupHtml).join('')}</ul>`:''}`;
   $('#btnBatchCsv').hidden=!groups.length;
 }
 // who passed and who didn't: one row per employee, problems first by default
 function batchTableHtml(B){
+  const dl = B.groups.size>0;
   const bad=B.perEmp.filter(x=>x.n>0).length;
   const only = bad>0 && (state.batchOnlyBad===undefined ? true : !!state.batchOnlyBad);
   const list = only ? B.perEmp.filter(x=>x.n>0) : B.perEmp;
   const shown=list.slice(0,500);
   const tr=x=>{ const l=empLabel(x.i); return `<tr><td class="emp" title="${esc(l)}">${esc(l)}</td><td><span class="bt-st ${x.n?'warn':'ok'}">${icon(x.n?'alert-triangle':'check-circle')}${x.n?`${x.n} problem${x.n>1?'s':''}`:'OK'}</span></td><td class="act"><button class="btn small" type="button" data-emp="${x.i}" aria-label="Preview ${esc(l)}">Preview</button></td></tr>`; };
-  const table=`<div class="bt-wrap"><table class="bt"><thead><tr><th scope="col">Employee</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody>${shown.map(tr).join('')}</tbody></table></div>${list.length>shown.length?`<p class="bt-more">and ${list.length-shown.length} more. Download the results for the full list.</p>`:''}`;
+  const table=`<div class="bt-wrap"><table class="bt"><thead><tr><th scope="col">Employee</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody>${shown.map(tr).join('')}</tbody></table></div>${list.length>shown.length?`<p class="bt-more">and ${list.length-shown.length} more.${dl?' Download the results for the full list.':''}</p>`:''}`;
   if (!bad) return `<details class="bt-all"><summary>Show all ${B.done} employees</summary>${table}</details>`;
   return `<div class="bt-tools"><h3 class="bt-h">Employees</h3><label class="check small"><input type="checkbox" id="batchOnlyBad"${only?' checked':''}><span>Only employees with problems</span></label></div>${table}`;
 }
@@ -3619,9 +3619,9 @@ function renderBatchProgress(){ const B=state.batch; const pg=$('#batchProgress'
 async function runBatch(){
   const rows=csvRows(); if (!rows.length){ toast('Load a CSV with one row per employee first.'); return; }
   let comp; try{ comp=await getCompiled(); }catch(e){ toast(e.message); return; }
-  if (comp.error){ state.batch={error:comp.error}; renderBatch(); return; }
+  if (comp.error){ state.batch={error:comp.error}; renderBatch(); renderExportSummary(); return; }
   const B=state.batch={running:true, total:rows.length, done:0, groups:new Map(), perEmp:[], started:performance.now(), src:comp.src, cancel:false};
-  renderBatch();
+  renderBatch(); renderExportSummary();
   const U=csvKeyUniverse();
   for (let i=0;i<rows.length;i++){
     if (B.cancel){ B.cancelled=true; break; }
@@ -3667,7 +3667,7 @@ function renderOldTags(){
   const stHtml=id=>{ const st=keyStatus(id,U); if (st==='csv') return '<span class="nm-st ok">In your data</span>'; if (st==='compup') return '<span class="nm-st">CompUp tag</span>'; if (st==='nocsv') return '<span class="nm-st">not checked (no CSV)</span>'; const s=didYouMean(id,U); return `<span class="nm-st bad">not in your data file${s?` · did you mean <code>${esc(s)}</code>?`:''}</span>${s?`<button class="btn small" type="button" data-ren="${esc(id)}" data-to="${esc(s)}">Use ${esc(s)}</button>`:''}`; };
   $('#oldNames').innerHTML = names.length ? names.map(n=>`<li class="nm" data-id="${esc(n.id)}"><div class="nm-top"><input type="checkbox" class="nm-pick" id="nmp-${hid(n.id)}" aria-label="Select ${esc(n.id)}"><code>${esc(n.id)}</code><span class="count">${n.count} time${n.count===1?'':'s'}</span>${stHtml(n.id)}</div><div class="nm-edit"><input class="nm-to mono" id="nmt-${hid(n.id)}" placeholder="Rename to…" spellcheck="false" aria-label="New name for ${esc(n.id)}"><button class="btn small nm-go" type="button">Rename</button></div></li>`).join('') : '<li class="empty">No tag names.</li>';
   $('#oldAmountN').textContent=`${new Set(info.amount.map(a=>a.tag)).size} amount tag${info.amount.length===1?'':'s'}`;
-  $('#oldOps').innerHTML = state.tagOps.map(op=>`<li class="op"><span>${op.type==='rename'?`Renamed <code>${esc(op.from)}</code> → <code>${esc(op.to)}</code>`:op.type==='map'?`Rewrote <code>${esc(op.from.slice(0,70))}</code> → <code>${esc(op.to.slice(0,70))}</code>`:`Replaced <code>${esc(op.find)}</code> with <code>${esc(op.repl)}</code>${op.regex?' (pattern)':''}`}</span><button class="del" type="button" data-op="${op.id}" aria-label="Undo this change">${icon('x')}</button></li>`).join('');
+  $('#oldOps').innerHTML = state.tagOps.map(op=>`<li class="op"><span>${op.type==='rename'?`Renamed <code>${esc(op.from)}</code> → <code>${esc(op.to)}</code>`:op.type==='map'?`Rewrote <code>${esc(op.from.slice(0,70))}</code> → <code>${esc(op.to.slice(0,70))}</code>`:`Replaced <code>${esc(op.find)}</code> with <code>${esc(op.repl)}</code>${op.regex?' (pattern)':''}`}</span><button class="btn icon ghost" type="button" data-op="${op.id}" aria-label="Undo this change" data-tip="Undo this change" data-tip-end>${icon('x')}</button></li>`).join('');
   $('#oldOpsWrap').hidden=!state.tagOps.length;
 }
 function addTagOps(ops, msg){
@@ -3716,7 +3716,7 @@ function switchHtml(sw){
     <section class="ins-sec"><label class="ins-h" for="swField">Field</label><div class="combo-wrap"><input id="swField" class="combo-in mono" value="${esc(sw.field)}" placeholder="Field, e.g. employee_schema.rating" autocomplete="off" spellcheck="false"></div>
       <select id="swMatch" aria-label="How to compare"><option value="text"${sw.match==='text'?' selected':''}>Match text (ignores case)</option><option value="number"${sw.match==='number'?' selected':''}>Match numbers</option></select></section>
     <section class="ins-sec"><h3 class="ins-h">Text for each value</h3>
-      <div class="sw-cases">${sw.cases.map((c,k)=>`<div class="sw-case"><input class="sw-v mono" data-k="${k}" id="swv-${k}" value="${esc(c.v)}" placeholder="${k===0?'Value, e.g. A':'e.g. B'}" aria-label="Value ${k+1}" spellcheck="false">${k>0?`<button class="btn icon small ghost sw-del" type="button" data-k="${k}" aria-label="Remove value ${k+1}">${icon('x')}</button>`:''}${inline&&k===0?`<div class="sw-fixed" title="The selected words">${esc(c.t)}</div>`:`<textarea class="sw-t" data-k="${k}" id="swt-${k}" rows="2" aria-label="Text for value ${k+1}" placeholder="Text for this value">${esc(c.t)}</textarea>`}</div>`).join('')}</div>
+      <div class="sw-cases">${sw.cases.map((c,k)=>`<div class="sw-case"><input class="sw-v mono" data-k="${k}" id="swv-${k}" value="${esc(c.v)}" placeholder="${k===0?'Value, e.g. A':'e.g. B'}" aria-label="Value ${k+1}" spellcheck="false">${k>0?`<button class="btn icon ghost sw-del" type="button" data-k="${k}" aria-label="Remove value ${k+1}" data-tip="Remove this value" data-tip-end>${icon('x')}</button>`:''}${inline&&k===0?`<div class="sw-fixed" title="The selected words">${esc(c.t)}</div>`:`<textarea class="sw-t" data-k="${k}" id="swt-${k}" rows="2" aria-label="Text for value ${k+1}" placeholder="Text for this value">${esc(c.t)}</textarea>`}</div>`).join('')}</div>
       <div class="ins-row"><button class="btn small ghost" id="swAdd" type="button">${icon('plus')}Add a value</button><span class="ins-hint">Values can share a text: A, A+</span></div></section>
     <section class="ins-sec"><label class="ins-h" for="swOther">Any other value (optional)</label><textarea id="swOther" rows="2" placeholder="Leave empty to show nothing">${esc(sw.other)}</textarea></section>
     ${sw.mode==='para'?`<section class="ins-sec"><label class="ins-h" for="swWhere">Where it goes</label><select id="swWhere"><option value="replace"${sw.where==='replace'?' selected':''}>Replace the selected paragraph${sw.pids.length>1?'s':''} with these versions</option><option value="after"${sw.where==='after'?' selected':''}>Add these versions after it, keep the original for everyone</option></select></section>`:''}
@@ -3886,7 +3886,7 @@ function startCondEdit(key){
   state.cb=cbNew(e.expr); state.sel={pids:[],anchor:null,text:''}; state.closing=null; state.inlineUi=null; state.switchUi=null; state.placing=null;
   if (state.view!=='source') setView('source');
   renderPaperSel(); renderSelTools(); showPid(e.pid);
-  $('#selTools')?.scrollIntoView({block:'nearest', behavior:'smooth'});
+  $('#selTools')?.scrollIntoView({block:'nearest', behavior:scrollBehavior()});
 }
 function condEditHtml(ce){
   const cur=parseLogic(ce.tag); const en=condEnglish(cur.expr); const elif=ce.kw==='elif';
@@ -3979,8 +3979,7 @@ const CB_NUM_REV=Object.fromEntries(Object.entries(CB_NUM).map(([k,v])=>[v,k]));
 function cbList(v){ return String(v??'').split(',').map(x=>x.trim()).filter(Boolean); }
 function cbNum(v){ const t=String(v??'').replace(/[,\s₹]/g,''); if (!t) return null; const n=Number(t); return Number.isFinite(n)?n:null; }
 function cbBlank(field=''){ return {field, op: field && cbIsNumeric(field) ? 'gt' : 'is', value:''}; }
-function cbNew(expr){ state.cbNote=''; return cbNew0(expr); }
-function cbNew0(expr){ if (expr){ const p=cbParse(expr); if (p) return p; return {rules:[cbBlank()], join:'and', raw:cleanCondExpr(expr)}; } return {rules:[cbBlank()], join:'and', raw:null}; }
+function cbNew(expr){ state.cbNote=''; if (expr){ const p=cbParse(expr); if (p) return p; return {rules:[cbBlank()], join:'and', raw:cleanCondExpr(expr)}; } return {rules:[cbBlank()], join:'and', raw:null}; }
 function cbRuleExpr(r){
   const f=String(r.field||'').trim(); if (!/^[A-Za-z_][\w.]*$/.test(f)) return '';
   const v=String(r.value??'').trim(); const T=`${f} | string | lower | trim`;
@@ -4069,10 +4068,12 @@ function cbValues(field){
   return list.slice(0,12);
 }
 function cbIsNumeric(field){ const vals=cbValues(field).filter(x=>x.v!==''); if (vals.length<2) return false; return vals.every(x=>cbNum(x.v)!=null) && !vals.every(x=>/^[01]$/.test(x.v)); }
+// the condition as a tiny template that prints 1 when the letter would show and 0 when not
+function condTemplate(expr){ return unicodeEscapes(straighten(`{% if ${decodeXmlText(expr)} %}`))+'1{% else %}0{% endif %}'; }
 async function cbCount(expr){
   const rows=csvRows(); if (!rows.length || !expr) return null;
   const nj=await loadEngine(); if (!ENV){ installPyString(); ENV=makeEnv(nj); }
-  let t; try{ t=new nj.Template(unicodeEscapes(straighten(`{% if ${decodeXmlText(expr)} %}`))+'1{% else %}0{% endif %}', ENV, 'condition', true); }catch(e){ return {error:true}; }
+  let t; try{ t=new nj.Template(condTemplate(expr), ENV, 'condition', true); }catch(e){ return {error:true}; }
   let n=0, m=0; for (const c of allCtx()){ try{ if (t.render(c).trim()==='1') n++; m++; }catch(e){ return {error:true}; } }
   return {n, total:m, more:rows.length>m};
 }
@@ -4112,7 +4113,7 @@ function cbHtml(cb){
     const many=cb.rules.length>1;
     return `${k?`<div class="cb-join">${k===1?`<select class="cb-joinsel" aria-label="And or or"><option value="and"${cb.join==='and'?' selected':''}>and</option><option value="or"${cb.join==='or'?' selected':''}>or</option></select>`:`<span>${cb.join}</span>`}</div>`:''}
     <div class="cb-rule" data-k="${k}">
-      <div class="cb-f${many?'':' solo'}"><div class="combo-wrap"><input class="combo-in mono cb-field" data-k="${k}" id="cbf-${k}" value="${esc(r.field)}" placeholder="Choose a field…" autocomplete="off" spellcheck="false" aria-label="Field${many?' '+(k+1):''}"></div>${many?`<button class="btn icon small ghost cb-del" data-k="${k}" type="button" aria-label="Remove rule ${k+1}" title="Remove this rule">${icon('x')}</button>`:''}</div>
+      <div class="cb-f${many?'':' solo'}"><div class="combo-wrap"><input class="combo-in mono cb-field" data-k="${k}" id="cbf-${k}" value="${esc(r.field)}" placeholder="Choose a field…" autocomplete="off" spellcheck="false" aria-label="Field${many?' '+(k+1):''}"></div>${many?`<button class="btn icon ghost cb-del" data-k="${k}" type="button" aria-label="Remove rule ${k+1}" data-tip="Remove this rule" data-tip-end>${icon('x')}</button>`:''}</div>
       <div class="cb-t${CB_NOVAL.has(r.op)?' noval':''}"><select class="cb-op" data-k="${k}" id="cbo-${k}" aria-label="Test${many?' '+(k+1):''}">${CB_OPS.map(([v,l])=>`<option value="${v}"${r.op===v?' selected':''}>${esc(l)}</option>`).join('')}</select>
       ${CB_NOVAL.has(r.op)?'':`<input class="cb-val" data-k="${k}" id="cbv-${k}" value="${esc(r.value)}" placeholder="${hint}" aria-label="Value${many?' '+(k+1):''}" spellcheck="false">`}</div>
       ${vals.length?`<div class="cb-chips"><span class="hint">In your data:</span>${vals.map(v=>`<button type="button" class="chip cb-pick${picked.has(v.v.toLowerCase())?' on':''}" data-k="${k}" data-v="${esc(v.v)}" aria-pressed="${picked.has(v.v.toLowerCase())?'true':'false'}" title="${v.n} employee${v.n>1?'s':''}">${picked.has(v.v.toLowerCase())?icon('check'):''}${esc(v.v||'(empty)')} <span class="n">${v.n}</span></button>`).join('')}</div>`:''}
@@ -4125,7 +4126,7 @@ function cbHtml(cb){
 async function cbEmployee(expr){
   const rows=csvRows(); const idx=rows.length ? Math.min(state.pvIdx||0, rows.length-1) : null;
   const who = rows.length ? empLabel(idx) : 'sample employee (made-up values)';
-  const src=unicodeEscapes(straighten(`{% if ${decodeXmlText(expr)} %}`))+'1{% else %}0{% endif %}';
+  const src=condTemplate(expr);
   try{
     const nj=await loadEngine(); if (!ENV){ installPyString(); ENV=makeEnv(nj); }
     const t=new nj.Template(src, ENV, 'condition', true);
@@ -4142,18 +4143,21 @@ function cbRefreshInfo(){
     const ta=document.querySelector('#selTools .cb-rawin');
     if (ta){ if (why){ ta.setAttribute('aria-invalid','true'); ta.setAttribute('aria-describedby','cbInfo'); } else { ta.removeAttribute('aria-invalid'); ta.removeAttribute('aria-describedby'); } const w=ta.closest('.cb-code'); if (w) w.classList.toggle('bad', !!why); }
     const ok=cbHandOk(cb.raw); const hand=document.querySelector('#selTools .cb-hand'); if (hand) hand.hidden=ok;
-    const bb=document.querySelector('#selTools .cb-mode .cb-b'); if (bb){ bb.classList.toggle('cb-blocked', !ok); if (ok) bb.removeAttribute('title'); else bb.title="The builder can't show a condition written by hand."; }
   }
   const note = state.cbNote ? `<div class="cb-note">${esc(state.cbNote)}</div>` : '';
   box.innerHTML = note + (!expr ? `<span class="hint">${raw?'Type a condition in Jinja, e.g. employee_schema.rating | lower == "a".':'Pick a field, a test and a value.'}</span>`
-    : `${why?'':`<div class="cb-en">${en?`Shown when ${esc(en)}.`:'Written in Jinja, so there is no plain-English version.'}</div>`}${why?`<div class="cb-bad">${icon('alert-circle')}<span>${esc(why)}</span></div>`:''}<div class="cb-line cb-count"></div><div class="cb-line cb-emp"></div>${raw?'':`<details class="cb-jinja"${state.cbJinjaOpen?' open':''}><summary>Show Jinja</summary><code class="cb-tag mono">{% if ${esc(expr)} %}</code></details>`}`);
+    : `${why?'':`<div class="cb-en">${en?`Shown when ${esc(en)}.`:'Written in Jinja, so there is no plain-English version.'}</div>`}${why?`<div class="cb-bad">${icon('alert-circle')}<span>${esc(why)}</span></div>`:''}<div class="cb-line cb-count"></div><div class="cb-line cb-emp"></div><div class="cb-line cb-sample"></div>${raw?'':`<details class="cb-jinja"${state.cbJinjaOpen?' open':''}><summary>Show Jinja</summary><code class="cb-tag mono">{% if ${esc(expr)} %}</code></details>`}`);
   clearTimeout(cbInfoTimer); const seq=++cbInfoSeq;
   if (!expr || why) return;
   cbInfoTimer=setTimeout(async ()=>{
     const hasRows=csvRows().length>0;
     const [r, emp]=await Promise.all([hasRows ? cbCount(expr).catch(()=>({error:true})) : null, cbEmployee(expr)]);
     if (seq!==cbInfoSeq) return;
-    const c=document.querySelector('#selTools .cb-count'), m=document.querySelector('#selTools .cb-emp');
+    const c=document.querySelector('#selTools .cb-count'), m=document.querySelector('#selTools .cb-emp'), sm=document.querySelector('#selTools .cb-sample');
+    // a field that isn't in the data file is filled with a made-up value: say so, for the count and for the employee
+    const rules=raw ? (cbParse(cb.raw)||{rules:[]}).rules : cb.rules;
+    const made=hasRows ? [...new Set(rules.map(r=>String(r.field||'').trim()).filter(Boolean))].filter(f=>buildCtx(Math.min(state.pvIdx||0, csvRows().length-1)).sampled.has(f)) : [];
+    if (sm) sm.innerHTML = made.length ? `<span class="hint">${esc(made.join(', '))} ${made.length>1?"aren't":"isn't"} in your data file, so this used a made-up value${made.length>1?'s':''}.</span>` : '';
     if (c) c.innerHTML = !hasRows ? '<span class="hint">Load a data file to see how many employees this covers.</span>' : !r || r.error ? '<span class="hint">Can\'t test this one on your data.</span>' : `<span>True for <b>${r.n}</b> of ${r.total} employee${r.total===1?'':'s'}${r.more?' (first 3,000)':''}${r.n===0?'. Check the value':r.n===r.total?'. That is everyone':''}.</span>`;
     if (m) m.innerHTML = emp.error ? `<span class="hint">Can't test this condition on ${esc(emp.who)}: ${esc(emp.error)}</span>` : `<span>For <b>${esc(emp.who)}</b>:</span>${emp.shown?`<span class="badge ok">${icon('check')}Shown</span>`:'<span class="badge">Hidden</span>'}`;
   }, 200);
@@ -4190,7 +4194,11 @@ function cbBind(root){
     else if (t.classList.contains('cb-del')){ cb.rules.splice(k,1); cbRerender(); }
     else if (t.classList.contains('cb-pick')){ const r=cb.rules[k]; const v=t.dataset.v; if (r.op==='in'||r.op==='notin'){ const L=cbList(r.value); const i=L.findIndex(x=>x.toLowerCase()===v.toLowerCase()); if (i>=0) L.splice(i,1); else L.push(v); r.value=L.join(', '); } else if (String(r.value).trim().toLowerCase()===v.toLowerCase() && r.op==='is'){ r.op='in'; } else { if (r.value && r.op==='is' && String(r.value).trim().toLowerCase()!==v.toLowerCase()){ r.op='in'; r.value=r.value+', '+v; } else r.value=v; } if (v==='' && (r.op==='is'||r.op==='in')){ r.op='empty'; r.value=''; } cbRerender(); }
     else if (t.classList.contains('cb-toraw')){ cb.raw=cbExpr(cb); cbRerender('.cb-rawin'); }
-    else if (t.classList.contains('cb-tobuilder')){ const p=cbParse(cb.raw||''); if (!p && (cb.raw||'').trim()){ toast("The builder can't show a condition written by hand. Keep editing it here, or start again with the builder."); cbRerender(); return; } state.cb = p || {rules:[cbBlank()], join:'and', raw:null}; cbRerender(); }
+    else if (t.classList.contains('cb-tobuilder')){
+      const p=cbParse(cb.raw||''); if (!p && (cb.raw||'').trim()) return;   // written by hand: the notice below says what to do
+      // text not changed since switching to Jinja: bring back the builder's rules, half-built ones too
+      state.cb = cb.raw===cbExpr({...cb, raw:null}) ? {...cb, raw:null} : p || {rules:[cbBlank()], join:'and', raw:null}; cbRerender();
+    }
     else if (t.classList.contains('cb-reset')){ state.cb={rules:[cbBlank()], join:'and', raw:null}; cbRerender('#cbf-0'); }
     else if (t.classList.contains('cb-ai-go')){ aiCondition(t); }
   });
@@ -4220,7 +4228,7 @@ function renderTeam(){
 function renderAutosaveStats(){
   const el=$('#autosaveStats'); if (!el) return;
   if (!state.an){ el.textContent='Starts once a letter is open'; return; }
-  el.textContent = state.isSample ? "Sample letter isn't saved" : state.autosaveFailed ? "Couldn't save in this browser" : state.lastAutosave ? 'Saved in this browser '+fmtWhen(state.lastAutosave) : 'Saves in this browser as you work';
+  el.textContent = saveStatusText();
 }
 function setupReportText(r){
   if (r.same) return `Restored your work on this letter: ${r.rows} text choice${r.rows===1?'':'s'}, ${r.tables} table${r.tables===1?'':'s'}, ${r.logic} logic tag${r.logic===1?'':'s'}.`;
@@ -4518,7 +4526,7 @@ function startClosing(key){
   const e=state.lg && state.lg.find(x=>x.key===key); if (!e){ toast('Open the Conditions step to see the open block.'); return; }
   state.closing=key; state.sel={pids:[],anchor:null,text:''}; state.condEdit=null;
   if (state.view!=='source') setView('source'); renderPaperSel(); renderSelTools(); showPid(e.pid);
-  $('#selTools')?.scrollIntoView({block:'nearest', behavior:'smooth'});
+  $('#selTools')?.scrollIntoView({block:'nearest', behavior:scrollBehavior()});
 }
 function closingFixFor(tag){
   computeLogic(); const open=(state.lg||[]).filter(e=>e.status==='open');
@@ -4654,14 +4662,6 @@ function locChips(pids, more){
 }
 
 /* ======================= rendering: rows ======================= */
-function tagOptions(){
-  const dl=$('#tagList'); const opts=[];
-  for (const c of [...CATALOG, ...FORMULAS]) opts.push(`<option value="${esc(c.key)}">${esc(c.g+' · '+c.label)}</option>`);
-  for (const k of state.extraKeys) if (k && !CAT[k] && !FX[k]) opts.push(`<option value="${esc(k)}">From your CSV</option>`);
-  ['custom_schema.column_heading','employee_schema.column_heading','component_current_amount','component_old_amount','factor_name_new_amount','emp_variable_plan_formula.parameter_name']
-    .forEach(k=>opts.push(`<option value="${k}">Pattern · edit the name</option>`));
-  dl.innerHTML=opts.join('');
-}
 const KIND_TITLE={'Brackets':'Bracket placeholder','Merge field':'Word merge field','Blank':'Blank to fill','Highlight':'Highlighted text','CSV':'Found from your CSV','Sample value':'Text that matches a value in your data file','Added':'Added by you'};
 const KIND_SHOW={"Sample value":"Matches your data"};   // shown text only; r.kind keeps its internal value
 function confText(r, noHow){
@@ -4706,8 +4706,6 @@ function rowInner(r){
   </button>`;
 }
 function rowHtml(r){ return `<li class="row st-${rowStatus(r)}${state.tagSel===r.id?' sel':''}" data-id="${esc(r.id)}">${rowInner(r)}</li>`; }
-function isOpen(r){ return state.tagSel===r.id; }
-function setOpen(id, open){ if (open) openTagInspector(id); else if (state.tagSel===id) closeTagInspector(); }
 function rowLi(id){ return [...document.querySelectorAll('#rows .row')].find(x=>x.dataset.id===id); }
 // placeholders that sit in a paragraph inside an if / for block
 function condRowIds(){
@@ -4823,16 +4821,13 @@ function renderPara(p, ctx){
   if (selectable) cls.push('body'); if (selectable && state.sel.pids.includes(info.pid)) cls.push('sel');
   let pre='', post='', startChips='', endChips=''; const inserts=[];
   if (info.kind==='body' && info.page && ctx.lastPage!=null && info.page>ctx.lastPage && !ancestor(p,['tc'])){ pre+=`<div class="page-div" title="${ctx.an.pageSource==='rendered'?'Page breaks as Word last laid out the letter':'From page breaks in the letter'}"><span>Page ${info.page}</span></div>`; ctx.lastPage=info.page; }
+  const rail=view==='source' && state.lgRails.get(info.pid);
   if (view==='source'){
-    const rail=state.lgRails.get(info.pid);
     if (rail){ cls.push('in-block'); if (rail.open) cls.push('open-block'); if (rail.branch) cls.push('in-else'); }
     state.lg.forEach((e,i)=>{
       if (e.src!=='you' || e.pid!==info.pid || e.sub>0) return;
-      const stt=(state.lg.filter(x=>x.id===e.id).find(x=>x.status!=='ok')||{}).status||'ok';
-      const st=stt==='ok'?'':' st-'+stt;
-      const label=stt==='open'?'Not closed':stt==='stray'?'No matching if':stt==='cells'?'Different cells':'';
-      const en=(e.kw==='if'||e.kw==='elif') ? condEnglish(e.expr) : '';
-      const say=en ? (e.kw==='elif'?'Else, shown when ':'Shown when ')+en : '';
+      const {st, label, en, lead}=lgInfo(e);
+      const say=en ? lead+' '+en : '';
       if (e.place==='at'){ inserts.push({o:e.offset||0, k:i, html:`<span class="tg blk lg-chip${st}" data-key="${esc(e.key)}" title="${esc(label||say||'Tag inside the sentence')}">${esc(e.full)}</span>`}); return; }
       const bare=e.kw==='else'||e.kw==='endif'||e.kw==='endfor';
       const line=`<div class="lg-line${st}" data-key="${esc(e.key)}" style="--d:${e.depth}" role="button" tabindex="0" title="${esc(say||e.text)}"><span class="badge cond">${esc(lgWord(e.kw))}</span>${en?`<span class="lg-en-t">${esc(en)}</span>`:bare?'':`<code>${esc(e.text)}</code>`}<span class="lg-meta">${label?icon('alert-circle')+label:''}</span></div>`;
@@ -4848,7 +4843,6 @@ function renderPara(p, ctx){
     if (ancestor(d,['Fallback'])) continue; if (closestP(d)!==p) continue;
     tbx+=`<div class="tbx"><span class="tbx-label">Text box</span>${renderBlocks(d, ctx)}</div>`;
   }
-  const rail=view==='source' && state.lgRails.get(info.pid);
   return `${pre}<p class="${cls.join(' ')}" data-pid="${esc(info.pid)}"${rail?` style="--d:${rail.depth}" title="Inside: ${esc(rail.top.text)}"`:''}>${inner}</p>${tbx}${post}`;
 }
 function renderPaper(){
@@ -4888,9 +4882,11 @@ function renderLegend(){
 }
 function drawLegend(k){
   const lg=$('#legend'); const {main, more}=LEGEND;
+  const hadFocus=document.activeElement && document.activeElement.id==='legendKey';
   const rest=[...main.slice(k), ...more];
   lg.innerHTML = main.length ? `<span class="lg-items">${main.slice(0,k).map(x=>`<span>${x}</span>`).join('')}</span>${rest.length?`<button class="btn small ghost lg-key" id="legendKey" type="button" aria-expanded="${legendIsOpen()}" aria-controls="legendPop">Key${icon('chevron-down')}</button>`:''}` : '';
   lg.hidden=!lg.innerHTML;
+  if (hadFocus){ const kb=$('#legendKey'); if (kb) kb.focus({preventScroll:true}); }
   const pop=$('#legendPop'); if (!pop) return;
   pop.innerHTML = rest.length ? `<ul>${rest.map(x=>`<li>${x}</li>`).join('')}</ul>` : '';
   if (!rest.length) closeLegend(); else if (!pop.hidden) syncLegendPop();
@@ -4919,7 +4915,6 @@ function closeLegend(){
 }
 function renderChecks(){
   const own=state.built?state.built.checks:[];
-  const lab={error:'Fix',warn:'Check',info:'Note',fixed:'Fixed'};
   const real=[]; const c=server.ok && server.check;
   if (c){
     for (const x of c.syntax){
@@ -4949,28 +4944,20 @@ function renderChecks(){
   const sum=$('#checkSum'); if (sum){ const an=state.an; let tags=0, logic=0; if (an) for (const p of an.paras){ if (p.fallback) continue; for (const m of (p.model.text||'').matchAll(RX_TAG)){ tags++; if (/^\{%-?\s*(if|elif|for)\b/.test(m[0])) logic++; } }
     const hf=state.parts.filter(x=>x.kind==='header'||x.kind==='footer').length;
     sum.textContent = state.fileName ? `${state.fileName}: ${tags} tag${tags===1?'':'s'} in the letter as loaded, ${logic} of them condition${logic===1?'':'s'}${hf?`, body and ${hf} header/footer part${hf>1?'s':''}`:''}.` : ''; }
-  state.checkCounts={e, w}; window.__validateCounts={errors:e, warnings:w};
+  state.checkCounts={e, w};
   updateTabBadges();
   decoratePaper(); renderIssueInspector();
 }
 function renderSelTools(){ renderSelToolsInner(); syncInspector(selToolsTitle()); }
-// "Click the paragraph where … should go / end": a notice in the inspector and a banner over the letter
-function setPickBanner(html){
-  let b=$('#pickBanner');
-  if (!html){ if (b) b.remove(); document.body.classList.remove('picking'); return; }
-  if (!b){ b=document.createElement('div'); b.id='pickBanner'; b.className='pick-banner'; const wrap=$('#paperWrap'); wrap.parentNode.insertBefore(b, wrap); }
-  b.innerHTML=`${icon('flag')}<span>${html}</span><button class="btn small" type="button" data-pickcancel>Cancel</button>`;
-  document.body.classList.add('picking');
-}
+// "Click the paragraph where … should go / end": a notice in the inspector
 function renderSelToolsInner(){
   const box=$('#selTools'); const s=state.sel;
-  box.classList.remove('picking');
   let pickMsg='', pickId='';
   if (state.view==='source'){
     if (state.placing){ pickId='placeCancel'; pickMsg=`Click the paragraph where <code>${esc(String(state.placing.text).slice(0,60))}</code> should go${state.placing.place&&state.placing.place!=='at'?' ('+esc(PLACE_SHORT[state.placing.place])+')':state.placing.ctxB?' (it goes after “'+esc(state.placing.ctxB.slice(-24).trim())+'” if those words are there, otherwise at the end)':' (it goes at the end of the paragraph)'}.`; }
     else if (state.closing){ const e=state.lg.find(x=>x.key===state.closing); pickId='closeCancel'; pickMsg=`Click the paragraph where <code>${esc(e?e.text.slice(0,60):'this block')}</code> should end. The end ${e&&e.kw==='for'?'for':'if'} goes on a new line after it.`; }
   }
-  setPickBanner(pickMsg);
+  document.body.classList.toggle('picking', !!pickMsg);   // crosshair over the letter, bottom sheet on a phone
   if (state.view!=='source'){ box.hidden=true; box.innerHTML=''; return; }
   if (pickMsg){ box.hidden=false; box.innerHTML=`<div class="notice warn" role="status">${icon('flag')}<span>${pickMsg}</span><button class="btn small" id="${pickId}" type="button">Cancel</button></div>`; return; }
   if (state.condEdit && (s.text || s.pids.length)) state.condEdit=null;
@@ -5031,9 +5018,17 @@ function selToolsTitle(){
 // The inspector shows while any of its [data-insp] panels is showing.
 function syncInspector(title){
   const insp=$('#inspector'); if (!insp) return;
+  // only one panel at a time: the issue panel yields to the selection tools and the placeholder panel
+  const iss=$('#issueInspector');
+  if (iss && !iss.hidden){
+    const other=['selTools','tagInspector'].some(id=>{ const el=$('#'+id); return el && !el.hidden; });
+    if (other){ iss.hidden=true; state.insp=null; } else title='Issue';
+  }
   const vis=[...insp.querySelectorAll('[data-insp]')].find(k=>!k.hidden);
   insp.hidden=!vis; document.body.classList.toggle('insp-on', !!vis);
   if (vis) $('#inspTitle').textContent = (vis.id==='selTools' && title) || vis.dataset.title || title || '';
+  if (iss && iss.hidden && state.insp) state.insp=null;
+  ckMarkSelected();
 }
 const INSP_CANCEL='#selClear,#placeCancel,#closeCancel,#swCancel,#ceCancel,[data-insp-cancel]';
 function closeInspector(){
@@ -5049,7 +5044,9 @@ function closeInspector(){
 /* ======================= orchestration ======================= */
 let buildTimer;
 function scheduleBuild(){ clearTimeout(buildTimer); buildTimer=setTimeout(()=>{ try{ build(); }catch(e){ console.error(e); } }, 120); }
-function fullRefresh(){ tagOptions(); renderTables(); renderRows(); renderLogic(); renderPaper(); renderSelTools(); build(); renderOldTags(); if (state.tab==='check') renderCheckTab(); if (state.tab==='export') renderPvPanel(); if (state.tab==='logic') renderMerge(); updateHeaderActions(); }
+function fullRefresh(){
+  if (!state.an){ updateHeaderActions(); syncEmptyState(); updateTabBadges(); return; }   // no letter: only the empty page
+  renderTables(); renderRows(); renderLogic(); renderPaper(); renderSelTools(); build(); renderOldTags(); if (state.tab==='check') renderCheckTab(); if (state.tab==='export') renderPvPanel(); if (state.tab==='logic') renderMerge(); updateHeaderActions(); }
 
 async function loadDocx(buf, name, isSample){
   clearErr();
@@ -5067,7 +5064,7 @@ async function loadDocx(buf, name, isSample){
   state.srcBuf=buf; state.fileName=name; state.isSample=!!isSample; state.xml=xml; state.mainPath=main; state.origXml={...xml}; state.origHash=hashStr(xml[main]);
   state.parts=paths.map(p=>({path:p, kind: p===main?'body':partKind(p)}));
   state.comments=!!zip.file('word/comments.xml');
-  state.edits={}; state.logic=[]; state.closing=null; state.sel={pids:[],anchor:null,text:''}; state.tableEdits={}; state.openRows=new Set(); state.closedRows=new Set();
+  state.edits={}; state.logic=[]; state.closing=null; state.sel={pids:[],anchor:null,text:''}; state.tableEdits={};
   state.tagOps=[]; state.previewOverrides={}; state.unplaced=[]; state.typed=new Set(); state.switchOps=[]; state.tColl=new Set(); state.tOpts=new Set(); state.pv={}; state.built=null; state.pvIdx=0; state.batch=null; state.compiled=null; state.mergeB=null; state.switchUi=null; state.inlineUi=null; state.placing=null; state.lastAutosave=null; state.autosaveFailed=false; state.pendingRestore=null;
   resetHistory();
   analyze();
@@ -5160,7 +5157,7 @@ function renderCsvInfo(){
   const ex=(state.csvExtra||[]);
   if (ex.length){
     const mc=idCol(c);
-    out.push(`<ul class="extra-files">${ex.map(f=>{ const rows=f.mode==='sample'?f.rows.length:0; const m=f.mode==='sample'?extraMatchCount(f):0; const how = f.mode!=='sample' ? `${fileHeaders(f).length} names` : rows===1 && !m ? `${f.headers.length} ${f.params?'parameters':'columns'} · one row, used for every employee in the preview` : `${f.headers.length} ${f.params?'parameters':'columns'} · ${rows} row${rows===1?'':'s'} · ${mc>=0&&idCol(f)>=0?`${m} of ${csvRows().length} employees matched by ${esc(f.headers[idCol(f)])}`:'no employee-code column to match on'}`; return `<li><span><b>Also:</b> ${esc(f.name)} · ${how}${f.sheets&&f.sheets.length>1?` · sheet ${sheetSel(f)}`:''}</span><button class="btn icon small ghost" type="button" data-rmextra="${esc(f.name)}" aria-label="Remove ${esc(f.name)}" data-tip="Remove" data-tip-end>${icon('x')}</button></li>`; }).join('')}</ul>`);
+    out.push(`<ul class="extra-files">${ex.map(f=>{ const rows=f.mode==='sample'?f.rows.length:0; const m=f.mode==='sample'?extraMatchCount(f):0; const how = f.mode!=='sample' ? `${fileHeaders(f).length} names` : rows===1 && !m ? `${f.headers.length} ${f.params?'parameters':'columns'} · one row, used for every employee in the preview` : `${f.headers.length} ${f.params?'parameters':'columns'} · ${rows} row${rows===1?'':'s'} · ${mc>=0&&idCol(f)>=0?`${m} of ${csvRows().length} employees matched by ${esc(f.headers[idCol(f)])}`:'no employee-code column to match on'}`; return `<li><span><b>Also:</b> ${esc(f.name)} · ${how}${f.sheets&&f.sheets.length>1?` · sheet ${sheetSel(f)}`:''}</span><button class="btn icon ghost" type="button" data-rmextra="${esc(f.name)}" aria-label="Remove ${esc(f.name)}" data-tip="Remove" data-tip-end>${icon('x')}</button></li>`; }).join('')}</ul>`);
   }
   if (c.mode!=='mapping') out.push(`<div class="add-extra"><label class="btn small ghost" for="inCsv2" data-pick>${icon('plus')}Add another data file</label><span class="hint">e.g. the params sheet and the old-salary upload; rows are matched on employee code</span></div>`);
   box.innerHTML=out.join('');
@@ -5276,20 +5273,19 @@ function bindDrop(label, input, handler){
 }
 // Errors for a file that could not be opened: in the Document step and, while there is no letter, on the first-run page.
 function showErr(msg){
-  for (const id of ['#loadErr','#frErr']){
-    const el=$(id); if (!el) continue;
-    el.innerHTML=`${icon('alert-circle')}<span></span><button class="btn icon small ghost notice-x" type="button" aria-label="Dismiss" data-dismiss>${icon('x')}</button>`;
-    el.querySelector('span').textContent=msg; el.hidden=false;
-  }
-  if (state.an && state.tab!=='doc') toast(msg);
+  const el=$(state.an ? '#loadErr' : '#frErr');
+  if (el){ el.innerHTML=`${icon('alert-circle')}<span></span>`; el.querySelector('span').textContent=msg; el.hidden=false; }
+  // the message sits in the Document step: say it as well when that step isn't on screen
+  if (state.an && !(state.tab==='doc' && sideIsOpen())) toast(msg);
 }
 function clearErr(){ for (const id of ['#loadErr','#frErr']){ const el=$(id); if (el) el.hidden=true; } }
 // A real letter with changes is open: ask before it is replaced. Its work is flushed to the browser's autosave first.
 async function confirmReplace(){
   if (state.isSample || !HISTORY.undo.length) return true;
-  const ok=await confirmDialog({title:'Replace the open letter?', body:`Your work on ${state.fileName} stays in this browser's autosave and comes back if you open the same file again. The new letter starts fresh.`, confirm:'Replace letter'});
-  if (ok){ clearTimeout(autosaveTimer); doAutosave(); }
-  return ok;
+  clearTimeout(autosaveTimer); doAutosave();
+  const lost=!!state.autosaveFailed;
+  return confirmDialog({title:'Replace the open letter?', confirm:'Replace letter', danger:lost,
+    body: lost ? `Your changes to ${state.fileName} are not saved in this browser and will be lost.` : `Your work on ${state.fileName} stays in this browser's autosave and comes back if you open the same file again. The new letter starts fresh.`});
 }
 const onDocFile=async f=>{
   if (!/\.docx$/i.test(f.name)) { showErr(/\.doc$/i.test(f.name) ? 'That is an older .doc file. Open it in Word and use Save As → Word Document (.docx).' : /\.(csv|xlsx|xlsm|xls)$/i.test(f.name) ? 'That looks like a data file. Add it as employee data, and choose the Word .docx letter here.' : 'Upload a Word .docx file.'); return; }
@@ -5306,7 +5302,7 @@ $('#inCheck').addEventListener('change', async e=>{
   try {
     await loadDocx(await f.arrayBuffer(), f.name, false);
     if (state.view!=='source') setView('source');
-    setTab('check'); const b=$('#checksBlock'); if (b){ if (b.classList.contains('collapsed')) setBlockCollapsed(b,false); $('#panel-check').scrollIntoView({block:'start', behavior:'smooth'}); }
+    setTab('check'); const b=$('#checksBlock'); if (b){ if (b.classList.contains('collapsed')) setBlockCollapsed(b,false); $('#panel-check').scrollIntoView({block:'start', behavior:scrollBehavior()}); }
     toast(`Loaded ${f.name}. The problems are listed on the left; red tags in the letter have one.`);
   } catch(err){ console.warn(err); showErr(err.message); }
 });
@@ -5363,7 +5359,7 @@ $('#csvInfo').addEventListener('change', e=>{
 const setMoney=$('#setMoney'), setSpace=$('#setSpace'), setGuard=$('#setGuard'), setHl=$('#setHl');
 setMoney.value=state.settings.money; setSpace.value=state.settings.spaced?'1':'0'; setGuard.checked=state.settings.guard; setHl.checked=state.settings.removeHl;
 function settingsChanged(){ recordUndo(); state.settings={...state.settings, money:setMoney.value, spaced:setSpace.value==='1', guard:setGuard.checked, removeHl:setHl.checked}; lsSet('lt.settings', state.settings); renderTables(); renderRows(); renderPaper(); build(); }
-function previewSettingsChanged(){ state.settings={...state.settings, csvPlace:$('#setCsvPlace').value, csvNumbers:$('#setCsvNum').value, previewSamples:$('#setSamples').checked}; lsSet('lt.settings', state.settings); state.batch=null; build(); renderCheckTab(); renderOldTags(); if (state.view==='filled') schedulePreview(); }
+function previewSettingsChanged(){ state.settings={...state.settings, csvPlace:$('#setCsvPlace').value, csvNumbers:$('#setCsvNum').value, previewSamples:$('#setSamples').checked}; lsSet('lt.settings', state.settings); state.batch=null; build(); renderPvPanel(); renderCheckTab(); renderOldTags(); if (state.view==='filled') schedulePreview(); }
 
 // tables
 const tablesEl=$('#tables');
@@ -5407,14 +5403,14 @@ tablesEl.addEventListener('click', e=>{
   if (e.target.closest('.t-show')){
     if (state.view!=='source') setView('source');
     const g=[...document.querySelectorAll('#paper .cell-ghost')].find(x=>x.dataset.t===t.id);
-    g && g.scrollIntoView({block:'center', inline:'nearest', behavior:'smooth'}); return;
+    g && g.scrollIntoView({block:'center', inline:'nearest', behavior:scrollBehavior()}); return;
   }
   const act=e.target.dataset.act;
   if (act){ if (act==='csv' && !state.csvHeaders.length){ toast('Load a CSV first. Its column headers become the tag options.'); return; } recordUndo(); const n=tableAction(t, act); renderTables(); renderPaper(); build(); toast(act==='clear'?'Cleared the table tags.':n?`Filled ${n} cell${n>1?'s':''}.`:'No empty cells matched.'); }
 });
 function focusCell(tid, ri, ci){
   const inp=document.querySelector(`.tcard[data-t="${tid}"] .tg-row[data-ri="${ri}"] .tcell[data-ci="${ci}"] .t-key`);
-  if (!inp) return; inp.scrollIntoView({block:'center', inline:'nearest', behavior:'smooth'}); setTimeout(()=>inp.focus({preventScroll:true}), 250);
+  if (!inp) return; inp.scrollIntoView({block:'center', inline:'nearest', behavior:scrollBehavior()}); setTimeout(()=>inp.focus({preventScroll:true}), 250);
   const cellEl=inp.closest('.tcell'); cellEl.classList.remove('flash'); void cellEl.offsetWidth; cellEl.classList.add('flash');
 }
 [setMoney,setSpace,setGuard,setHl].forEach(el=>el.addEventListener('change', settingsChanged));
@@ -5455,7 +5451,6 @@ async function rowClick(e){
   if (t.closest('button.ok')){ recordUndo(); edit(id,{reviewed:true}); refreshRow(id); renderPaper(); scheduleBuild(); nextReview(id); return; }
   if (t.closest('.locate')){ ckSeeSide(); locateRow(id, true); return; }
   if (t.closest('.reset')){ recordUndo(); const ed=state.edits[id]; if (ed) delete ed.override; const r=state.rows.find(x=>x.id===id); r.override = r.csv && r.csv.override && !(ed&&'key' in ed) ? r.csv.override : null; refreshRow(id); renderPaper(); scheduleBuild(); return; }
-  if (t.closest('.insp-prev') || t.closest('.insp-next')){ const nb=navNeighbors(id); const to=t.closest('.insp-prev') ? nb.prev : nb.next; if (to){ openTagInspector(to); locateRow(to, false); scrollListTo(to); } return; }
   if (t.closest('.insp-done')){ closeTagInspector(true); return; }
   if (t.closest('.del')){
     const r=state.rows.find(x=>x.id===id); if (!r) return;
@@ -5658,7 +5653,6 @@ function insertIntoInput(inp, txt){
 $('#selTools').addEventListener('change', e=>{
   const sw=state.switchUi; const id=e.target.id;
   if (id==='lgPreset' && e.target.value){ const pr=COND_PRESETS.find(x=>x.id===e.target.value); lgSetExpr(pr.expr); e.target.value=''; }
-  if (id==='inPreset' && e.target.value){ const pr=COND_PRESETS.find(x=>x.id===e.target.value); $('#inCond').value=pr.expr; e.target.value=''; }
   if (sw && id==='swMatch'){ sw.match=e.target.value; const pv=$('#swPrev'); if (pv) pv.textContent=switchPreview(sw); }
   if (sw && id==='swWhere') sw.where=e.target.value;
 });
@@ -5671,7 +5665,7 @@ $('#selTools').addEventListener('input', e=>{
     else if (id==='swOther') sw.other=e.target.value;
     const pv=$('#swPrev'); if (pv) pv.textContent=switchPreview(sw);
   }
-  if (id==='inField' && comboPicking){ const v=e.target.value; insertIntoInput($('#inCond')||$('#inTag'), v); setTimeout(()=>{ const f=$('#inField'); if (f) f.value=''; ($('#inCond')||$('#inTag'))?.focus(); }, 0); return; }
+  if (id==='inField' && comboPicking){ const v=e.target.value; insertIntoInput($('#inTag'), v); setTimeout(()=>{ const f=$('#inField'); if (f) f.value=''; $('#inTag')?.focus(); }, 0); return; }
   if (e.target.id==='lgField' && comboPicking){ const v=e.target.value; lgInsertAtCursor(v); setTimeout(()=>{ const f=$('#lgField'); if (f) f.value=''; $('#lgText')?.focus(); }, 0); }
 });
 $('#selTools').addEventListener('keydown', e=>{ if (e.key!=='Enter') return; if (e.target.id==='lgText'){ e.preventDefault(); $('#lgInsert')?.click(); } if (e.target.id==='inTag'){ e.preventDefault(); $('#inApply')?.click(); } });
@@ -5715,20 +5709,13 @@ $('#selTools').addEventListener('click', e=>{
   if (bid==='ceSave'){ saveCondEdit(); return; }
   if (bid==='ceCancel'){ state.condEdit=null; state.cb=null; renderSelTools(); return; }
   if (bid==='selTag'){ const t=state.sel.text; state.sel={pids:[],anchor:null,text:''}; window.getSelection()?.removeAllRanges(); renderSelTools(); addManual(t); }
-  if (bid==='lgInsert' || bid==='lgWrap'){
+  if (bid==='lgInsert'){
     const raw=$('#lgText').value; const text=normalizeLogicText(raw);
     if (text && !/CONDITION/.test(text)) recordUndo();
     if (!text){ toast('Write the tag first.'); return; }
     if (/CONDITION/.test(text)){ toast('Replace CONDITION with your condition, or pick one from “Condition…”.'); $('#lgText').focus(); return; }
     const pr=parseLogic(text);
     const ps=state.sel.pids.map(id=>state.an.byPid.get(id)).sort((a,b)=>a.order-b.order); const first=ps[0], last=ps[ps.length-1];
-    if (bid==='lgWrap'){
-      const expr = (pr.kw==='if'||pr.kw==='elif') ? pr.expr : '';
-      if (!expr){ toast('Write the if condition first, then wrap.'); return; }
-      if (first.el.parentNode!==last.el.parentNode){ toast('The first and last paragraphs are in different places (e.g. different table cells). Place the if and end if separately instead.'); return; }
-      addLogic(first.pid,'before',logicTpl('if',expr)); addLogic(last.pid,'after',logicTpl('endif'));
-      state.sel={pids:[],anchor:null,text:''}; renderSelTools(); afterLogicChange('Wrapped in if … end if.'); return;
-    }
     const place=$('#lgPlace').value; const target = (place==='after'||place==='end') ? last : first;
     addLogic(target.pid, place, text);
     state.sel={pids:[],anchor:null,text:''}; renderSelTools();
@@ -5801,7 +5788,7 @@ $('#pvBar').addEventListener('click', e=>{
   else if (b.id==='pvNext') pvStep(1);
   else if (b.id==='pvBack') setView('tagged');
   else if (b.id==='pvIssuesBtn'){ state.pvIssuesOpen=!state.pvIssuesOpen; renderPvBar(); }
-  else if (b.id==='pvValuesBtn'){ setTab('export', {open:true}); const d=$('#pvValues'); d.open=true; d.scrollIntoView({block:'start', inline:'nearest', behavior:'smooth'}); }
+  else if (b.id==='pvValuesBtn'){ setTab('export', {open:true}); const d=$('#pvValues'); d.open=true; d.scrollIntoView({block:'start', inline:'nearest', behavior:scrollBehavior()}); }
 });
 $('#pvBar').addEventListener('input', e=>{
   if (e.target.id!=='pvSearch') return;
@@ -5811,7 +5798,9 @@ $('#pvBar').addEventListener('input', e=>{
 $('#pvBar').addEventListener('change', e=>{ if (e.target.id==='pvEmp'){ state.pvIdx=+e.target.value; refreshPreview(); if (state.tab==='export') renderPvPanel(); } });
 $('#btnPreview').addEventListener('click', ()=>{ setView('filled'); if (NARROW.matches) setSide(false); });
 ['setCsvPlace','setCsvNum','setSamples'].forEach(id=>$('#'+id).addEventListener('change', previewSettingsChanged));
-$('#pvGrid').addEventListener('change', e=>{ const inp=e.target.closest('.pv-in'); if (!inp) return; recordUndo(); state.previewOverrides={...state.previewOverrides, [inp.dataset.id]:inp.value}; renderPvPanel(); if (state.view==='filled') schedulePreview(); else setView('filled'); });
+$('#pvGrid').addEventListener('change', e=>{ const inp=e.target.closest('.pv-in'); if (!inp) return; recordUndo(); state.previewOverrides={...state.previewOverrides, [inp.dataset.id]:inp.value};
+  const sb=inp.closest('tr').querySelector('.c-src'); if (sb) sb.innerHTML='<span class="badge info">Changed</span>';   // the table stays as it is, so the cursor stays
+  $('#pvReset').hidden=false; if (state.view==='filled') schedulePreview(); else setView('filled'); });
 $('#pvReset').addEventListener('click', ()=>{ recordUndo(); state.previewOverrides={}; renderPvPanel(); if (state.view==='filled') schedulePreview(); });
 $('#btnBatch').addEventListener('click', runBatch);
 $('#btnBatchStop').addEventListener('click', ()=>{ if (state.batch) state.batch.cancel=true; });
@@ -5822,7 +5811,6 @@ $('#checksBlock').addEventListener('click', ckClick);
 $('#aiBlock').addEventListener('click', e=>{ const l=e.target.closest('.loc'); if (l){ showPid(l.dataset.pid); return; } if (e.target.id==='aiReview') aiReview(); if (e.target.id==='aiAsk') aiAsk(); });
 $('#aiBlock').addEventListener('keydown', e=>{ if (e.key==='Enter' && e.target.id==='aiQ'){ e.preventDefault(); aiAsk(); } });
 $('#aiTagsBar').addEventListener('click', e=>{ if (e.target.id==='aiTags') aiSuggestTags(); });
-$('#checks').addEventListener('click', e=>{ const b=e.target.closest('[data-fix]'); if (!b) return; const fn=state.fixes[+b.dataset.fix]; if (fn) fn(); });
 // tags already in the letter
 $('#oldTagsBlock').addEventListener('click', e=>{
   const ren=e.target.closest('[data-ren]'); if (ren){ renameEverywhere(ren.dataset.ren, ren.dataset.to); toast(`Changed ${ren.dataset.ren} to ${ren.dataset.to}.`); return; }
@@ -6040,7 +6028,6 @@ document.addEventListener('keydown', e=>{
   if (closeInspector()) return;
   if (NARROW.matches && document.body.classList.contains('side-open')) setSide(false);
 }, true);
-document.addEventListener('keydown', e=>{ if ((e.ctrlKey||e.metaKey) && e.key==='\\'){ e.preventDefault(); setSide(!sideIsOpen()); } });
 (function initShell(){
   applyTheme(lsGet('lt.theme','system'));
   setSideW(+lsGet('lt.sideW',380) || 380, false);
@@ -6095,14 +6082,8 @@ function syncTagError(li, r){
   const bad=r.enabled ? tagProblem(finalTag(r)) : '';
   er.hidden=!bad; er.innerHTML=bad?`${icon('alert-circle')}<span>${esc(bad)}</span>`:''; return bad;
 }
-function navNeighbors(id){
-  const ids=state.visIds||[]; const i=ids.indexOf(id);
-  if (i>=0) return {prev:ids[i-1]||null, next:ids[i+1]||null};
-  const at=x=>state.rows.findIndex(r=>r.id===x); const me=at(id);
-  return {prev:[...ids].reverse().find(x=>at(x)<me)||null, next:ids.find(x=>at(x)>me)||null};
-}
 function inspRowHtml(r){
-  const st=rowStatus(r); const nb=navNeighbors(r.id); const cx=rowContext(r);
+  const st=rowStatus(r); const cx=rowContext(r);
   const edited = r.override!=null && state.edits[r.id] && 'override' in state.edits[r.id];
   const fmtOpts=FORMATS.map(([v,l])=>`<option value="${v}"${r.format===v?' selected':''}>${v==='auto'?`Auto (${esc(FORMATS.find(f=>f[0]===effFormat({...r,format:'auto'}))[1])})`:esc(l)}</option>`).join('');
   const times = r.count===0 ? 'Not in the letter' : r.count===1 ? 'Appears once' : `Appears ${r.count} times`;
@@ -6147,8 +6128,6 @@ function inspRowHtml(r){
     <footer class="insp-foot">
       <label class="check"><input type="checkbox" class="row-on" id="on-${idk}"${r.enabled?' checked':''}><span>Include in template</span></label>
       <div class="insp-acts">
-        <button class="btn icon insp-prev" type="button" aria-label="Previous placeholder" title="Previous placeholder"${nb.prev?'':' disabled'}>${icon('chevron-left')}</button>
-        <button class="btn icon insp-next" type="button" aria-label="Next placeholder" title="Next placeholder"${nb.next?'':' disabled'}>${icon('chevron-right')}</button>
         ${r.kind==='Added' ? '<button class="btn small danger del" type="button">Delete</button>' : ''}
         <button class="btn primary small insp-done" type="button">Done</button>
       </div>
@@ -6271,7 +6250,7 @@ function openLogicEntry(key){
   setTab('logic');
   const base=String(key).replace(/#\d+$/,'');
   const li=[...document.querySelectorAll('#logicList .lg-item')].find(x=>x.dataset.key===key || x.dataset.key===base);
-  if (li){ li.scrollIntoView({block:'nearest', inline:'nearest', behavior:'smooth'}); li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash'); }
+  if (li){ li.scrollIntoView({block:'nearest', inline:'nearest', behavior:scrollBehavior()}); li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash'); }
   const e=(state.lg||[]).find(x=>x.key===key) || (state.lg||[]).find(x=>x.key===base);
   if (e && (e.kw==='if' || e.kw==='elif')) startCondEdit(e.key);
 }
@@ -6281,17 +6260,10 @@ paper.addEventListener('keydown', e=>{
   e.preventDefault(); openLogicEntry(ln.dataset.key);
 });
 // empty state in the Conditions step: take the user to the letter, to the first paragraph of text
-function lgSelectFirst(){
-  if (state.view!=='source') setView('source');
-  if (NARROW.matches && sideIsOpen()) setSide(false);
-  const all=[...document.querySelectorAll('#paper p.lp.body')];
-  const p=all.find(x=>x.textContent.replace(/ /g,' ').trim().length>25) || all[0]; if (!p) return;
-  p.scrollIntoView({block:'center', behavior:'smooth'}); p.classList.remove('flash-p'); void p.offsetWidth; p.classList.add('flash-p');
-  toast('Click a paragraph to choose who should see it.');
-}
 document.addEventListener('click', e=>{
-  if (e.target.closest('[data-pickcancel]')){ const c=$('#placeCancel')||$('#closeCancel'); if (c) c.click(); return; }
-  if (e.target.closest('#lgStart')) lgSelectFirst();
+  if (!e.target.closest('#lgStart')) return;
+  const all=[...document.querySelectorAll('#paper p.lp.body')];
+  const p=all.find(x=>x.textContent.replace(/ /g,' ').trim().length>25) || all[0]; if (p) showPid(p.dataset.pid);
 });
 // keep the Jinja disclosures as the user left them when the list is redrawn
 $('#logicBlock').addEventListener('toggle', e=>{ const d=e.target; if (!d.matches || !d.matches('details.lg-jinja')) return; if (!state.lgOpen) state.lgOpen=new Set(); if (d.open) state.lgOpen.add(d.dataset.jk); else state.lgOpen.delete(d.dataset.jk); }, true);
@@ -6336,11 +6308,10 @@ function ckKey(x, seen){
   const tg=(x.tags||[]).filter(t=>typeof t==='string');
   let k=x.cat+'|'+(tg.length===1 ? 'tag:'+squash(tg[0]) : ckPlain(x.html).replace(/\d+/g,'#').slice(0,200)); const n=(seen.get(k)||0)+1; seen.set(k,n); return n>1 ? k+'~'+n : k;
 }
-// categories, display order, stable flag letters, and the "resolved this session" memory
+// categories, display order and stable flag letters
 function ckPrepare(list){
   if (state.ckDoc!==state.srcBuf){
-    state.ckDoc=state.srcBuf; state.ckLetters=new Map(); state.ckSeen=new Map(); state.ckResolved=new Map();
-    state.ckShow={error:true, warn:true, info:true};   // a new letter shows every finding again
+    state.ckDoc=state.srcBuf; state.ckLetters=new Map();
     if (state.insp){ state.insp=null; const b=$('#issueInspector'); if (b && !b.hidden){ b.hidden=true; syncInspector(); } }
   }
   const dup=new Map();
@@ -6358,26 +6329,6 @@ function ckPrepare(list){
       x.letter=ckLetterName(n);
     }
   });
-  // an issue that was listed before and now is not, because of something you did, is "Resolved".
-  // Only when the page has finished building, and for engine findings only when the engine has answered.
-  if (state.built){
-    const cur=new Set(flat.map(x=>x.key));
-    const engineSure = !server.ok || !!(server.check && !server.checking && !server.err);
-    const dataSure = !csvRows().length || !!blockCountsNow();
-    const tagSet=new Set(); for (const x of flat) if (x.level!=='info') for (const t of (x.tags||[])) if (typeof t==='string') tagSet.add(squash(t));
-    for (const [k, snap] of [...state.ckSeen]){
-      if (cur.has(k)) continue;
-      if (snap.real && !engineSure) continue;
-      if (snap.data && !dataSure) continue;
-      state.ckSeen.delete(k);
-      const moved = snap.tags.length && snap.tags.every(t=>tagSet.has(t));
-      if (!moved) state.ckResolved.set(k, snap);
-    }
-    for (const x of flat){
-      state.ckResolved.delete(x.key);
-      if (x.level==='error' || x.level==='warn') state.ckSeen.set(x.key, {key:x.key, cat:x.cat, level:x.level, html:x.html, letter:x.letter, real:!!x.real, data:/^(Nobody|Every employee) in your data file/.test(ckPlain(x.html)), tags:(x.tags||[]).filter(t=>typeof t==='string').map(squash)});
-    }
-  }
   state.issues=flat; state.issueGroups=groups; state.ckFixed=list.filter(x=>x.level==='fixed');
 }
 function ckEngineConfirmed(){ return server.ok ? !!(server.check && !server.check.syntax.length && !server.err && !server.checking) : !!(window.claude || server.probed); }
@@ -6396,22 +6347,21 @@ function ckDoneRowHtml(x){
   return `<li class="ck ck-i fixed"><div class="ck-top">${x.letter?`<span class="chip-fl gone" role="img" aria-label="Flag ${x.letter}, resolved">${x.letter}</span>`:''}<span class="badge">${icon('check')}Fixed</span></div><div class="ck-msg">${x.html}</div></li>`;
 }
 function ckRender(e, w){
-  if (!state.ckShow) state.ckShow={error:true, warn:true, info:true};
-  const show=state.ckShow; const iss=state.issues||[]; const fixed=state.ckFixed||[]; const gone=state.ckResolved?[...state.ckResolved.values()]:[];
-  const notes=iss.filter(x=>x.level==='info').length; const resolvedN=fixed.length+gone.length;
+  const iss=state.issues||[]; const fixed=state.ckFixed||[];
+  const notes=iss.filter(x=>x.level==='info').length; const resolvedN=fixed.length;
   const confirmed=ckEngineConfirmed();
   const clean=!e && !w && !!state.an && confirmed;
   // counts
   const plural=(n,a,b)=>`${n} ${n===1?a:b}`;
-  const tog=(k, cls, ic, n, word, on)=>`<button class="ck-tog ${cls}" type="button" data-ckf="${k}" aria-pressed="${on}"${n?'':' disabled'}>${icon(ic)}<span>${word}</span></button>`;
-  $('#checkSummary').innerHTML=`<div class="ck-sum" role="group" aria-label="Show or hide findings">${tog('error','err','alert-circle',e,plural(e,'error','errors'),show.error)}${tog('warn','warn','alert-triangle',w,plural(w,'warning','warnings'),show.warn)}${tog('resolved','ok','check-circle',resolvedN,`${resolvedN} resolved`,!!state.ckResolvedOpen)}${tog('info','info','info',notes,plural(notes,'note','notes'),show.info)}</div>`;
+  const cnt=(cls, ic, n, word)=>`<span class="ck-cnt ${cls}${n?'':' zero'}">${icon(ic)}<span>${word}</span></span>`;
+  $('#checkSummary').innerHTML=`<div class="ck-sum">${cnt('err','alert-circle',e,plural(e,'error','errors'))}${cnt('warn','alert-triangle',w,plural(w,'warning','warnings'))}${cnt('ok','check-circle',resolvedN,`${resolvedN} resolved`)}${cnt('info','info',notes,plural(notes,'note','notes'))}</div>`;
   // overall state
   $('#checkOk').innerHTML = clean ? `<div class="ck-ok">${icon('check-circle')}<div><b>No problems found</b><p>${server.ok ? `Real Jinja${(server.info&&server.info.versions&&server.info.versions.docxtpl)?` (docxtpl ${esc(server.info.versions.docxtpl)})`:''} and the page's own checks found nothing wrong with the tags, fields, conditions and table cells.` : `The page's own checks found nothing wrong with the tags, fields, conditions and table cells. The real Jinja check isn't available here, so this is the page checks only.`}</p></div></div>` : '';
   $('#realCheck').innerHTML=realCheckHtml();
   $('#recheckSlot').innerHTML = server.ok ? `<button class="btn icon" id="btnRecheck" type="button" aria-label="Re-check" data-tip="Re-check with real Jinja" data-tip-end${server.checking?' disabled':''}>${icon('refresh')}</button>` : '';
   // grouped list
   const html=(state.issueGroups||[]).map(g=>{
-    const items=g.items.filter(x=>show[x.level]); if (!items.length) return '';
+    const items=g.items; if (!items.length) return '';
     const ec=items.filter(x=>x.level==='error').length, wc=items.filter(x=>x.level==='warn').length;
     const name=CK_CATS[g.cat].name;
     return `<li class="ck-group" aria-label="${esc(name)}"><h3 class="ck-gh">${esc(name)}<span class="n ${ec?'err':wc?'warn':''}">${items.length}</span></h3><ul class="ck-list">${items.map(ckRowHtml).join('')}</ul></li>`;
@@ -6419,8 +6369,7 @@ function ckRender(e, w){
   $('#checks').innerHTML=html;
   // resolved
   const rd=$('#ckResolved'); rd.hidden=!resolvedN; $('#ckResolvedN').textContent=resolvedN||'';
-  if (rd.open!==!!state.ckResolvedOpen) rd.open=!!state.ckResolvedOpen;
-  $('#ckResolvedList').innerHTML=[...gone, ...fixed].map(ckDoneRowHtml).join('');
+  $('#ckResolvedList').innerHTML=fixed.map(ckDoneRowHtml).join('');
   const cs=$('#checkStats'); cs.className='stats'+(e?' err':w?' warn':clean?' ok':'');
   cs.textContent = e ? `${e} to fix${w?` · ${w} to check`:''}` : w ? `${w} to check` : clean ? 'No problems found' : server.ok && server.checking ? 'Checking…' : '';
 }
@@ -6437,7 +6386,7 @@ function ckRunAct(cat){
   if (cat==='mapping'){ setTab('tags', open); ckSetFilter('need'); const r=state.rows.find(r=>r.count && rowStatus(r)==='need'); if (r) flashRow(r.id); }
   else if (cat==='review'){ setTab('tags', open); ckSetFilter('check'); const r=state.rows.find(r=>r.count && rowStatus(r)==='check'); if (r) flashRow(r.id); }
   else if (cat==='fields'){ setTab('tags', open); ckSetFilter('all'); }
-  else if (cat==='cells'){ setTab('tags', open); const b=$('#tablesBlock'); if (b){ if (b.classList.contains('collapsed')) setBlockCollapsed(b,false); b.scrollIntoView({block:'start', behavior:'smooth'}); } }
+  else if (cat==='cells'){ setTab('tags', open); const b=$('#tablesBlock'); if (b){ if (b.classList.contains('collapsed')) setBlockCollapsed(b,false); b.scrollIntoView({block:'start', behavior:scrollBehavior()}); } }
   else if (cat==='conditions'){ setTab('logic', open); }
 }
 function ckLocate(x, closeInspectorToo){
@@ -6460,12 +6409,8 @@ function openIssueInspector(idx){
 }
 function renderIssueInspector(){
   const box=$('#issueInspector'); if (!box || box.hidden || !state.insp) return;
-  const iss=state.issues||[]; const key=state.insp.key; const i=iss.findIndex(x=>x.key===key); const x=iss[i];
-  if (!x){
-    const snap=state.ckResolved && state.ckResolved.get(key);
-    box.innerHTML=`<div class="iv"><div class="iv-done">${icon('check-circle')}<b>Resolved</b>${snap?`<p class="iv-msg">${snap.html}</p>`:'<p class="iv-msg">This issue is no longer listed.</p>'}${iss.length?`<p class="hint">${iss.length} issue${iss.length===1?'':'s'} left in the Validate list.</p><button class="btn small" type="button" data-iv="next">Next issue${icon('chevron-right')}</button>`:`<p class="hint">Nothing left to fix in the Validate list.</p><button class="btn small" type="button" data-iv="close">Close</button>`}</div></div>`;
-    return;
-  }
+  const key=state.insp.key; const x=(state.issues||[]).find(x=>x.key===key);
+  if (!x){ state.insp=null; box.hidden=true; syncInspector(); return; }   // the finding is gone: close its panel
   const cat=CK_CATS[x.cat]; const act=ckCatAction(x.cat);
   box.innerHTML=`<div class="iv">
     <div class="iv-top">${x.letter?`<span class="chip-fl lvl-${x.level}" role="img" aria-label="Flag ${x.letter}">${x.letter}</span>`:''}<span class="badge">${CK_LAB[x.level]}</span><span class="iv-cat">${esc(cat.name)}</span>${x.real?'<span class="src">Real Jinja</span>':''}</div>
@@ -6474,62 +6419,32 @@ function renderIssueInspector(){
     <div><h3>Why it matters</h3><p>${esc(cat.why)}</p></div>
     <div><h3>How to fix</h3><p>${esc(cat.fix)}</p></div>
     <div class="iv-acts">${x.locs&&x.locs.length?`<button class="btn small" type="button" data-iv="locate">${icon('search')}Locate in the letter</button>`:''}${x.fix?`<button class="btn small primary" type="button" data-fix="${x.fix.idx}">${esc(x.fix.label)}</button>`:''}${act?`<button class="btn small" type="button" data-catact="${x.cat}">${esc(act)}</button>`:''}</div>
-    <div class="iv-nav"><button class="btn small" type="button" data-iv="prev"${iss.length>1?'':' disabled'}>${icon('chevron-left')}Previous</button><span class="stats">${i+1} of ${iss.length}</span><button class="btn small" type="button" data-iv="next"${iss.length>1?'':' disabled'}>Next${icon('chevron-right')}</button></div>
   </div>`;
-}
-function ckNav(step){
-  const iss=state.issues||[]; if (!iss.length) return;
-  const cur=state.insp ? iss.findIndex(x=>x.key===state.insp.key) : -1;
-  const next = cur<0 ? 0 : (cur+step+iss.length)%iss.length;
-  openIssueInspector(next); ckLocate(iss[next]); ckScrollRow(next);
 }
 function ckScrollRow(idx, flash){
   const li=document.querySelector(`#checks li.ck-i[data-idx="${idx}"]`); if (!li) return;
-  li.scrollIntoView({block:'nearest', behavior:'smooth'});
+  li.scrollIntoView({block:'nearest', behavior:scrollBehavior()});
   if (flash){ li.classList.remove('hl'); void li.offsetWidth; li.classList.add('hl'); }
 }
-$('#issueInspector').addEventListener('click', e=>{
-  const t=e.target;
-  let b=t.closest('.loc'); if (b){ ckSeeSide(); showPid(b.dataset.pid); if (window.innerWidth<=980) closeInspector(); return; }
-  b=t.closest('[data-fix]'); if (b){ const fn=state.fixes[+b.dataset.fix]; if (fn) fn(); return; }
-  b=t.closest('[data-catact]'); if (b){ ckRunAct(b.dataset.catact); return; }
-  b=t.closest('[data-iv]'); if (!b) return;
-  const how=b.dataset.iv; const iss=state.issues||[];
-  if (how==='prev') ckNav(-1); else if (how==='next') ckNav(1);
-  else if (how==='close') closeInspector();
-  else if (how==='locate'){ const x=state.insp && iss.find(i=>i.key===state.insp.key); ckLocate(x, true); }
-});
-// only one inspector panel at a time; its title follows the panel that shows
-{
-  const baseSync=syncInspector;
-  syncInspector=function(title){
-    const iss=$('#issueInspector');
-    if (iss && !iss.hidden){
-      const other=['selTools','tagInspector'].some(id=>{ const el=$('#'+id); return el && !el.hidden; });
-      if (other){ iss.hidden=true; state.insp=null; } else title='Issue';
-    }
-    baseSync(title);
-    if (iss && iss.hidden && state.insp){ state.insp=null; }
-    ckMarkSelected();
-  };
+// a place link, a one-click fix or a category action: the same in the Validate list and in the issue panel
+function ckAct(t){
+  let b=t.closest('.loc'); if (b){ ckSeeSide(); showPid(b.dataset.pid); if (t.closest('#issueInspector') && window.innerWidth<=980) closeInspector(); return true; }
+  b=t.closest('[data-fix]'); if (b){ const fn=state.fixes[+b.dataset.fix]; if (fn) fn(); return true; }
+  b=t.closest('[data-catact]'); if (b){ ckRunAct(b.dataset.catact); return true; }
+  return false;
 }
+$('#issueInspector').addEventListener('click', e=>{
+  if (ckAct(e.target)) return;
+  const b=e.target.closest('[data-iv="locate"]'); if (!b) return;
+  const x=state.insp && (state.issues||[]).find(i=>i.key===state.insp.key); ckLocate(x, true);
+});
 // ----- the Validate list: filters, details, actions -----
 function ckClick(e){
   const t=e.target;
-  let b=t.closest('.loc'); if (b){ ckSeeSide(); showPid(b.dataset.pid); return; }
-  b=t.closest('[data-ckf]'); if (b){
-    const k=b.dataset.ckf;
-    if (k==='resolved'){ state.ckResolvedOpen=!state.ckResolvedOpen; ckRender(state.checkCounts.e, state.checkCounts.w); if (state.ckResolvedOpen) $('#ckResolved').scrollIntoView({block:'nearest', behavior:'smooth'}); }
-    else { state.ckShow[k]=!state.ckShow[k]; ckRender(state.checkCounts.e, state.checkCounts.w); }
-    const again=document.querySelector(`#checkSummary [data-ckf="${k}"]`); if (again) again.focus();
-    return;
-  }
-  b=t.closest('[data-detail]'); if (b){ openIssueInspector(+b.dataset.detail); return; }
-  b=t.closest('[data-catact]'); if (b){ ckRunAct(b.dataset.catact); return; }
+  if (ckAct(t)) return;
+  let b=t.closest('[data-detail]'); if (b){ openIssueInspector(+b.dataset.detail); return; }
   b=t.closest('#btnRecheck'); if (b){ b.disabled=true; scheduleRealCheck(); return; }
 }
-$('#ckResolved').addEventListener('toggle', e=>{ const d=e.currentTarget; if (!!state.ckResolvedOpen!==d.open){ state.ckResolvedOpen=d.open; const b=document.querySelector('#checkSummary [data-ckf="resolved"]'); if (b) b.setAttribute('aria-pressed', String(d.open)); } });
-$('#lblCheck').addEventListener('keydown', e=>{ if (e.key==='Enter' || e.key===' '){ e.preventDefault(); $('#inCheck').click(); } });
 // ----- margin flags on the paper -----
 function ckFlagSpecs(){
   const out=[]; for (const x of (state.issues||[])){ if (!x.letter) continue; for (const pid of x.locs) out.push({fk:x.idx+'@'+pid, pid, x}); } return out;
@@ -6614,7 +6529,7 @@ if (window.ResizeObserver) new ResizeObserver(ckFlagsLater).observe($('#paper'))
 $('#btnBatchLoad').addEventListener('click', ()=>{
   setTab('doc', {open:true});
   const fb=$('#filesBlock'); if (fb && fb.classList.contains('collapsed')) setBlockCollapsed(fb, false);
-  const d=$('#dropCsv'); if (d){ d.scrollIntoView({block:'center', behavior:'smooth'}); d.classList.add('over'); setTimeout(()=>d.classList.remove('over'), 1400); }
+  const d=$('#dropCsv'); if (d){ d.scrollIntoView({block:'center', behavior:scrollBehavior()}); d.classList.add('over'); setTimeout(()=>d.classList.remove('over'), 1400); }
 });
 $('#batchOut').addEventListener('change', e=>{
   if (e.target.id!=='batchOnlyBad') return;
@@ -6629,7 +6544,6 @@ $('#batchOut').addEventListener('change', e=>{
 function pickify(){ document.querySelectorAll('label[data-pick]:not([role])').forEach(l=>{ l.setAttribute('role','button'); l.tabIndex=0; }); }
 document.addEventListener('keydown', e=>{ if ((e.key==='Enter' || e.key===' ') && e.target.matches && e.target.matches('label[data-pick]')){ e.preventDefault(); e.target.click(); } });
 document.addEventListener('click', e=>{
-  const d=e.target.closest && e.target.closest('[data-dismiss]'); if (d){ const n=d.closest('.notice'); if (n) n.hidden=true; }
   if (e.target.closest && e.target.closest('[data-need-drop]')) focusDropZone();
 });
 // A file dropped outside a drop zone must not make the browser open it and leave the page.
@@ -6640,35 +6554,17 @@ document.addEventListener('click', e=>{
   window.addEventListener('drop', e=>{
     if (!isFiles(e)) return; e.preventDefault();
     if (e.target.closest && e.target.closest(zones)) return;
-    const f=e.dataTransfer.files[0]; if (!f) return;
-    if (!state.an && /\.docx$/i.test(f.name)) onDocFile(f); else toast('To open a file, use the Document step.');
+    toast('To open a file, use the Document step.');
   });
 })();
 
-// Two steps wrap existing functions so this phase stays out of their code: with no letter a full refresh only syncs the empty
-// state, and the readiness checklist follows the step badges.
-{
-  const _fullRefresh=fullRefresh;
-  fullRefresh=function(){ if (!state.an){ updateHeaderActions(); syncEmptyState(); updateTabBadges(); return; } return _fullRefresh.apply(this, arguments); };
-  const _updateTabBadges=updateTabBadges;
-  updateTabBadges=function(){ const r=_updateTabBadges.apply(this, arguments); renderExportSummary(); return r; };
-}
-
-function privacyLine(){
-  // matches what the code does: the real check posts the template; Test every employee also posts employee values; Claude gets letter text and column names
-  let t="Your files stay in this browser.";
-  if (server.ok) t+=" The real Jinja check sends the template to this tool's server; employee rows go there only if you run Test every employee.";
-  if (aiReady()) t+=" Claude helpers, if you use them, get the letter text and column names, never employee rows.";
-  return t;
-}
 function renderFrData(){
   const el=$('#frDataName'); if (!el) return; const c=state.csv;
   el.hidden=!c;
   if (c){ el.innerHTML=`${icon('check-circle')}<span></span>`; el.querySelector('span').textContent=`${c.name} · ${csvMetaText(c)}`; }
 }
-function renderFirstRun(){ const p=$('#frPrivacy'); if (p) p.textContent=privacyLine(); renderFrData(); }
 function focusDropZone(){
-  if (typeof NARROW!=='undefined' && NARROW.matches && typeof setSide==='function') setSide(false);
+  if (NARROW.matches) setSide(false);
   const z=$('#frDrop'); if (z){ z.scrollIntoView({block:'center'}); z.focus(); }
 }
 // The first-run page shows while there is no letter; the steps that need one say so.
@@ -6679,7 +6575,6 @@ function syncEmptyState(){
   const paper=$('#paper'); if (paper) paper.hidden=!has;
   if (!has){ const b=$('#sampleBanner'); if (b) b.hidden=true; }
   const sv=$('#btnSetupSave'); if (sv) sv.disabled=!has;
-  renderFrData();
 }
 function initNeedLetter(){
   for (const k of ['tags','logic','check','export']){
@@ -6714,12 +6609,7 @@ function exportFacts(){
   const lg=state.lg||[];
   const ifs=lg.filter(e=>e.kw==='if').length;
   const openN=lg.filter(e=>e.status==='open').length;
-  const bad=lg.filter(e=>e.status==='open'||e.status==='stray'||(e.status==='cells'&&(e.kw||'').startsWith('end'))).length+(state.unplaced||[]).length;
-  let errs, warns;
-  const vc = typeof window.__validateCounts==='function' ? window.__validateCounts() : window.__validateCounts;
-  if (vc && typeof vc==='object'){ errs=+vc.errors||0; warns=+vc.warnings||0; }
-  else if (state.checkCounts){ errs=state.checkCounts.e; warns=state.checkCounts.w; }
-  else { const ch=state.built?state.built.checks:[]; errs=ch.filter(x=>x.level==='error').length; warns=ch.filter(x=>x.level==='warn').length; }
+  const {bad, errs, warns}=readiness();
   return {total, needTag, toCheck, ifs, openN, bad, errs, warns};
 }
 function renderExportSummary(){
@@ -6768,13 +6658,12 @@ function renderExportSummary(){
 $('#exportSummary').addEventListener('click', e=>{ const b=e.target.closest('[data-step]'); if (b) setTab(b.dataset.step, {open:true}); });
 
 // start with no letter: the first-run page, and the sample letter only when asked for
-state.isSample=false;
 $('#btnSample').addEventListener('click', async ()=>{
   try { await loadDocx(await sampleDocx(), 'sample-appraisal-letter.docx', true); }
   catch(e){ console.warn(e); showErr('Could not load the sample letter: '+e.message); }
 });
-initNeedLetter(); pickify(); renderDocRow(); renderCsvInfo(); syncEmptyState(); renderFirstRun();
+initNeedLetter(); pickify(); renderDocRow(); renderCsvInfo(); syncEmptyState();
 initTeam(); syncSettingsUI(); updateUndoButtons(); setTab('doc'); renderLegend(); renderSaveState(); updateTabBadges();
 window.addEventListener('load', revealTab);
-probeServer().then(renderFirstRun);
+probeServer();
 </script>
