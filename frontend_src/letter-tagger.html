@@ -24,6 +24,7 @@
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
   --gutter:24px;
   --chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  --chev-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2358665F' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
   caret-color:var(--accent);
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
@@ -37,6 +38,7 @@
   --shadow-paper:0 1px 2px rgb(0 0 0 / .35), 0 6px 24px rgb(0 0 0 / .35);
   --shadow-pop:0 8px 28px rgb(0 0 0 / .5);
   --shadow-sm:0 1px 2px rgb(0 0 0 / .45);
+  --chev-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%239AABA4' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
@@ -50,6 +52,7 @@
   --shadow-paper:0 1px 2px rgb(0 0 0 / .35), 0 6px 24px rgb(0 0 0 / .35);
   --shadow-pop:0 8px 28px rgb(0 0 0 / .5);
   --shadow-sm:0 1px 2px rgb(0 0 0 / .45);
+  --chev-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%239AABA4' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
   color-scheme:dark;
 }
 *{box-sizing:border-box;scrollbar-color:var(--line) transparent;scrollbar-width:thin}
@@ -69,7 +72,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .ic{width:16px;height:16px;flex:none;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 
 /* app frame: on a wide screen the page itself does not scroll, each column does */
-.app{display:flex;flex-direction:column;min-height:100%}
+.app{display:flex;flex-direction:column;min-height:100%;color:var(--ink)}
+.bar,.steps,.side,.viewer,.inspector{color:var(--ink)}
 @media (min-width:981px){html,body{overflow:hidden}.app{height:100vh;height:100dvh;min-height:0}}
 
 /* header */
@@ -95,7 +99,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn.danger:not(:disabled):hover{background:var(--err-soft);border-color:var(--err)}
 .btn.small{min-height:28px;padding:3px 10px;font-size:var(--fs-sm)}
 .btn.icon{flex:none;width:32px;padding:0}
-.btn.icon.small{width:28px}
+.btn.icon.small{width:32px;min-height:32px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn[aria-busy="true"]{pointer-events:none}
 .btn[aria-busy="true"]::before{content:"";flex:none;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
@@ -104,7 +108,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 /* tooltip: [data-tip] shows its text under the control on hover or keyboard focus; the control keeps an aria-label */
 [data-tip]{position:relative}
-[data-tip]::after{content:attr(data-tip);position:absolute;z-index:60;top:calc(100% + 6px);left:50%;transform:translateX(-50%);padding:4px 8px;border-radius:var(--r-ctl);background:var(--ink);color:var(--panel);font-size:12px;font-weight:500;line-height:1.3;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s ease .15s,visibility 0s linear .3s}
+[data-tip]::after{content:attr(data-tip);position:absolute;z-index:60;top:calc(100% + 6px);left:50%;transform:translateX(-50%);padding:4px 8px;border-radius:var(--r-ctl);background:var(--ink);color:var(--panel);font-size:12px;font-weight:500;line-height:1.3;width:max-content;max-width:min(260px,calc(100vw - 32px));white-space:normal;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .15s ease .15s,visibility 0s linear .3s}
 [data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transition-delay:.15s,.15s}
 [data-tip][data-tip-end]::after{left:auto;right:0;transform:none}
 [data-tip][data-tip-start]::after{left:0;transform:none}
@@ -113,6 +117,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* form controls: one look. Shared rule list further down raises the existing selectors to it. */
 :where(input:not([type=checkbox],[type=radio],[type=file],[type=range],[type=hidden]),select,textarea){min-height:32px;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--panel);color:var(--ink);padding:5px 8px;font-size:var(--fs-md)}
 :where(input[type=checkbox],input[type=radio]){accent-color:var(--accent)}
+select:not([multiple]):not([size]){-webkit-appearance:none;appearance:none;padding-right:28px;background-image:var(--chev-bg);background-repeat:no-repeat;background-position:right 8px center;background-size:16px}
 ::placeholder{color:var(--muted);opacity:1}
 :where(input:not([type=checkbox],[type=radio],[type=file],[type=range]),select,textarea):focus-visible{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
 :where(input,select,textarea):disabled{opacity:.55;cursor:not-allowed}
@@ -123,12 +128,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 .notice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border-radius:var(--r-ctl);background:var(--info-soft);color:var(--info);font-size:var(--fs-sm)}
 .notice>span{flex:1 1 200px;min-width:0}
 .notice .btn{color:var(--ink)}
+.notice .btn .ic{color:inherit}
+.notice .btn.primary{color:var(--accent-ink)}
 .notice.warn{background:var(--warn-soft);color:var(--ink)}
-.notice.warn .ic{color:var(--warn)}
+.notice.warn>.ic{color:var(--warn)}
+.notice.err{background:var(--err-soft);color:var(--ink)}
+.notice.err>.ic{color:var(--err)}
 .empty-state{display:grid;justify-items:center;gap:6px;padding:24px 16px;text-align:center;color:var(--muted);font-size:var(--fs-sm)}
 .empty-state .ic{width:24px;height:24px}
 .empty-state .es-title{color:var(--ink);font-weight:600;font-size:var(--fs-md)}
-.skel{display:block;height:12px;border-radius:4px;background:var(--line-2);animation:pulse 1.4s ease-in-out infinite}
 .chip{display:inline-flex;align-items:center;gap:4px;min-height:26px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:var(--r-ctl);padding:0 10px;font-size:var(--fs-sm);cursor:pointer;font-weight:500;transition:background-color .15s,border-color .15s,color .15s}
 .chip:hover{border-color:var(--muted)}
 .chip.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
@@ -194,20 +202,13 @@ body.resizing{cursor:col-resize;user-select:none}
 .drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .drop-title{font-weight:700;font-size:13px}
 .drop-title em{font-style:normal;font-weight:500;color:var(--muted);font-size:12px}
-.drop-file{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--accent);font-weight:600}
-.drop-file.none{color:var(--muted);font-weight:400}
 .drop-hint{font-size:11.5px;color:var(--muted)}
-.under-drop{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:12px;color:var(--muted);flex-wrap:wrap}
 .csv-info{margin-top:8px;font-size:12.5px;color:var(--muted)}
 .csv-info b{color:var(--ink)}
 .csv-info select{margin-left:4px;font-size:12px;padding:2px 4px;border:1px solid var(--line);border-radius:4px;background:var(--panel)}
 
-.settings summary{cursor:pointer;font-size:var(--fs-md);font-weight:600;color:var(--ink);list-style:none;display:flex;align-items:center;justify-content:space-between;min-height:28px;border-radius:var(--r-ctl);transition:color .15s}
-.settings summary:hover{color:var(--accent)}
-.settings summary::-webkit-details-marker{display:none}
-.settings summary::after{content:"";width:16px;height:16px;background:var(--muted);-webkit-mask:var(--chev) center/contain no-repeat;mask:var(--chev) center/contain no-repeat;transition:transform .15s}
-.settings[open] summary::after{transform:rotate(180deg)}
 .set-grid{display:grid;gap:10px;margin-top:12px}
+.settings .set-grid{margin-top:0}
 .set-row{display:flex;flex-direction:column;gap:4px}
 .set-row>span{font-size:var(--fs-sm);font-weight:600}
 .set-row select{width:100%}
@@ -217,9 +218,6 @@ body.resizing{cursor:col-resize;user-select:none}
 .row.flash{animation:flash 1.2s ease}
 @keyframes flash{0%{background:var(--accent-soft)}100%{background:transparent}}
 .count{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.tg.tg-error{background:var(--err-soft);box-shadow:inset 0 -2px 0 var(--err);color:var(--err)}
-.tg.tg-warn{box-shadow:inset 0 -2px 0 var(--warn)}
-.ins-main{display:grid;gap:8px}.ins-q{font-size:13.5px}
 .ins-adv{border-top:1px solid var(--line);padding-top:8px;margin-top:4px}.ins-adv>summary{cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:600}.ins-adv[open]>summary{margin-bottom:8px}
 .cb{display:grid;gap:6px;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel)}
 .cb-rule{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) auto;gap:6px;align-items:center}
@@ -244,10 +242,9 @@ body.resizing{cursor:col-resize;user-select:none}
 .cb-ai{display:flex;gap:6px;align-items:center}.cb-ai input{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:5px 8px;background:var(--panel);color:var(--ink);font-size:13px}
 .cb-note{font-size:12.5px;color:var(--muted);font-style:italic}
 .locs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
-.loc{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:5px;padding:2px 7px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+.loc{font:inherit;font-size:12px;min-height:28px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:5px;padding:2px 7px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
 .loc:hover{border-color:var(--accent)}.loc b{color:var(--muted);font-weight:600}
 .ck .src{font-size:11px;font-weight:600;color:var(--muted);margin-left:6px}
-.real-line{font-size:13px;margin:0 0 10px;padding:8px 10px;border-radius:6px;background:var(--ok-soft)}.real-line.bad{background:var(--err-soft)}
 .check-sum{font-size:13px;color:var(--muted);margin:0 0 10px}
 .check-intro{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
 .check-intro .hint{margin:0}
@@ -258,11 +255,6 @@ body.resizing{cursor:col-resize;user-select:none}
 .lvl.hi{color:var(--ok)} .lvl.mid{color:var(--warn)} .lvl.lo{color:var(--err)}
 .empty{padding:14px;text-align:center;color:var(--muted);font-size:var(--fs-sm);list-style:none}
 
-.conds{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
-.cond{display:flex;gap:8px;align-items:flex-start;padding:8px;border-radius:6px;background:var(--line-2)}
-.cond code{font-family:var(--font-mono);font-size:12px;color:var(--tag);word-break:break-word}
-.cond div{flex:1;min-width:0}
-.cond small{display:block;color:var(--muted);font-size:12px}
 
 .checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .ck{display:flex;gap:8px;font-size:var(--fs-sm);padding:10px 0;border-top:1px solid var(--line-2);align-items:flex-start}
@@ -276,17 +268,31 @@ body.resizing{cursor:col-resize;user-select:none}
 
 .viewer-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;flex:none;min-height:48px;padding:8px var(--gutter);background:var(--surface-2);border-bottom:1px solid var(--line)}
 .viewer-bar .btn-top{margin-left:auto}
-.seg{display:inline-flex;gap:2px;padding:1px;border-radius:var(--r-ctl);background:var(--line-2)}
-.seg button{min-height:28px;border:0;border-radius:4px;background:none;padding:0 12px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;color:var(--muted);transition:background-color .15s,color .15s}
+.seg{display:inline-flex;gap:2px;padding:3px;border-radius:var(--r-ctl);background:var(--line-2)}
+.seg button{min-height:28px;white-space:nowrap;border:0;border-radius:4px;background:none;padding:0 12px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;color:var(--muted);transition:background-color .15s,color .15s}
 .seg button:hover{color:var(--ink)}
 .seg button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow-sm)}
 .seg button:focus-visible{outline-offset:0}
-.legend{display:flex;gap:4px 12px;flex:1 1 0;min-width:120px;font-size:12px;color:var(--muted);flex-wrap:wrap}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;outline:1px solid var(--line);outline-offset:-1px}
+.legend{display:flex;align-items:center;gap:4px 8px;flex:1 1 0;min-width:140px;font-size:12px;color:var(--muted)}
+.lg-items{display:flex;align-items:center;gap:4px 12px;min-width:0;overflow:hidden;white-space:nowrap}
+.lg-items>span{display:inline-flex;align-items:center;flex:none}
+.lg-key{flex:none;color:var(--muted)}
+.lg-key .ic{width:14px;height:14px;transition:transform .15s}
+.lg-key[aria-expanded="true"] .ic{transform:rotate(180deg)}
+.legend-pop{position:fixed;z-index:40;max-width:min(320px,calc(100vw - 16px));padding:8px 12px;border:1px solid var(--line);border-radius:var(--r-panel);background:var(--panel);box-shadow:var(--shadow-pop);font-size:var(--fs-sm);color:var(--ink)}
+.legend-pop ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.legend-pop li{display:flex;align-items:center;gap:6px}
+.legend i,.legend-pop i{display:inline-block;flex:none;width:10px;height:10px;border-radius:2px;margin-right:4px;outline:1px solid var(--line);outline-offset:-1px}
+.lg-sw.tagged{background:var(--ok-soft);box-shadow:inset 0 -2px 0 var(--ok)}
+.lg-sw.check{background:var(--warn-soft);box-shadow:inset 0 -2px 0 var(--warn)}
+.lg-sw.need{background:var(--hl)}
+.lg-sw.problem{background:var(--err-soft);box-shadow:inset 0 -2px 0 var(--err)}
+.lg-sw.fv{background:none;box-shadow:inset 0 -2px 0 var(--ok)}
+.lg-sw.smp{background:none;border-radius:0;border-bottom:2px dotted var(--muted)}
+.lg-sw.empty{background:var(--err-soft);outline:0;border:1px dashed var(--err)}
 .sel-tools{display:flex;flex-wrap:wrap;gap:var(--s3) 8px;align-items:center;padding:var(--s4);font-size:var(--fs-md)}
 .sel-tools select,.sel-tools input{min-width:0}
 .sel-tools input{font-family:var(--font-mono);flex:1 1 100%}
-.sel-quote{font-family:var(--font-mono);font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom}
 .paper-wrap{flex:1 1 auto;min-height:0;overflow:auto;padding:0 var(--gutter);overscroll-behavior:contain}
 .paper{--pad-x:80px;--pad-y:72px;background:var(--paper);color:var(--paper-ink);font-family:var(--font-letter);font-size:15px;line-height:1.55;padding:var(--pad-y) var(--pad-x);border-radius:2px;box-shadow:var(--shadow-paper);max-width:816px;margin:24px auto 64px}
 .paper:focus{outline:none}
@@ -311,8 +317,6 @@ body.resizing{cursor:col-resize;user-select:none}
 .ph.flash{outline:2px solid var(--accent)}
 .tg{font-family:var(--font-mono);font-size:.82em;background:var(--tag-bg);color:var(--tag);border:1px solid var(--tag-line);border-radius:3px;padding:0 3px;white-space:pre-wrap}
 .tg.blk{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
-.cond-mark{font-family:var(--font-mono);font-size:11.5px;color:var(--accent);margin:.2em 0 .3em;display:flex;align-items:center;gap:6px}
-.cond-mark::after{content:"";flex:1;border-top:1px dashed var(--accent)}
 .b{font-weight:700} .i{font-style:italic} .u{text-decoration:underline}
 .hlr{background:var(--hl);color:var(--hl-ink)}
 /* tables */
@@ -360,25 +364,19 @@ body.resizing{cursor:col-resize;user-select:none}
 .combo-pop .co.co-k code{font-size:12px;color:var(--ink)}
 .combo-pop .co.on,.combo-pop .co:hover{background:var(--accent-soft)}
 .combo-pop .ce{padding:8px;color:var(--muted);font-size:var(--fs-sm)}
-.ghost{font-family:var(--font-mono);font-size:.72em;color:var(--accent);border:1px dashed var(--accent);border-radius:3px;padding:0 4px;cursor:pointer;display:inline-block;max-width:100%;overflow-wrap:anywhere;vertical-align:middle}
-.ghost.blank{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.cell-ghost{font-family:var(--font-mono);font-size:.72em;color:var(--accent);border:1px dashed var(--accent);border-radius:3px;padding:0 4px;cursor:pointer;display:inline-block;max-width:100%;overflow-wrap:anywhere;vertical-align:middle}
+.cell-ghost.blank{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
 .tcard.flash{animation:flash 1.2s ease}
 /* logic tags */
 .lg-alerts{display:grid;gap:6px;margin-bottom:8px}
 .lg-alerts:empty{display:none}
-.lg-alert{background:var(--err-soft);border-radius:6px;padding:8px 10px;font-size:12.5px;display:grid;gap:6px}
-.lg-alert b{font-family:var(--font-mono);font-weight:500;font-size:12px;word-break:break-word}
 .lg-alert-act{display:flex;gap:6px;flex-wrap:wrap}
 .lg-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:0}
-.lg-item{display:grid;gap:4px;padding:8px 0 8px calc(var(--d,0) * 14px + 10px);border-top:1px solid var(--line-2);position:relative;background-image:repeating-linear-gradient(to right, var(--accent) 0 2px, transparent 2px 14px);background-size:calc(var(--d,0) * 14px) 100%;background-repeat:no-repeat;background-position:2px 0}
+.lg-item{display:grid;gap:4px;padding:8px 0 8px calc(var(--d,0) * 14px + 10px);border-top:1px solid var(--line-2);position:relative}
 .lg-item:first-child{border-top:0}
 .lg-item.flash{animation:flash 1.2s ease}
 .lg-head{display:flex;gap:6px;align-items:center;min-width:0}
 .lg-page{flex:none;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:26px}
-.lg-kw{flex:none;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:4px;padding:1px 6px;background:var(--accent-soft);color:var(--accent)}
-.lg-kw.kw-endif,.lg-kw.kw-endfor{background:var(--line-2);color:var(--muted)}
-.lg-kw.kw-elif,.lg-kw.kw-else{background:var(--info-soft);color:var(--info)}
-.lg-item.st-open .lg-kw,.lg-item.st-stray .lg-kw,.lg-item.st-cells .lg-kw{background:var(--err);color:var(--panel)}
 .lg-where{font-weight:500;font-size:12px;text-decoration:none;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-align:left}
 .lg-where:hover{color:var(--accent)}
 .lg-text,.lg-place{border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--panel);font-size:12.5px;min-width:0;width:100%}
@@ -397,7 +395,6 @@ body.resizing{cursor:col-resize;user-select:none}
 .page-div{display:flex;align-items:center;justify-content:center;height:24px;margin:56px calc(var(--pad-x) * -1);background:var(--bg);color:var(--muted);font-family:var(--font-ui);font-size:var(--fs-xs);font-weight:500}
 .sel-tools.picking{margin:var(--s4);padding:10px 12px;border-radius:var(--r-ctl);background:var(--warn-soft);color:var(--ink)}
 .ins{display:grid;gap:8px;width:100%}
-.ins-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px}
 .ins-ctx{color:var(--muted);font-size:12.5px}
 .ins-ctx code{color:var(--accent)}
 .ins-quick{display:flex;gap:4px;flex-wrap:wrap}
@@ -414,8 +411,6 @@ body.resizing{cursor:col-resize;user-select:none}
 .combo-row>input.mono{font-family:var(--font-mono)}
 /* employee preview */
 .pv-bar{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;display:grid;gap:8px}
-.pv-top{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.pv-top select{flex:1 1 220px;min-width:0;border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--panel);font-size:13px}
 .pv-sum{font-size:12.5px;font-weight:600}
 .good{color:var(--ok)} .meh{color:var(--warn)} .bad{color:var(--err)}
 .pv-issues{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-height:180px;overflow:auto}
@@ -426,16 +421,11 @@ body.resizing{cursor:col-resize;user-select:none}
 .pv-empty b{color:var(--err)}
 .pv-values summary{cursor:pointer;font-weight:600;font-size:13px;margin-top:12px}
 .pv-grid{display:grid;gap:4px;margin:8px 0;max-height:360px;overflow:auto}
-.pv-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 64px;gap:6px;align-items:center}
-.pv-row code{font-family:var(--font-mono);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pv-in{border:1px solid var(--line);border-radius:6px;padding:3px 6px;background:var(--panel);font-size:12px;min-width:0;width:100%}
-.pv-src{font-size:11px;color:var(--muted)}
-.pv-src.s-changed{color:var(--accent);font-weight:700} .pv-src.s-notset{color:var(--warn)}
 .progress{display:flex;gap:8px;align-items:center;margin-top:10px}
 .bar-track{flex:1;height:6px;border-radius:3px;background:var(--line-2);overflow:hidden}
 .bar-fill{height:100%;width:0;background:var(--accent);transition:width .2s}
 .bar-txt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.batch-sum{margin:10px 0 8px;font-size:13px}
 .ck .cnt{font-weight:600;color:var(--muted)}
 .emps summary{cursor:pointer;font-size:12px;color:var(--accent);margin-top:4px}
 .emps{display:block}
@@ -472,7 +462,6 @@ body.resizing{cursor:col-resize;user-select:none}
 .mg-cond{border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--panel);font-size:12px;width:100%}
 #mgCond{font-family:var(--font-mono)}
 /* logic extras */
-.lg-alert.warnish{background:var(--warn-soft)}
 .lg-un{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px}
 .lg-un code{font-family:var(--font-mono);font-size:12px;word-break:break-word}
 /* switch builder */
@@ -512,7 +501,7 @@ body.resizing{cursor:col-resize;user-select:none}
 .lib-list li{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;padding:6px 8px}
 .lib-main{display:grid;min-width:0}
 #teamBody{display:grid;gap:8px}
-@media (max-width:520px){.sw-case{grid-template-columns:1fr 20px}.sw-case textarea,.sw-case .sw-fixed{grid-column:1/2}.pv-row{grid-template-columns:1fr 1fr}.pv-src{display:none}}
+@media (max-width:520px){.sw-case{grid-template-columns:1fr 20px}.sw-case textarea,.sw-case .sw-fixed{grid-column:1/2}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:9px 14px;border-radius:var(--r-ctl);font-size:var(--fs-md);box-shadow:var(--shadow-pop);z-index:60;max-width:calc(100vw - 32px)}
 .err-msg{color:var(--err);font-size:12.5px;margin-top:8px}
 
@@ -522,7 +511,6 @@ body.resizing{cursor:col-resize;user-select:none}
 :is(.side,.inspector) textarea{min-height:60px}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
-  .skel{animation:none}
 }
 @media (max-width:1500px){.paper{--pad-x:56px;--pad-y:56px}}
 @media (max-width:1280px){
@@ -537,6 +525,7 @@ body.resizing{cursor:col-resize;user-select:none}
   .paper-wrap{overflow:visible}
   .paper{--pad-x:20px;--pad-y:28px;margin:16px auto 48px}
   .steps{padding:0 8px;gap:4px}
+  .step-line{display:none}
   .side{position:fixed;z-index:35;top:calc(env(safe-area-inset-top,0px) + var(--hdr-h) + var(--steps-h));bottom:0;left:0;width:min(88vw,400px);box-shadow:var(--shadow-pop);transform:translateX(-105%);visibility:hidden;transition:transform .2s ease,visibility 0s linear .2s}
   body.side-open .side{transform:none;visibility:visible;transition:transform .2s ease}
   .side-resize{display:none}
@@ -552,6 +541,8 @@ body.resizing{cursor:col-resize;user-select:none}
 }
 @media (max-width:520px){
   .uploads{grid-template-columns:1fr}
+  .seg{display:flex;max-width:100%}
+  .seg button{flex:1 1 auto;padding:0 6px}
 }
 @media (max-width:440px){
   /* the product name stays; the header actions give way instead (Export mapping CSV and Download live in the Export step too) */
@@ -568,10 +559,6 @@ body.resizing{cursor:col-resize;user-select:none}
 /* §tags */
 /* icons inside buttons never take the click */
 .btn .ic,.chip .ic,.row-main .ic{pointer-events:none}
-/* a ghost button is not the paper's dashed .ghost tag */
-.btn.ghost{font-family:var(--font-ui);font-size:var(--fs-md);padding:5px 12px;border-style:solid;border-radius:var(--r-ctl);display:inline-flex;max-width:none;overflow-wrap:normal;vertical-align:baseline}
-.btn.ghost.small{font-size:var(--fs-sm);padding:3px 10px}
-.btn.ghost.icon{padding:0}
 /* the placeholder list: filters, search, one compact line per item */
 .inv-search{position:relative;margin-bottom:8px}
 .inv-search input{width:100%;padding-left:32px;padding-right:32px}
@@ -797,10 +784,7 @@ body.picking #paper p.lp.body{cursor:crosshair}
 .paper p.lp.in-block.open-block::after{background:repeating-linear-gradient(to bottom,var(--err) 0 6px,transparent 6px 10px)}
 .paper td p.lp.in-block::after{left:-3px}
 @media (max-width:640px){.paper p.lp.in-block::after{left:calc(-8px - var(--d,1) * 4px)}}
-.legend .sw-cond{width:6px;height:12px;margin-right:6px;border-radius:0;outline:0;border-left:2px solid var(--cond);border-top:2px solid var(--cond);border-bottom:2px solid var(--cond);background:none}
-/* conditions step */
-.notice.err{background:var(--err-soft);color:var(--ink)}
-.notice.err>.ic{color:var(--err)}
+.legend .sw-cond,.legend-pop .sw-cond{width:6px;height:12px;margin-right:6px;border-radius:0;outline:0;border-left:2px solid var(--cond);border-top:2px solid var(--cond);border-bottom:2px solid var(--cond);background:none}
 .lg-alerts{gap:var(--s2);margin:0 0 var(--s3)}
 .lg-alerts .notice,#logicUnplaced .notice{align-items:flex-start}
 .lg-alerts .notice b,#logicUnplaced .notice b{font-family:var(--font-mono);font-weight:500;font-size:12px;word-break:break-word}
@@ -811,7 +795,7 @@ body.picking #paper p.lp.body{cursor:crosshair}
 .lg-un code{font-family:var(--font-mono);font-size:12px;word-break:break-word}
 .lg-intro{margin:0 0 var(--s3)}
 .lg-list{margin:0;gap:0}
-.lg-item{display:grid;gap:6px;padding:12px 0 12px calc(var(--d,0) * 14px);border-top:1px solid var(--line-2);background-image:none;background-size:auto;position:relative}
+.lg-item{display:grid;gap:6px;padding:12px 0 12px calc(var(--d,0) * 14px);border-top:1px solid var(--line-2);position:relative}
 .lg-item:first-child{border-top:0}
 .lg-item.nest::before{content:"";position:absolute;left:calc(var(--d,0) * 14px - 8px);top:10px;bottom:10px;width:1px;background:var(--line)}
 .lg-head{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0}
@@ -838,10 +822,6 @@ body.picking #paper p.lp.body{cursor:crosshair}
 .lg-empty .empty-state .btn{margin-top:var(--s2)}
 .badge.cond{display:inline-flex;align-items:center;gap:4px;padding:0 6px;border-radius:4px;background:var(--cond-soft);font-weight:600}
 .badge .ic{width:12px;height:12px}
-/* the table-cell hint chip is also called .ghost: keep ghost buttons looking like buttons */
-.btn.ghost{display:inline-flex;max-width:none;padding:5px 12px;border-style:solid;border-radius:var(--r-ctl);font-family:var(--font-ui);font-size:var(--fs-md);overflow-wrap:normal;vertical-align:baseline}
-.btn.small.ghost{padding:3px 10px;font-size:var(--fs-sm)}
-.btn.icon.ghost{padding:0}
 /* combine two versions */
 .small-drop{display:flex;flex-direction:row;align-items:center;gap:10px;margin:var(--s3) 0}
 .small-drop>.ic{width:20px;height:20px;color:var(--muted)}
@@ -855,8 +835,6 @@ body.picking #paper p.lp.body{cursor:crosshair}
 #mgCond{flex:1 1 100%}
 .lg-en.quiet{font-size:var(--fs-sm);font-weight:500;color:var(--muted)}
 .lg-expr{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--cond);word-break:break-word}
-.notice .btn .ic{color:inherit}
-.notice .btn.primary{color:var(--accent-ink)}
 .ins-sec:has(#swPrev:empty){display:none}
 .paper .lg-line:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 /* §check */
@@ -864,9 +842,6 @@ body.picking #paper p.lp.body{cursor:crosshair}
 .stats.err{color:var(--err);font-weight:600} .stats.warn{color:var(--warn);font-weight:600} .stats.ok{color:var(--ok);font-weight:600}
 .bt-tools .bt-h{margin:0}
 .check-intro{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
-.btn.quiet{background:transparent;border-color:transparent;color:var(--muted)}
-.btn.quiet:not(:disabled):hover{background:var(--line-2);border-color:transparent;color:var(--ink)}
-.btn.quiet .ic{width:14px;height:14px}
 #btnRecheck:disabled .ic{animation:spin .8s linear infinite}
 .check-hint{margin:0 0 12px}
 .ck-sum{display:flex;flex-wrap:wrap;gap:3px;margin:0 0 12px}
@@ -942,7 +917,7 @@ li.ck.ck-i.fixed .ck-msg{color:var(--muted)}
 .paper{position:relative}
 .flag-layer{position:absolute;inset:0;z-index:4;pointer-events:none}
 .mflag{position:absolute;pointer-events:auto;width:20px;height:18px;margin:0;padding:0;border:0;background:none;color:var(--panel);cursor:pointer;user-select:none;-webkit-user-select:none}
-.mflag::before{content:"";position:absolute;inset:-5px -4px}
+.mflag::before{content:"";position:absolute;inset:-2px -2px}
 .mflag .fl{display:block;width:100%;height:100%;padding-right:4px;text-align:center;font:700 11px/18px var(--font-ui);clip-path:polygon(0 0,76% 0,100% 50%,76% 100%,0 100%);transition:filter .15s}
 .mflag.lvl-error .fl{background:var(--err)}
 .mflag.lvl-warn .fl{background:var(--warn)}
@@ -995,14 +970,8 @@ details.bt-all>summary{cursor:pointer;min-height:28px;display:flex;align-items:c
 .ai-ask{margin-top:12px}
 /* §export */
 /* Document step, first run, employee preview and export (Phase B4) */
-.notice.err{background:var(--err-soft);color:var(--ink)}
-.notice.err .ic{color:var(--err)}
 .notice .notice-x{flex:none;margin-left:auto}
 label[data-pick]{cursor:pointer}
-/* the table-cell hint class .ghost also matches .btn.ghost: put the button back to the UI look */
-.btn.ghost{font-family:var(--font-ui);font-size:var(--fs-md);display:inline-flex;max-width:none;padding:5px 12px;border-style:solid;border-radius:var(--r-ctl);overflow-wrap:normal;vertical-align:baseline}
-.btn.small.ghost{font-size:var(--fs-sm);padding:3px 10px}
-.btn.icon.ghost{padding:0}
 
 /* files: one row per file */
 #filesBlock{display:flex;flex-direction:column;gap:12px}
@@ -1108,8 +1077,6 @@ body.no-letter .viewer-bar{display:none}
 .fv{background:none;border-radius:2px;text-decoration:underline solid var(--ok);text-decoration-thickness:1px;text-underline-offset:3px;box-shadow:none}
 .fv.smp{text-decoration:underline dotted var(--muted);text-decoration-thickness:2px}
 .fv.empty{font-family:var(--font-mono);font-size:.72em;color:var(--err);border:1px dashed var(--err);border-radius:3px;padding:0 4px;background:var(--err-soft);text-decoration:none;white-space:nowrap}
-body[data-canvas="filled"] #legend span:nth-child(1) i{background:none!important;box-shadow:inset 0 -2px 0 var(--ok)!important}
-body[data-canvas="filled"] #legend span:nth-child(2) i{background:none!important;box-shadow:none!important;border-bottom:2px dotted var(--muted)!important}
 /* values table (Preview & export) */
 .pv-grid{display:block;max-height:360px;overflow:auto;margin:8px 0;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--panel)}
 .pv-table{width:100%;border-collapse:separate;border-spacing:0;font-size:var(--fs-sm)}
@@ -1129,6 +1096,7 @@ body[data-canvas="filled"] #legend span:nth-child(2) i{background:none!important
 .rd-ic{flex:none;display:grid;place-items:center;width:20px;height:20px}
 .rd-ok .rd-ic{color:var(--ok)}.rd-warn .rd-ic{color:var(--warn)}.rd-err .rd-ic{color:var(--err)}.rd-idle .rd-ic{color:var(--muted)}
 .rd-text{flex:1;min-width:0}
+.rd-label{font-weight:600}
 .rd-sub{display:block;font-size:var(--fs-sm);color:var(--muted)}
 .rd-go{flex:none;display:inline-flex;align-items:center;gap:2px;min-height:28px;padding:0 4px;font-size:var(--fs-sm)}
 .rd-go .ic{width:14px;height:14px}
@@ -1252,7 +1220,7 @@ body[data-canvas="filled"] #legend span:nth-child(2) i{background:none!important
             <li><span class="where-ic" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-monitor"/></svg></span><span><b>Autosaved in this browser</b><span class="hint" id="autosaveStats"></span></span></li>
             <li><span class="where-ic" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg></span><span><b>Setup file</b><span class="hint">Download a setup file to keep it or share it. It holds every choice for this letter and your data's column names, never its employee rows.</span></span></li>
           </ul>
-          <div class="t-actions"><button class="btn primary" id="btnSetupSave" type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download setup file</button><label class="btn" for="inSetup" data-pick>Load setup file…</label><input type="file" id="inSetup" accept=".json,application/json" hidden></div>
+          <div class="t-actions"><button class="btn" id="btnSetupSave" type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download setup file</button><label class="btn" for="inSetup" data-pick>Load setup file…</label><input type="file" id="inSetup" accept=".json,application/json" hidden></div>
           <p class="hint">Load a setup file to carry on later, or on next year's version of the letter to redo most of the work.</p>
           <div class="hint" id="setupReport"></div>
         </div>
@@ -1264,37 +1232,6 @@ body[data-canvas="filled"] #legend span:nth-child(2) i{background:none!important
       </div>
 
       <div class="tabpanel" id="panel-tags" role="tabpanel" aria-labelledby="tab-tags" hidden>
-        <details class="block settings" id="settingsBox">
-          <summary>Tag settings</summary>
-          <div class="set-grid">
-            <label class="set-row"><span>Money format</span>
-              <select id="setMoney">
-                <option value="indian">Indian commas · {{ ctc | indian_comma }}</option>
-                <option value="indian_round">Indian commas, whole number</option>
-                <option value="dec0">No decimals · '{:.0f}'.format(…) | indian_comma</option>
-                <option value="house">House style · blank when empty or 0</option>
-                <option value="dash">House style · “-” when empty or 0</option>
-                <option value="intl">International commas · int_comma</option>
-                <option value="none">As is · {{ ctc }}</option>
-              </select>
-            </label>
-            <label class="set-row"><span>Tag spacing</span>
-              <select id="setSpace">
-                <option value="1">{{ first_name }}</option>
-                <option value="0">{{first_name}}</option>
-              </select>
-            </label>
-            <label class="check"><input type="checkbox" id="setGuard"><span>Guard against blanks with <code class="mono">default(…, true)</code></span></label>
-            <label class="check"><input type="checkbox" id="setHl" checked><span>Remove yellow highlight from replaced text</span></label>
-          </div>
-        </details>
-
-        <div class="block" id="tablesBlock" hidden>
-          <div class="block-head"><h2>Salary tables</h2><span class="stats" id="tableStats"></span></div>
-          <p class="hint t-intro">Tables with empty amount cells. Click a cell here or in the letter, then pick a CSV column or CompUp tag, or type your own.</p>
-          <div id="tables"></div>
-        </div>
-
         <div class="block" id="rowsBlock">
           <div class="block-head"><h2>Placeholders</h2><span class="stats" id="rowStats"></span></div>
           <div class="ai-bar" id="aiTagsBar" hidden></div>
@@ -1323,6 +1260,37 @@ body[data-canvas="filled"] #legend span:nth-child(2) i{background:none!important
               <button class="btn small" type="submit">Add</button>
             </div>
           </form>
+        </div>
+
+        <div class="block" id="tablesBlock" hidden>
+          <div class="block-head"><h2>Salary tables</h2><span class="stats" id="tableStats"></span></div>
+          <p class="hint t-intro">Tables with empty amount cells. Click a cell here or in the letter, then pick a CSV column or CompUp tag, or type your own.</p>
+          <div id="tables"></div>
+        </div>
+
+        <div class="block settings" id="settingsBox" data-collapsed>
+          <div class="block-head"><h2>Tag settings</h2></div>
+          <div class="set-grid">
+            <label class="set-row"><span>Money format</span>
+              <select id="setMoney">
+                <option value="indian">Indian commas · {{ ctc | indian_comma }}</option>
+                <option value="indian_round">Indian commas, whole number</option>
+                <option value="dec0">No decimals · '{:.0f}'.format(…) | indian_comma</option>
+                <option value="house">House style · blank when empty or 0</option>
+                <option value="dash">House style · “-” when empty or 0</option>
+                <option value="intl">International commas · int_comma</option>
+                <option value="none">As is · {{ ctc }}</option>
+              </select>
+            </label>
+            <label class="set-row"><span>Tag spacing</span>
+              <select id="setSpace">
+                <option value="1">{{ first_name }}</option>
+                <option value="0">{{first_name}}</option>
+              </select>
+            </label>
+            <label class="check"><input type="checkbox" id="setGuard"><span>Guard against blanks with <code class="mono">default(…, true)</code></span></label>
+            <label class="check"><input type="checkbox" id="setHl" checked><span>Remove yellow highlight from replaced text</span></label>
+          </div>
         </div>
 
         <div class="block" id="oldTagsBlock" hidden>
@@ -1382,23 +1350,6 @@ body[data-canvas="filled"] #legend span:nth-child(2) i{background:none!important
       </div>
 
       <div class="tabpanel" id="panel-export" role="tabpanel" aria-labelledby="tab-export" hidden>
-        <div class="block" id="pvBlock">
-          <div class="block-head"><h2>Preview settings</h2><span class="stats" id="pvStats"></span></div>
-          <p class="hint" id="pvInfo"></p>
-          <div class="set-grid">
-            <label class="set-row"><span>Your CSV columns are available in the template as</span>
-              <select id="setCsvPlace"><option value="both">Both basic and custom_schema.basic</option><option value="top">basic only</option><option value="custom">custom_schema.basic only</option></select></label>
-            <label class="set-row"><span>Numbers in the CSV</span>
-              <select id="setCsvNum"><option value="text">Keep as text, like an upload (stricter)</option><option value="number">Treat them as numbers</option></select></label>
-            <label class="check"><input type="checkbox" id="setSamples" checked><span>Fill fields missing from the data with made-up sample values (clearly marked)</span></label>
-          </div>
-          <div class="t-actions"><button class="btn primary" id="btnPreview" type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-eye"/></svg>Open employee preview</button></div>
-          <details class="pv-values" id="pvValues"><summary>Values in this preview <span id="pvValuesN"></span></summary>
-            <p class="hint">Change a value to test a condition, such as setting a promotion field to yes. A changed value stays until you reset it.</p>
-            <div class="pv-grid" id="pvGrid"></div>
-            <button class="btn small" id="pvReset" type="button" hidden>Reset changed values</button>
-          </details>
-        </div>
         <div class="block" id="exportBlock">
           <div class="block-head"><h2>Export</h2></div>
           <div id="exportSummary"></div>
@@ -1418,6 +1369,23 @@ body[data-canvas="filled"] #legend span:nth-child(2) i{background:none!important
             </div>
           </div>
         </div>
+        <div class="block" id="pvBlock">
+          <div class="block-head"><h2>Preview settings</h2><span class="stats" id="pvStats"></span></div>
+          <p class="hint" id="pvInfo"></p>
+          <div class="set-grid">
+            <label class="set-row"><span>Your CSV columns are available in the template as</span>
+              <select id="setCsvPlace"><option value="both">Both basic and custom_schema.basic</option><option value="top">basic only</option><option value="custom">custom_schema.basic only</option></select></label>
+            <label class="set-row"><span>Numbers in the CSV</span>
+              <select id="setCsvNum"><option value="text">Keep as text, like an upload (stricter)</option><option value="number">Treat them as numbers</option></select></label>
+            <label class="check"><input type="checkbox" id="setSamples" checked><span>Fill fields missing from the data with made-up sample values (clearly marked)</span></label>
+          </div>
+          <div class="t-actions"><button class="btn" id="btnPreview" type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-eye"/></svg>Open employee preview</button></div>
+          <details class="pv-values" id="pvValues"><summary>Values in this preview <span id="pvValuesN"></span></summary>
+            <p class="hint">Change a value to test a condition, such as setting a promotion field to yes. A changed value stays until you reset it.</p>
+            <div class="pv-grid" id="pvGrid"></div>
+            <button class="btn small" id="pvReset" type="button" hidden>Reset changed values</button>
+          </details>
+        </div>
       </div>
       </div>
       <div class="side-resize" id="sideResize" role="separator" aria-orientation="vertical" aria-label="Resize panel" aria-valuemin="300" aria-valuemax="560" aria-valuenow="380" tabindex="0"></div>
@@ -1431,6 +1399,7 @@ body[data-canvas="filled"] #legend span:nth-child(2) i{background:none!important
           <button type="button" data-view="filled">Employee preview</button>
         </div>
         <div class="legend" id="legend"></div>
+        <div class="legend-pop" id="legendPop" role="group" aria-label="Key to the marks in the letter" hidden></div>
         <button class="btn icon small ghost btn-top" id="btnTop" type="button" aria-label="Back to top of letter" data-tip="Back to top of letter" data-tip-end><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow-up"/></svg></button>
       </div>
       <div class="notice" id="sampleBanner" hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><span>Sample letter for a made-up company (Northwind Appliances).</span><label class="btn small" for="inDoc" data-pick>Upload a client letter</label></div>
@@ -3428,6 +3397,8 @@ function updateTabBadges(){
   const taggedAny=inDoc.some(r=>rowStatus(r)==='tagged') || state.tables.some(t=>t.enabled && tableCounts(t).done>0);
   const lg=state.lg||[]; const bad=lg.filter(e=>e.status==='open'||e.status==='stray'||(e.status==='cells'&&(e.kw||'').startsWith('end'))).length+(state.unplaced||[]).length;
   const hasCond=lg.some(e=>e.kw==='if');
+  // an error from Validate that points at a condition (an if / elif / for tag) keeps Conditions from showing done
+  const logicErr=(state.issues||[]).some(x=>x.level==='error' && (x.cat==='conditions' || (x.cat==='syntax' && (x.tags||[]).some(t=>typeof t==='string' && /^\s*\{%/.test(t)))));
   let errs, warns;
   const vc = typeof window.__validateCounts==='function' ? window.__validateCounts() : window.__validateCounts;
   if (vc && typeof vc==='object'){ errs=+vc.errors||0; warns=+vc.warnings||0; }
@@ -3438,15 +3409,15 @@ function updateTabBadges(){
   const done={
     doc: !!(state.an && !state.isSample),
     tags: !need && taggedAny,
-    logic: hasCond && !bad,
-    check: !!state.an && !errs && !warns && realOk,
+    logic: hasCond && !bad && !logicErr,
+    check: !!state.an && !errs && !warns && realOk && !server.checking,
     export: false,
   };
   const info={
     doc:{n:'', label:'Document'+(done.doc?', done':''), title: state.isSample ? 'Sample letter loaded' : done.doc ? 'Your letter is loaded' : 'No letter loaded'},
     tags:{n:need||'', label:'Tags & fields'+(need?`, ${need} to do`:done.tags?', done':''), title: need ? `${plural(need,'tag')} still to do` : done.tags ? 'Every placeholder has a tag' : 'Nothing tagged yet'},
-    logic:{n:bad||'', err:!!bad, label:'Conditions'+(bad?`, ${plural(bad,'problem')}`:done.logic?', done':hasCond?'':', optional'), title: bad ? `${plural(bad,'condition problem')}` : done.logic ? 'Conditions are closed' : 'Optional'},
-    check:{n:errs||warns||'', err:!!errs, label:'Validate'+(errs?`, ${plural(errs,'error')}`:warns?`, ${plural(warns,'warning')}`:done.check?', done':''), title: errs ? `${plural(errs,'error')} to fix` : warns ? `${plural(warns,'warning')} to check` : done.check ? 'No problems found' : server.ok && !(server.check) ? 'Real Jinja check has not finished' : 'Not checked yet'},
+    logic:{n:bad||'', err:!!bad, label:'Conditions'+(bad?`, ${plural(bad,'problem')}`:logicErr?', Validate found a problem':done.logic?', done':hasCond?'':', optional'), title: bad ? `${plural(bad,'condition problem')}` : logicErr ? 'Validate found a problem in a condition' : done.logic ? 'Conditions are closed' : 'Optional'},
+    check:{n:errs||warns||'', err:!!errs, label:'Validate'+(errs?`, ${plural(errs,'error')}`:warns?`, ${plural(warns,'warning')}`:server.checking?', checking':done.check?', done':''), title: errs ? `${plural(errs,'error')} to fix` : warns ? `${plural(warns,'warning')} to check` : done.check ? 'No problems found' : server.checking ? 'Checking with real Jinja…' : server.ok && !(server.check) ? 'Real Jinja check has not finished' : 'Not checked yet'},
     export:{n:'', label:'Preview & export', title:''},
   };
   const ids={doc:'nDoc', tags:'nTags', logic:'nLogic', check:'nCheck', export:'nExport'};
@@ -3559,7 +3530,7 @@ function renderCheckTab(){ renderPvPanel(); renderBatch(); renderAi(); }
 function renderPvPanel(){
   const box=$('#pvInfo'); if (!box) return;
   const rows=csvRows();
-  box.innerHTML = rows.length ? `<span class="badge ok">Real data</span> ${rows.length} employee${rows.length>1?'s':''} in <b>${esc(state.csv.name)}</b>.` : `<span class="badge warn">Sample data</span> ${state.csv ? `Your CSV has no employee rows (${state.csv.mode==='keys'?'only column names':'a text → tag list'}), so the preview uses made-up values.` : 'No CSV loaded, so the preview uses made-up values.'}`;
+  box.innerHTML = rows.length ? `<span class="badge ok">Real data</span> ${rows.length} employee${rows.length>1?'s':''} in <b>${esc(state.csv.name)}</b>.` : `<span class="badge warn">Sample data</span> ${state.csv ? `Your CSV has no employee rows (${state.csv.mode==='keys'?'only column names':'a text-to-tag list'}), so the preview uses made-up values.` : 'No CSV loaded, so the preview uses made-up values.'}`;
   $('#pvStats').textContent = rows.length ? 'Real data' : 'Sample data';
   const ids=[...templateIdentifiers().keys()].sort();
   $('#pvValuesN').textContent = ids.length ? `(${ids.length})` : '';
@@ -3664,7 +3635,7 @@ function renderOldTags(){
   const names=[...info.names.values()].sort((a,b)=>b.count-a.count || a.id.localeCompare(b.id));
   $('#oldStats').textContent=`${info.total} tag${info.total===1?'':'s'} · ${names.length} name${names.length===1?'':'s'}`;
   const stHtml=id=>{ const st=keyStatus(id,U); if (st==='csv') return '<span class="nm-st ok">In your data</span>'; if (st==='compup') return '<span class="nm-st">CompUp tag</span>'; if (st==='nocsv') return '<span class="nm-st">not checked (no CSV)</span>'; const s=didYouMean(id,U); return `<span class="nm-st bad">not in your data file${s?` · did you mean <code>${esc(s)}</code>?`:''}</span>${s?`<button class="btn small" type="button" data-ren="${esc(id)}" data-to="${esc(s)}">Use ${esc(s)}</button>`:''}`; };
-  $('#oldNames').innerHTML = names.length ? names.map(n=>`<li class="nm" data-id="${esc(n.id)}"><div class="nm-top"><input type="checkbox" class="nm-pick" id="nmp-${hid(n.id)}" aria-label="Select ${esc(n.id)}"><code>${esc(n.id)}</code><span class="count">×${n.count}</span>${stHtml(n.id)}</div><div class="nm-edit"><input class="nm-to mono" id="nmt-${hid(n.id)}" placeholder="Rename to…" spellcheck="false" aria-label="New name for ${esc(n.id)}"><button class="btn small nm-go" type="button">Rename</button></div></li>`).join('') : '<li class="empty">No tag names.</li>';
+  $('#oldNames').innerHTML = names.length ? names.map(n=>`<li class="nm" data-id="${esc(n.id)}"><div class="nm-top"><input type="checkbox" class="nm-pick" id="nmp-${hid(n.id)}" aria-label="Select ${esc(n.id)}"><code>${esc(n.id)}</code><span class="count">${n.count} time${n.count===1?'':'s'}</span>${stHtml(n.id)}</div><div class="nm-edit"><input class="nm-to mono" id="nmt-${hid(n.id)}" placeholder="Rename to…" spellcheck="false" aria-label="New name for ${esc(n.id)}"><button class="btn small nm-go" type="button">Rename</button></div></li>`).join('') : '<li class="empty">No tag names.</li>';
   $('#oldAmountN').textContent=`${new Set(info.amount.map(a=>a.tag)).size} amount tag${info.amount.length===1?'':'s'}`;
   $('#oldOps').innerHTML = state.tagOps.map(op=>`<li class="op"><span>${op.type==='rename'?`Renamed <code>${esc(op.from)}</code> → <code>${esc(op.to)}</code>`:op.type==='map'?`Rewrote <code>${esc(op.from.slice(0,70))}</code> → <code>${esc(op.to.slice(0,70))}</code>`:`Replaced <code>${esc(op.find)}</code> with <code>${esc(op.repl)}</code>${op.regex?' (pattern)':''}`}</span><button class="del" type="button" data-op="${op.id}" aria-label="Undo this change">${icon('x')}</button></li>`).join('');
   $('#oldOpsWrap').hidden=!state.tagOps.length;
@@ -4693,7 +4664,7 @@ function rowSumHtml(r){
 }
 function rowInner(r){
   const st=rowStatus(r);
-  const n = r.count ? (r.scope==='all' && r.count>1 ? `×${r.count}` : '') : 'Not in letter';
+  const n = r.count ? (r.scope==='all' && r.count>1 ? `${r.count} times` : '') : 'Not in letter';
   return `<button class="row-main" type="button"${state.tagSel===r.id?' aria-current="true"':''}>
     ${statusMark(st)}
     <span class="row-body"><span class="find">${esc(r.find)}</span><span class="row-sum">${rowSumHtml(r)}</span></span>
@@ -4837,7 +4808,7 @@ function renderPara(p, ctx){
     });
   }
   let inner=renderParaInner(info, spans, view, inserts);
-  if (view==='source' && state.ghostMap.has(p)){ const gm=state.ghostMap.get(p); const tag=tCellTag(gm.t,gm.row,gm.col); const k=(gm.row.cells[gm.col.ci]||{}).key||''; inner+=`<span class="ghost${tag?'':' blank'}" data-t="${gm.t.id}" data-ri="${gm.row.ri}" data-ci="${gm.col.ci}" title="${esc(tag||'Click to pick a tag')}">${esc(tag ? (k||tag.replace(/^\{\{\s*|\s*\}\}$/g,''))+(gm.col.div12?' ÷ 12':'') : 'Pick a tag')}</span>`; }
+  if (view==='source' && state.ghostMap.has(p)){ const gm=state.ghostMap.get(p); const tag=tCellTag(gm.t,gm.row,gm.col); const k=(gm.row.cells[gm.col.ci]||{}).key||''; inner+=`<span class="cell-ghost${tag?'':' blank'}" data-t="${gm.t.id}" data-ri="${gm.row.ri}" data-ci="${gm.col.ci}" title="${esc(tag||'Click to pick a tag')}">${esc(tag ? (k||tag.replace(/^\{\{\s*|\s*\}\}$/g,''))+(gm.col.div12?' ÷ 12':'') : 'Pick a tag')}</span>`; }
   inner=(startChips+inner+endChips) || '&nbsp;';
   let tbx='';
   for (const d of [...p.getElementsByTagNameNS(W,'txbxContent')]){
@@ -4866,12 +4837,52 @@ function renderPaper(){
   renderLegend();
   decoratePaper();
 }
+// The key: three main marks inline, the rest in a "Key" popover (it floats over the page, it never pushes the layout).
+// When the strip is too narrow for the three (inspector open, phone), the last ones move into the popover too.
+let LEGEND={main:[], more:[]};
 function renderLegend(){
   const lg=$('#legend'); if (!lg) return;
-  if (state.view==='source') lg.innerHTML='<span><i style="background:var(--ok-soft);box-shadow:inset 0 -2px 0 var(--ok)"></i>Tagged</span><span><i style="background:var(--warn-soft);box-shadow:inset 0 -2px 0 var(--warn)"></i>To check</span><span><i style="background:var(--hl)"></i>Needs a tag</span>'+(state.ckLegendHas?'<span><b class="lg-flag" aria-hidden="true">A</b>Flag = issue in the Validate list</span>':'')+(state.tagMarks && [...state.tagMarks.values()].some(m=>m.level==='error')?'<span><i style="background:var(--err-soft);box-shadow:inset 0 -2px 0 var(--err)"></i>Tag with a problem</span>':'')+(state.lg && state.lg.length?'<span><i class="sw-cond"></i>Condition</span><span>Bracket = shown only when the condition is true</span>':'');
-  else if (state.view==='filled') lg.innerHTML='<span><i style="background:var(--ok-soft);box-shadow:inset 0 -1px 0 var(--ok)"></i>From the data</span><span><i style="border-bottom:1px dotted var(--muted);border-radius:0"></i>Made-up sample</span><span><i style="background:var(--err-soft);border:1px dashed var(--err)"></i>Empty</span>';
-  else lg.innerHTML='';
+  const sw=(c)=>`<i class="lg-sw ${c}"></i>`;
+  let main=[], more=[];
+  if (state.view==='source'){
+    main=[sw('tagged')+'Tagged', sw('check')+'To check', sw('need')+'Needs a tag'];
+    if (state.ckLegendHas) more.push('<b class="lg-flag" aria-hidden="true">A</b>A flag marks an issue in the Validate list');
+    if (state.tagMarks && [...state.tagMarks.values()].some(m=>m.level==='error')) more.push(sw('problem')+'Tag with a problem');
+    if (state.lg && state.lg.length) more.push('<i class="sw-cond"></i>Condition', 'A bracket in the margin shows text that appears only when the condition is true');
+  } else if (state.view==='filled') main=[sw('fv')+'From the data', sw('smp')+'Made-up sample', sw('empty')+'Empty'];
+  LEGEND={main, more};
+  fitLegend();
+}
+function drawLegend(k){
+  const lg=$('#legend'); const {main, more}=LEGEND;
+  const rest=[...main.slice(k), ...more];
+  lg.innerHTML = main.length ? `<span class="lg-items">${main.slice(0,k).map(x=>`<span>${x}</span>`).join('')}</span>${rest.length?`<button class="btn small ghost lg-key" id="legendKey" type="button" aria-expanded="${legendIsOpen()}" aria-controls="legendPop">Key${icon('chevron-down')}</button>`:''}` : '';
   lg.hidden=!lg.innerHTML;
+  const pop=$('#legendPop'); if (!pop) return;
+  pop.innerHTML = rest.length ? `<ul>${rest.map(x=>`<li>${x}</li>`).join('')}</ul>` : '';
+  if (!rest.length) closeLegend(); else if (!pop.hidden) syncLegendPop();
+}
+function fitLegend(){
+  const lg=$('#legend'); if (!lg) return;
+  let k=LEGEND.main.length;
+  drawLegend(k);
+  const it=()=>lg.querySelector('.lg-items');
+  while (k>0 && it() && it().scrollWidth>it().clientWidth+1){ k--; drawLegend(k); }
+}
+function legendIsOpen(){ const pop=$('#legendPop'); return !!pop && !pop.hidden; }
+function syncLegendPop(){
+  const pop=$('#legendPop'), b=$('#legendKey'); if (!pop || !b) return;
+  const r=b.getBoundingClientRect(); const w=pop.offsetWidth;
+  pop.style.top=Math.round(r.bottom+6)+'px';
+  pop.style.left=Math.max(8, Math.min(Math.round(r.left), window.innerWidth-w-8))+'px';
+}
+function openLegend(){
+  const pop=$('#legendPop'), b=$('#legendKey'); if (!pop || !b || !pop.innerHTML) return;
+  pop.hidden=false; b.setAttribute('aria-expanded','true'); syncLegendPop();
+}
+function closeLegend(){
+  const pop=$('#legendPop'); if (!pop || pop.hidden) return;
+  pop.hidden=true; const b=$('#legendKey'); if (b) b.setAttribute('aria-expanded','false');
 }
 function renderChecks(){
   const own=state.built?state.built.checks:[];
@@ -5082,7 +5093,7 @@ function applyCsv(csv, asExtra){
 }
 function csvMetaText(c){
   if (!c) return '';
-  if (c.mode==='mapping') return `${c.entries.length} text → tag row${c.entries.length===1?'':'s'}`;
+  if (c.mode==='mapping') return `${c.entries.length} text-to-tag row${c.entries.length===1?'':'s'}`;
   if (c.mode==='keys') return `${c.keys.length} tag${c.keys.length===1?'':'s'}`;
   if (c.params) return `${c.headers.length} parameters, one employee's values`;
   const n=csvRows().length, all=c.rows.length;
@@ -5100,7 +5111,7 @@ function renderCsvInfo(){
   const box=$('#csvInfo'); if (!c){ box.hidden=true; box.innerHTML=''; return; }
   box.hidden=false; const u=state.csvUse||{used:0,alias:0,missing:[]};
   const out=[];
-  if (c.mode==='mapping') out.push(`<p class="ci-note"><b>Text → tag list.</b> ${u.used} used in this letter${u.alias?`, ${u.alias} kept as suggestions`:''}.</p>`);
+  if (c.mode==='mapping') out.push(`<p class="ci-note"><b>Text-to-tag list.</b> ${u.used} used in this letter${u.alias?`, ${u.alias} kept as suggestions`:''}.</p>`);
   else if (c.mode==='sample' && c.params) out.push(`<p class="ci-note"><b>Params sheet.</b> Its names are in every tag list, and the preview uses these values (numbers stay numbers, as in a formula).</p>`);
   else if (c.mode==='sample'){
     const opts=c.rows.slice(0,200).map((r,i)=>`<option value="${i}"${i===c.sampleIdx?' selected':''}>Row ${i+2}${r[0]?' · '+esc(r[0].slice(0,24)):''}</option>`).join('');
@@ -5362,7 +5373,7 @@ tablesEl.addEventListener('click', e=>{
   const t=tFromEvent(e); if (!t) return;
   if (e.target.closest('.t-show')){
     if (state.view!=='source') setView('source');
-    const g=[...document.querySelectorAll('#paper .ghost')].find(x=>x.dataset.t===t.id);
+    const g=[...document.querySelectorAll('#paper .cell-ghost')].find(x=>x.dataset.t===t.id);
     g && g.scrollIntoView({block:'center', inline:'nearest', behavior:'smooth'}); return;
   }
   const act=e.target.dataset.act;
@@ -5541,7 +5552,7 @@ paper.addEventListener('mouseup', e=>{
     recordUndo(); addLogic(tgt.pid,'after', logicTpl(op && op.kw==='for'?'endfor':'endif'));
     state.closing=null; renderSelTools(); afterLogicChange('Closed.'); return;
   }
-  const gh=e.target.closest('.ghost');
+  const gh=e.target.closest('.cell-ghost');
   if (gh){ setTab('tags'); focusCell(gh.dataset.t, gh.dataset.ri, gh.dataset.ci); return; }
   const ph=e.target.closest('.ph');
   if (ph){ const id=ph.dataset.row; setTab('tags'); if (state.filter!=='all'){ state.filter='all'; document.querySelectorAll('#filters .chip').forEach(x=>x.classList.toggle('on', x.dataset.f==='all')); renderRows(); } flashRow(id); return; }
@@ -5870,7 +5881,7 @@ function setBlockCollapsed(b, on){
 }
 document.querySelectorAll('.block[id]>.block-head').forEach(h=>{
   const b=h.parentElement; const btn=document.createElement('button'); btn.type='button'; btn.className='coll-btn'; btn.innerHTML=icon('chevron-down');
-  h.insertBefore(btn, h.firstChild); setBlockCollapsed(b, !!COLL[b.id]);
+  h.insertBefore(btn, h.firstChild); setBlockCollapsed(b, b.id in COLL ? !!COLL[b.id] : b.hasAttribute('data-collapsed'));
   const toggle=()=>{ const on=!b.classList.contains('collapsed'); setBlockCollapsed(b, on); COLL[b.id]=on; lsSet('lt.collapsed', COLL); };
   btn.addEventListener('click', toggle); h.querySelector('h2')?.addEventListener('click', toggle);
 });
@@ -5981,12 +5992,18 @@ sideResize.addEventListener('keydown', e=>{ if (e.key!=='ArrowLeft' && e.key!=='
 
 // inspector, back to top, keys
 $('#inspClose').addEventListener('click', closeInspector);
+$('#legend').addEventListener('click', e=>{ if (e.target.closest('#legendKey')) (legendIsOpen() ? closeLegend : openLegend)(); });
+document.addEventListener('click', e=>{ if (legendIsOpen() && !e.target.closest('#legendKey') && !e.target.closest('#legendPop')) closeLegend(); });
+window.addEventListener('resize', ()=>{ fitLegend(); if (legendIsOpen()) syncLegendPop(); });
+if (window.ResizeObserver) new ResizeObserver(()=>fitLegend()).observe($('#legend'));
+$('#paperWrap').addEventListener('scroll', ()=>{ if (legendIsOpen()) closeLegend(); }, {passive:true});
 $('#btnTop').addEventListener('click', ()=>{ const w=$('#paperWrap'); const smooth=!window.matchMedia('(prefers-reduced-motion: reduce)').matches; const behavior=smooth?'smooth':'auto'; w.scrollTo({top:0, behavior}); window.scrollTo({top:0, behavior}); });
 // capture phase so an open field list still gets its own Esc first
 document.addEventListener('keydown', e=>{
   if (e.key!=='Escape') return;
   if (document.querySelector('dialog[open]')) return;
   const pop=document.querySelector('.combo-pop'); if (pop && !pop.hidden) return;
+  if (legendIsOpen()){ closeLegend(); const kb=$('#legendKey'); if (kb) kb.focus(); return; }
   if (closeInspector()) return;
   if (NARROW.matches && document.body.classList.contains('side-open')) setSide(false);
 }, true);
@@ -6013,6 +6030,13 @@ function rowContext(r){
 }
 function badgeHtml(st){ const i=ST_INFO[st]; return `<span class="badge ${{tagged:'ok', check:'warn', need:'need', off:''}[st]}">${icon(i.icon)}${i.label}</span>`; }
 // "Inferred from …": what the suggestion was based on, until the user confirms or changes it
+// The inspector already shows the status as a badge: the note line keeps what follows the repeated word
+function inspNote(r){
+  const lab=ST_INFO[rowStatus(r)].label;
+  let h=confText(r, true).replace(new RegExp('^<span class="lvl[^"]*">'+lab+'</span>(?: · )?'), '');
+  return h.charAt(0)==='<' ? h : h.charAt(0).toUpperCase()+h.slice(1);
+}
+function syncInspNote(li, r){ const n=li.querySelector('.row-note'); if (!n) return; const h=inspNote(r); n.innerHTML=h; n.hidden=!h; }
 function inferNote(r){
   if (userSet(r) || !r.key || !r.how || rowStatus(r)==='off') return '';
   const h=String(r.how).trim().replace(/\.$/,''); let m;
@@ -6060,8 +6084,8 @@ function inspRowHtml(r){
       <div class="ins-occ"><span>${times}</span><button class="btn small locate" type="button"${r.count?'':' disabled'}>${icon('search')}Locate</button><span class="loc-pos" aria-live="polite"></span></div>
     </section>
     <section class="ins-sec ins-stat">
-      <div class="ins-statrow"><div class="ins-status">${badgeHtml(st)}</div><button class="btn small ok${st==='check'?' primary':''}" type="button"${(!userSet(r) && r.key && st!=='off')?'':' hidden'}>Confirm mapping</button></div>
-      <p class="row-note">${confText(r, true)}</p>
+      <div class="ins-statrow"><div class="ins-status">${badgeHtml(st)}</div><button class="btn small ok" type="button"${(!userSet(r) && r.key && st!=='off')?'':' hidden'}>Confirm mapping</button></div>
+      <p class="row-note"${inspNote(r)?'':' hidden'}>${inspNote(r)}</p>
       <p class="ins-infer"${inf?'':' hidden'}>${esc(inf)}</p>
     </section>
     <section class="ins-sec">
@@ -6103,9 +6127,9 @@ function refreshInspRow(li, r){
   const st=rowStatus(r);
   li.className=`row open st-${st}`;
   li.querySelector('.ins-status').innerHTML=badgeHtml(st);
-  li.querySelector('.row-note').innerHTML=confText(r, true);
+  syncInspNote(li, r);
   const inf=inferNote(r); const ie=li.querySelector('.ins-infer'); ie.textContent=inf; ie.hidden=!inf;
-  const ok=li.querySelector('button.ok'); ok.hidden=!(!userSet(r) && r.key && st!=='off'); ok.classList.toggle('primary', st==='check');
+  const ok=li.querySelector('button.ok'); ok.hidden=!(!userSet(r) && r.key && st!=='off');
   li.querySelector('.ins-fname').innerHTML=fieldNameHtml(r);
   const ra=li.querySelector('.row-add'); if (ra) ra.hidden=!r.key;
   const fin=li.querySelector('.final'); if (document.activeElement!==fin) fin.value=finalTag(r);
@@ -6283,6 +6307,7 @@ function ckKey(x, seen){
 function ckPrepare(list){
   if (state.ckDoc!==state.srcBuf){
     state.ckDoc=state.srcBuf; state.ckLetters=new Map(); state.ckSeen=new Map(); state.ckResolved=new Map();
+    state.ckShow={error:true, warn:true, info:true};   // a new letter shows every finding again
     if (state.insp){ state.insp=null; const b=$('#issueInspector'); if (b && !b.hidden){ b.hidden=true; syncInspector(); } }
   }
   const dup=new Map();
@@ -6331,7 +6356,7 @@ function ckRowHtml(x){
     <div class="ck-top">${x.letter?`<span class="chip-fl lvl-${x.level}" role="img" aria-label="Flag ${x.letter}">${x.letter}</span>`:''}<span class="badge">${CK_LAB[x.level]}</span>${x.real?'<span class="src">Real Jinja</span>':''}</div>
     <div class="ck-msg">${x.html}</div>
     ${locChips(x.locs, x.tags && x.tags.length>8)}
-    <div class="ck-acts">${x.fix?`<button class="btn small ck-fix" type="button" data-fix="${x.fix.idx}">${esc(x.fix.label)}</button>`:''}${act?`<button class="btn small" type="button" data-catact="${x.cat}">${esc(act)}</button>`:''}<button class="btn small quiet" type="button" data-detail="${x.idx}" aria-label="Details${x.letter?` for flag ${x.letter}`:''}">Details${icon('chevron-right')}</button></div>
+    <div class="ck-acts">${x.fix?`<button class="btn small ck-fix" type="button" data-fix="${x.fix.idx}">${esc(x.fix.label)}</button>`:''}${act?`<button class="btn small" type="button" data-catact="${x.cat}">${esc(act)}</button>`:''}<button class="btn small ghost" type="button" data-detail="${x.idx}" aria-label="Details${x.letter?` for flag ${x.letter}`:''}">Details${icon('chevron-right')}</button></div>
   </li>`;
 }
 function ckDoneRowHtml(x){
@@ -6489,12 +6514,21 @@ function decoratePaper(){
   const paras=new Map(); paper.querySelectorAll('p[data-pid]').forEach(p=>{ if (!paras.has(p.dataset.pid)) paras.set(p.dataset.pid, p); });
   const count=new Map(); for (const s of specs) if (paras.has(s.pid)) count.set(s.pid, (count.get(s.pid)||0)+1);
   const pr=paper.getBoundingClientRect(); const padL=parseFloat(getComputedStyle(paper).paddingLeft)||0;
+  // flags live in the margin only: as many per row as fit left of the text (keeping a 4px gap); more than that stack downward
   const narrow=padL<=28; const size=narrow?16:20; const pitch=size+4;
+  const cap=Math.max(1, Math.floor((padL-6+4)/pitch));
   const selKey=state.insp && state.insp.key;
   const rects=new Map(); for (const [pid,p] of paras) if (count.has(pid)) rects.set(pid, p.getBoundingClientRect());
+  const groups=[...count.keys()].filter(pid=>rects.has(pid)).sort((a,c)=>rects.get(a).top-rects.get(c).top);
+  const place=new Map(); let free=-1e9;
+  for (const pid of groups){
+    const n=count.get(pid); const want=Math.round(rects.get(pid).top-pr.top+(narrow?1:2)); const top0=Math.max(want, free);
+    place.set(pid, {top0, n, used:Math.min(n,cap)});
+    free=top0+Math.ceil(n/cap)*(size+3)+1;
+  }
   const slot=new Map(); const keep=new Set(); const frag=document.createDocumentFragment();
   for (const s of specs){
-    const r=rects.get(s.pid); if (!r) continue;
+    const g=place.get(s.pid); if (!g) continue;
     const x=s.x; keep.add(s.fk);
     let b=have.get(s.fk);
     if (!b){ b=document.createElement('button'); b.type='button'; b.dataset.fk=s.fk; b.dataset.tipStart=''; b.innerHTML='<span class="fl" aria-hidden="true"></span>'; frag.appendChild(b); }
@@ -6504,10 +6538,9 @@ function decoratePaper(){
     b.dataset.tip=`${x.letter}: ${CK_CATS[x.cat].name}. ${plain.slice(0,70)}${plain.length>70?'…':''}`;
     const fl=b.firstChild; if (fl.textContent!==x.letter) fl.textContent=x.letter;
     const k=slot.get(s.pid)||0; slot.set(s.pid, k+1);
-    const n=count.get(s.pid);
-    let left, top=r.top-pr.top+(narrow?1:2);
-    if (narrow){ left=2; top+=k*(size+3); } else { left=Math.max(0, Math.min(20, padL-8-n*pitch))+k*pitch; }
-    b.style.left=left+'px'; b.style.top=Math.round(top)+'px';
+    const col=k%cap, row=Math.floor(k/cap);
+    const left=Math.max(2, padL-4-(g.used*pitch-4))+col*pitch;
+    b.style.left=left+'px'; b.style.top=(g.top0+row*(size+3))+'px';
   }
   for (const [fk,b] of have) if (!keep.has(fk)) b.remove();
   layer.appendChild(frag);
@@ -6663,32 +6696,33 @@ function renderExportSummary(){
   const ICON={ok:'check-circle', warn:'alert-triangle', err:'alert-circle', idle:'info'};
   const SR={ok:'Done: ', warn:'Needs a look: ', err:'Problem: ', idle:'Not done: '};
   const items=[];
-  const add=(kind, text, sub, step, stepLabel)=>items.push(`<li class="rd rd-${kind}"><span class="rd-ic">${icon(ICON[kind])}</span><span class="rd-text"><span class="sr-only">${SR[kind]}</span>${esc(text)}${sub?`<span class="rd-sub">${esc(sub)}</span>`:''}</span>${step?`<button class="linkish rd-go" type="button" data-step="${step}" aria-label="Go to ${esc(stepLabel)}">${esc(stepLabel)}${icon('chevron-right')}</button>`:''}</li>`);
+  // each line starts with a short bold label so it reads on its own: "Validate — no errors · 1 warning"
+  const add=(kind, label, text, sub, step, stepLabel)=>items.push(`<li class="rd rd-${kind}"><span class="rd-ic">${icon(ICON[kind])}</span><span class="rd-text"><span class="sr-only">${SR[kind]}</span><b class="rd-label">${esc(label)}</b> — ${esc(text)}${sub?`<span class="rd-sub">${esc(sub)}</span>`:''}</span>${step?`<button class="linkish rd-go" type="button" data-step="${step}" aria-label="Go to ${esc(stepLabel)}">${esc(stepLabel)}${icon('chevron-right')}</button>`:''}</li>`);
   // placeholders
-  if (!F.total) add('idle', 'No placeholders found in this letter', '', 'tags', 'Tags & fields');
-  else if (!F.needTag && !F.toCheck) add('ok', `All ${F.total} mapped`, '', 'tags', 'Tags & fields');
-  else add('warn', [F.needTag?`${F.needTag} still need${F.needTag===1?'s':''} a tag`:'', F.toCheck?`${F.toCheck} to check`:''].filter(Boolean).join(' · '), `${F.total-F.needTag-F.toCheck} of ${F.total} mapped`, 'tags', 'Tags & fields');
+  if (!F.total) add('idle', 'Placeholders', 'none found in this letter', '', 'tags', 'Tags & fields');
+  else if (!F.needTag && !F.toCheck) add('ok', 'Placeholders', `all ${F.total} mapped`, '', 'tags', 'Tags & fields');
+  else add('warn', 'Placeholders', [F.needTag?`${F.needTag} still need${F.needTag===1?'s':''} a tag`:'', F.toCheck?`${F.toCheck} to check`:''].filter(Boolean).join(' · '), `${F.total-F.needTag-F.toCheck} of ${F.total} mapped`, 'tags', 'Tags & fields');
   // conditions
-  if (F.bad) add('err', [F.openN?`${F.openN} not closed`:'', F.bad-F.openN?`${F.bad-F.openN} to fix`:''].filter(Boolean).join(' · '), '', 'logic', 'Conditions');
-  else if (F.ifs) add('ok', `${pl(F.ifs,'condition')}, all closed`, '', 'logic', 'Conditions');
-  else add('idle', 'None (optional)', '', 'logic', 'Conditions');
+  if (F.bad) add('err', 'Conditions', [F.openN?`${F.openN} not closed`:'', F.bad-F.openN?`${F.bad-F.openN} to fix`:''].filter(Boolean).join(' · '), '', 'logic', 'Conditions');
+  else if (F.ifs) add('ok', 'Conditions', `${pl(F.ifs,'condition')}, all closed`, '', 'logic', 'Conditions');
+  else add('idle', 'Conditions', 'none (optional)', '', 'logic', 'Conditions');
   // validate: this page's own checks, then the real Jinja check
-  if (!state.built) add('idle', 'Not checked yet', '', 'check', 'Validate');
-  else if (F.errs) add('err', pl(F.errs,'error'), F.warns?pl(F.warns,'warning')+' to check':'', 'check', 'Validate');
-  else if (F.warns) add('warn', 'No errors', pl(F.warns,'warning')+' to check', 'check', 'Validate');
-  else add('ok', 'No errors', '', 'check', 'Validate');
+  if (!state.built) add('idle', 'Validate', 'not checked yet', '', 'check', 'Validate');
+  else if (F.errs) add('err', 'Validate', pl(F.errs,'error')+(F.warns?' · '+pl(F.warns,'warning'):''), '', 'check', 'Validate');
+  else if (F.warns) add('warn', 'Validate', 'no errors · '+pl(F.warns,'warning'), '', 'check', 'Validate');
+  else add('ok', 'Validate', 'no errors', '', 'check', 'Validate');
   const sc=server.check;
-  if (!server.ok) add('idle', 'Real Jinja check not available here', 'It runs when this page is opened from Letter Studio.');
-  else if (server.err) add('warn', "Real Jinja check didn't run", server.err, 'check', 'Validate');
-  else if (!sc || server.checking) add('idle', 'Real Jinja check is running…');
-  else if (sc.syntax.length) add('err', `Real Jinja check found ${pl(sc.syntax.length,'typing mistake')}`, '', 'check', 'Validate');
-  else add('ok', 'Real Jinja check passed', sc.target==='built' ? 'No typing mistakes in the template with your changes.' : 'No typing mistakes in the file as uploaded.');
+  if (!server.ok) add('idle', 'Real Jinja check', 'not available here', 'It runs when this page is opened from Letter Studio.');
+  else if (server.err) add('warn', 'Real Jinja check', "didn't run", server.err, 'check', 'Validate');
+  else if (!sc || server.checking) add('idle', 'Real Jinja check', 'running…');
+  else if (sc.syntax.length) add('err', 'Real Jinja check', `found ${pl(sc.syntax.length,'typing mistake')}`, '', 'check', 'Validate');
+  else add('ok', 'Real Jinja check', 'passed', sc.target==='built' ? 'No typing mistakes in the template with your changes.' : 'No typing mistakes in the file as uploaded.');
   // employee test
   const B=state.batch, nRows=csvRows().length;
-  if (!B) add('idle', 'Not run yet', nRows ? 'Run Test every employee in Validate.' : 'Needs employee data.', 'check', 'Validate');
-  else if (B.running) add('idle', `Testing employees… ${B.done} of ${B.total}`, '', 'check', 'Validate');
-  else if (B.error) add('err', "The template can't be filled", B.error.msg||'', 'check', 'Validate');
-  else { const bad=B.perEmp.filter(x=>x.n>0).length, ok=B.done-bad; add(bad||B.stale?'warn':'ok', `Tested ${pl(B.done,'employee')}: ${ok} fine`, [bad?`${bad} to look at`:'', B.stale?'The template changed since this test. Run it again.':'', B.cancelled?'Stopped early.':''].filter(Boolean).join(' · '), 'check', 'Validate'); }
+  if (!B) add('idle', 'Employee test', 'not run yet', nRows ? 'Run Test every employee in Validate.' : 'Needs employee data.', 'check', 'Validate');
+  else if (B.running) add('idle', 'Employee test', `testing… ${B.done} of ${B.total}`, '', 'check', 'Validate');
+  else if (B.error) add('err', 'Employee test', "the template can't be filled", B.error.msg||'', 'check', 'Validate');
+  else { const bad=B.perEmp.filter(x=>x.n>0).length, ok=B.done-bad; add(bad||B.stale?'warn':'ok', 'Employee test', `${ok} of ${B.done} fine`, [bad?`${bad} to look at`:'', B.stale?'The template changed since this test. Run it again.':'', B.cancelled?'Stopped early.':''].filter(Boolean).join(' · '), 'check', 'Validate'); }
   box.innerHTML=`<ul class="rd-list">${items.join('')}</ul>`;
   // the download stays available with errors; say what will be in the file
   const realN = server.ok && sc && !server.checking ? sc.syntax.length : 0;

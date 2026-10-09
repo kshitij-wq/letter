@@ -346,11 +346,14 @@ class Sweep:
         if not await self.pg.locator("#checks li", has_text="that merge field is really").count():
             self.fail("the merge field shown as «HRA» but coded BASIC wasn't flagged")
         await self.tab("tags")
+        # earlier clicking may have collapsed a section (the choice is remembered): open them again
+        await self.pg.evaluate("()=>document.querySelectorAll('.block.collapsed').forEach(b=>setBlockCollapsed(b,false))")
         if await self.pg.locator("#aiTags").count():
             self.doing = "Claude: suggest tags"
             await self.pg.locator("#aiTags").click()
             await self.settle(800)
         await self.tab("check")
+        await self.pg.evaluate("()=>document.querySelectorAll('.block.collapsed').forEach(b=>setBlockCollapsed(b,false))")
         for sel in ["#aiReview", "#aiAsk"]:
             if await self.pg.locator(sel).count():
                 self.doing = f"Claude: {sel}"
