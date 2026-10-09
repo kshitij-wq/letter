@@ -25,6 +25,12 @@ Each problem has the page and paragraph; click it to jump there. Tags with a pro
 red in the letter. When the page runs here (not on claude.ai), the file is also parsed by
 real Jinja, and those findings are marked **Real Jinja**.
 
+**Employee exports with many letter types.** When the data file has a column such as
+*Letter Template*, the tool uses only the employees whose value matches the letter's file
+name (e.g. `HFCL-MH-Promotion-PLI.Change` for "…MHPromotionPLI…ChangeofPLI.docx"), and you
+can pick another group under *Data file*. Word mail-merge letters (`«Emp_Name»`) are read
+too, and a merge field shown as one name but coded as another is flagged.
+
 **Test every employee.** Load the data file (CSV or Excel) and click *Test every employee*.
 The page fills the letter for each row and lists empty values, text where a number is
 needed, and so on. Here it then fills every employee again with real Jinja and lists anyone
@@ -35,6 +41,33 @@ CompUp couldn't make the letter for.
 value; values from your data file are offered as buttons. It shows the condition in plain
 words, how many employees it is true for, and writes the `if` / `else` / `end if` for you.
 *Write it myself* switches to typing the condition.
+
+## Claude (optional, with your own API key)
+
+With an Anthropic API key, the page gets four Claude helpers:
+
+- **Suggest tags with Claude** (Tags tab): Claude reads the letter's wording, the table row
+  and column headings ("Basic Salary", "Last Drawn" vs "Revised") and your data's column
+  names, and suggests a tag for every piece of text you haven't tagged yourself. Its
+  suggestions show as "Claude: …" in the row; anything it isn't sure of is marked *To check*.
+- **Review this template** (Check tab → Ask Claude): a review like an experienced template
+  author would do: swapped old/new amounts, totals, conditions that pick the wrong people,
+  missing formatting. Each point links to the place in the letter.
+- **Ask a question** about the letter (Check tab → Ask Claude).
+- **Describe a condition in words** (in *Show only when…*): "promoted employees whose PLI
+  changed" becomes a condition in the builder, with how many employees it is true for.
+
+Set it up once:
+
+1. Copy `.env.example` to `.env` in the `letter-studio` folder.
+2. Put your key in it: `ANTHROPIC_API_KEY=sk-ant-…` (from console.anthropic.com).
+3. Restart Letter Studio. The terminal says `Claude: ready`.
+
+What is sent: the letter's text and tags, your data's column names, and the values of columns
+that only have a few categories (levels, yes/no, template names). Employee rows, names and
+amounts are never sent. The key stays on your computer: the page never sees it, and git
+ignores `.env`. Each click is one API request on your account. To use another model, set
+`LS_CLAUDE_MODEL` in `.env`.
 
 ## Open it in PyCharm
 
@@ -93,6 +126,8 @@ employee data**: keep them in a `private/` folder (ignored by git) or name them 
 | Variable | Default | What it does |
 |---|---|---|
 | `LS_AUTOESCAPE` | `1` | Escape `&`, `<`, `>` in employee data (guide 11.3) |
+| `ANTHROPIC_API_KEY` | empty | Your Claude API key (put it in `.env`) |
+| `LS_CLAUDE_MODEL` | `claude-sonnet-5-5` | Claude model for the helpers |
 | `LS_MAX_UPLOAD_MB` | `25` | Largest letter accepted |
 | `DJANGO_DEBUG` | `1` | Set `0` on a shared server |
 | `DJANGO_SECRET_KEY` | dev key | Set a real one on a shared server |
@@ -105,6 +140,7 @@ employee data**: keep them in a `private/` folder (ignored by git) or name them 
 |---|---|
 | `GET /api/health` | `{app, validate, autoescape, versions}` |
 | `POST /api/validate` | multipart: `template` (.docx), optional `employees` (JSON list of `{label, values}`). Returns `{ok, syntax: [...], variables: [...], employees: {tested, failed: [...]}}`. Each problem has `friendly` (plain words), `part` / `part_label` (body, header…), `para_index`, `line_text` and `tag`. Makes no file. |
+| `POST /api/assist` | JSON `{task, payload}`; task `suggest_tags`, `review`, `condition` or `ask`. Calls Claude with the key from `.env` and returns its JSON answer. `503` when no key is set. |
 | `POST /api/render` | multipart: `template`, `context` (JSON of one employee's values), `format` (`docx` \| `json`). Returns the filled .docx, or `{"text": …}`. Errors: `422 {error, kind, tag, context}`. |
 
 Errors always come back as JSON (`400` bad request, `413` too large, `422` the letter can't
@@ -116,7 +152,8 @@ be read or filled, `500` with the details in the terminal).
 frontend_src/letter-tagger.html   the page (same source as the claude.ai artifact)
 tools/build_frontend.py           wraps it into renderer/frontend/index.html with local libraries
 renderer/engine.py                Jinja environment + CompUp filters, validate_docx, render_docx, plain-language errors
-renderer/views.py                 /, /api/health, /api/validate, /api/render
+renderer/views.py                 /, /api/health, /api/validate, /api/assist, /api/render
+renderer/assistant.py             Claude: prompts, JSON answers, plain-language API errors
 renderer/tests.py                 python manage.py test renderer
 tests_ui/sweep.py                 click-through test of the page
 ```

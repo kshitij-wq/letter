@@ -19,7 +19,8 @@ UI text plain and short. There is no PDF feature on purpose (removed at the user
   - condition builder: `cbHtml`, `cbExpr`, `cbParse`, `cbEnglish`, `applyParaCondition`
 - `renderer/frontend/index.html` — generated; don't edit by hand.
 - `renderer/engine.py` — Jinja environment, CompUp filters, `validate_docx`, `render_docx`, plain-language errors.
-- `renderer/views.py` — `/`, `/api/health`, `/api/validate`, `/api/render`.
+- `renderer/views.py` — `/`, `/api/health`, `/api/validate`, `/api/assist`, `/api/render`.
+- `renderer/assistant.py` — Claude helpers (`suggest_tags`, `review`, `condition`, `ask`): system prompt with the CompUp tag rules, JSON-schema answers via `output_config.format`, plain-language API errors. Key from `ANTHROPIC_API_KEY` (`.env`), model `LS_CLAUDE_MODEL`.
 
 ## Rules
 
@@ -30,4 +31,6 @@ UI text plain and short. There is no PDF feature on purpose (removed at the user
 - Conditions the builder writes must stay readable by `cbParse` (round trip) and work in both the preview engine and Jinja.
 - Render user templates only with `SandboxedEnvironment`.
 - Don't store uploaded letters or employee data on disk.
+- Claude gets the letter text, tags, column names and values of few-category columns only (`columnsForClaude`); never employee rows, names or amounts. The API key never goes to the browser.
+- Tests must not call the real API: mock `renderer.assistant.urllib.request.urlopen`; the sweep fakes `/api/assist`.
 - The page must keep working on claude.ai: server features stay behind the `/api/health` probe (`probeServer`, only when `window.claude` is absent).

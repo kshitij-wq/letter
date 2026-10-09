@@ -142,6 +142,16 @@ button,input,select{font:inherit;color:inherit}
 .lg-count{font-weight:500;color:var(--muted)}.lg-count.none{color:var(--err);font-weight:600}.lg-count.all{color:var(--muted)}
 .lg-edit{font-size:12px}
 @media (max-width:640px){ .cb-rule{grid-template-columns:1fr 1fr} .cb-rule .combo-wrap{grid-column:1/-1} }
+.df-row{margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.df-row select{font-size:12.5px;padding:3px 6px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--ink);max-width:100%}
+.ai-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 8px}.ai-bar .hint{margin:0}
+.ai-btn{border-color:var(--accent)}
+.ai-notes{margin:4px 0 0;padding-left:18px;font-size:12.5px;width:100%}
+.ai-setup{font-size:13px;padding-left:18px;margin:6px 0}.ai-setup li{margin:3px 0}
+.ai-sum{font-size:13px;margin:8px 0}
+.ai-ask{display:flex;gap:6px;margin-top:10px}.ai-ask input{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--panel);color:var(--ink);font-size:13px}
+.ai-answer{margin-top:8px;font-size:13px;border-left:3px solid var(--accent);padding:4px 0 4px 10px}.ai-q{font-weight:600;margin:0 0 4px}.ai-tags{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
+.cb-ai{display:flex;gap:6px;align-items:center}.cb-ai input{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:5px 8px;background:var(--panel);color:var(--ink);font-size:13px}
+.cb-note{font-size:12.5px;color:var(--muted);font-style:italic}
 .locs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
 .loc{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:5px;padding:2px 7px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
 .loc:hover{border-color:var(--accent)}.loc b{color:var(--muted);font-weight:600}
@@ -547,6 +557,7 @@ button,input,select{font:inherit;color:inherit}
             <button class="chip" data-f="tagged" type="button">Tagged</button>
           </div>
           <div class="row-bulk"><button class="linkish" id="rowsCollapse" type="button">Collapse all</button><span>·</span><button class="linkish" id="rowsExpand" type="button">Expand all</button></div>
+          <div class="ai-bar" id="aiTagsBar" hidden></div>
           <div class="review-bar" id="reviewBar" hidden>
             <button class="btn small primary" id="btnNext" type="button">Review next</button>
             <button class="btn small" id="btnAcceptAll" type="button">Accept all suggestions</button>
@@ -594,6 +605,10 @@ button,input,select{font:inherit;color:inherit}
           <div id="realCheck"></div>
           <p class="check-sum" id="checkSum"></p>
           <ul class="checks" id="checks"></ul>
+        </div>
+        <div class="block" id="aiBlock" hidden>
+          <div class="block-head"><h2>Ask Claude</h2><span class="stats" id="aiStats"></span></div>
+          <div id="aiBody"></div>
         </div>
         <div class="block" id="pvBlock">
           <div class="block-head"><h2>Preview as an employee</h2><span class="stats" id="pvStats"></span></div>
@@ -877,6 +892,8 @@ function resolveContext(ctx){
 }
 
 /* ======================= docx model ======================= */
+// shown «name» → field code, when they differ (Word's mail merge prints the field code's value)
+const MERGE_MISMATCH=new Map();
 function unwrapMergeFields(doc){
   let n=0;
   for (const f of [...doc.getElementsByTagNameNS(W,'fldSimple')]){
@@ -896,6 +913,7 @@ function unwrapMergeFields(doc){
         if (depth===1){ if (t==='separate' && sep<0) sep=j; if (sep<0) for (const x of runs[j].getElementsByTagNameNS(W,'instrText')) instr+=x.textContent; }
       }
       if (end<0 || !/MERGEFIELD/i.test(instr)) continue;
+      if (sep>=0){ const code=(instr.match(/MERGEFIELD\s+"?([^"\s\\]+)/i)||[])[1]||''; let shown=''; for (let k=sep+1;k<end;k++) for (const x of runs[k].getElementsByTagNameNS(W,'t')) shown+=x.textContent; const sn=shown.replace(/[«»]/g,'').trim(); if (code && sn && /«[^»]+»/.test(shown) && sn.toLowerCase()!==code.toLowerCase()) MERGE_MISMATCH.set(shown.trim(), code); }
       if (sep<0){
         const nm=(instr.match(/MERGEFIELD\s+"?([^"\s\\]+)/i)||[])[1]||'Field';
         const r=doc.createElementNS(W,'w:r'); const t=doc.createElementNS(W,'w:t'); t.textContent='«'+nm+'»'; r.appendChild(t);
@@ -1074,6 +1092,7 @@ function analyze(){
       if (!override){ const r=resolveLabel(h); key = r && r.conf>=0.5 ? r.key : (KNOWN.has(h.trim())?h.trim():'custom_schema.'+snake(h)); }
       state.extraKeys.add(key||'');
       if (val.length<3){ csvUse.missing.push(h); return; }
+      if (csv.rows.length>=5){ const same=csv.rows.filter(r=>String(r[i]??'').trim()===val).length; if (same/csv.rows.length>0.2 || (/^[A-Za-z]+$/.test(val) && val.length<=4)){ csvUse.missing.push(h); return; } }
       let found=false;
       for (const vv of valueVariants(val)){
         const c=countInDoc(vv.text, true); if (!c) continue; found=true;
@@ -1106,6 +1125,8 @@ function analyze(){
       else res=resolveLabel(r.label||r.find);
       if (res){ r.key=res.key; r.override=res.override||null; r.conf=res.conf; r.how=res.how||''; r.extra=res.extra||''; }
     }
+    const cs=state.claudeSugs && state.claudeSugs[r.id];
+    if (cs){ r.key=cs.key; r.override=cs.override||null; r.conf=cs.conf; r.how='Claude: '+cs.reason; r.extra=''; r.format='auto'; }
     const ed=state.edits[r.id];
     if (ed){ if ('key' in ed){ r.key=ed.key; r.conf=1; r.how=''; r.extra=''; } if ('format' in ed) r.format=ed.format; if ('override' in ed) r.override=ed.override; if ('enabled' in ed) r.enabled=ed.enabled; }
   }
@@ -1696,7 +1717,41 @@ function extraRowFor(f, mainRow){
   return f.rows.length===1 ? {row:f.rows[0], matched:false} : null;
 }
 function extraMatchCount(f){ const rows=csvRows(); if (!rows.length) return 0; let n=0; for (const r of rows){ const x=extraRowFor(f, r); if (x && x.matched) n++; } return n; }
-function csvRows(){ return state.csv && state.csv.mode==='sample' ? state.csv.rows : []; }
+function csvRows(){
+  if (!(state.csv && state.csv.mode==='sample')) return [];
+  const f=state.dataFilter; if (!f || !f.col) return state.csv.rows;
+  const c=state._fRows; if (c && c.csv===state.csv && c.col===f.col && c.value===f.value) return c.rows;
+  const i=state.csv.headers.indexOf(f.col); if (i<0) return state.csv.rows;
+  const want=String(f.value).trim().toLowerCase();
+  const rows=state.csv.rows.filter(r=>String(r[i]??'').trim().toLowerCase()===want);
+  state._fRows={csv:state.csv, col:f.col, value:f.value, rows}; return rows;
+}
+// columns that can pick a group of employees: few distinct values (a template name, a level, yes/no)
+function filterColumns(){
+  const c=state.csv; if (!c || c.mode!=='sample' || c.params || c.rows.length<2) return [];
+  const out=[];
+  c.headers.forEach((h,i)=>{ const cnt=new Map(); for (const r of c.rows){ const v=String(r[i]??'').trim(); if (v) cnt.set(v,(cnt.get(v)||0)+1); } if (cnt.size>=2 && cnt.size<=60) out.push({col:h, values:[...cnt.entries()].sort((a,b)=>b[1]-a[1]), template:/letter|template/i.test(h)}); });
+  return out.sort((a,b)=>(b.template-a.template));
+}
+function nameTokens(s){ return String(s||'').replace(/\.docx$/i,'').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g,'$1 $2').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean); }
+// the template value that best matches the letter's file name: every word of the value in the name, the most words wins
+function templateValueFor(values, fileName){
+  const ft=nameTokens(fileName); if (!ft.length) return null; let best=null;
+  for (const [v] of values){ const vt=nameTokens(v); if (vt.length<2) continue; const hit=vt.every(t=>ft.includes(t) || (t.length>=3 && ft.some(f=>f.includes(t)))); if (hit && (!best || vt.length>best.n)) best={v, n:vt.length}; }
+  return best ? best.v : null;
+}
+function suggestDataFilter(){
+  if (state.dataFilter && !state.dataFilter.auto) return;
+  const tc=filterColumns().find(x=>x.template); if (!tc){ if (state.dataFilter && state.dataFilter.auto) state.dataFilter=null; return; }
+  const v=templateValueFor(tc.values, state.fileName);
+  if (v){ const n=tc.values.find(x=>x[0]===v)[1]; const changed=!state.dataFilter || state.dataFilter.value!==v; state.dataFilter={col:tc.col, value:v, auto:true}; if (changed) toast(`Using the ${n} employees whose ${tc.col} is ${v}: it matches the letter's file name. Change it under Data file.`); }
+  else if (state.dataFilter && state.dataFilter.auto) state.dataFilter=null;
+}
+function setDataFilter(col, value){
+  state.dataFilter = col ? {col, value, auto:false} : null;
+  state.batch=null; state.pvIdx=0; state.blockCounts=null;
+  analyze(); renderCsvInfo(); fullRefresh(); if (state.view==='filled') schedulePreview();
+}
 function pickCol(re){ const h=(state.csv&&state.csv.headers)||[]; return h.findIndex(x=>re.test(String(x).trim())); }
 function empLabel(i){
   const row=csvRows()[i]; if (!row) return 'Sample employee';
@@ -1904,8 +1959,8 @@ function employeeIssues(r, comp, info, U, rowIdx){
   const ph=text.match(/\[[^\]\n]{2,40}\]|<<[^>\n]{1,40}>>|«[^»\n]{1,40}»|(?<![A-Za-z])X{4,}(?![A-Za-z])/g);
   if (ph) for (const x of [...new Set(ph)].slice(0,3)) add('warn','ph:'+x, `The letter still shows <code>${esc(x)}</code>. Tag it, or delete it if it isn't needed.`);
   if (/\{\{|\{%/.test(text)) add('error','lit','Some tag text prints as it is. A tag is probably mistyped or has curly quotes.');
-  if (rowIdx!=null && state.csv && state.csv.rows[rowIdx]){
-    const row=state.csv.rows[rowIdx]; const cols=state.csv.headers.filter((h,k)=>/[&<>]/.test(row[k]||''));
+  if (rowIdx!=null && csvRows()[rowIdx]){
+    const row=csvRows()[rowIdx]; const cols=state.csv.headers.filter((h,k)=>/[&<>]/.test(row[k]||''));
     if (cols.length) add('info','amp:'+cols.join(','), `Values in ${cols.map(x=>'<code>'+esc(x)+'</code>').join(', ')} contain &amp;, &lt; or &gt;. The preview escapes them automatically; confirm CompUp does too (guide 11.3).`);
   }
   return out;
@@ -2549,7 +2604,7 @@ function filledHtml(text, fc){
   out+=wrap(esc(text.slice(last).replace(/[-]/g,'')));
   return out;
 }
-function renderCheckTab(){ renderPvPanel(); renderBatch(); }
+function renderCheckTab(){ renderPvPanel(); renderBatch(); renderAi(); }
 function renderPvPanel(){
   const box=$('#pvInfo'); if (!box) return;
   const rows=csvRows();
@@ -2684,6 +2739,158 @@ function switchHtml(sw){
     <div class="ins-hint mono" id="swPrev">${esc(switchPreview(sw))}</div></div>`;
 }
 
+/* ======================= Claude (your API key, on the Letter Studio server) ======================= */
+// The key stays on the server; the page sends the letter's text, tag names, column names and the
+// values of columns with only a few categories. Employee rows are never sent.
+function aiReady(){ return !!(server.ok && server.info && server.info.assistant && server.info.assistant.ready); }
+async function postAssist(task, payload){
+  const r=await fetch('api/assist', {method:'POST', body:JSON.stringify({task, payload}), headers:{'Content-Type':'application/json', 'X-CSRFToken':csrfToken()}, credentials:'same-origin'});
+  let j={}; try{ j=await r.json(); }catch(e){ j={error:`The server answered ${r.status}.`}; }
+  if (!r.ok) throw new Error(j.error||`The server answered ${r.status}.`);
+  return j;
+}
+const PERSONAL_RX=/name|email|e-mail|mobile|phone|address|pan|aadha|account|ifsc|uan|dob|birth|head/i;
+const DATE_RX=/^(\d{1,2}[-\/ ][A-Za-z]{3,9}[-\/ ]\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})$/;
+function columnsForClaude(){
+  const place=state.settings.csvPlace||'both';
+  const tagFor=h=>String(h).includes('.') ? String(h) : place==='top' ? tagKeyOf(h) : 'custom_schema.'+snake(h);
+  const out=[]; const rows=csvRows();
+  const add=(f, rowsOf)=>{
+    for (const [i,h] of fileHeaders(f).entries()){
+      if (!String(h||'').trim()) continue;
+      const col={name:String(h), tag:tagFor(h)};
+      const vals=rowsOf ? rowsOf.map(r=>String(r[i]??'').trim()).filter(Boolean) : [];
+      if (rowsOf){
+        const d=new Map(); for (const v of vals) d.set(v,(d.get(v)||0)+1);
+        const num=vals.length && vals.filter(v=>cbNum(v)!=null).length>=vals.length*0.9;
+        const date=!num && vals.length && vals.filter(v=>DATE_RX.test(v)).length>=vals.length*0.9;
+        col.type=num?'number':date?'date':'text'; col.filled=`${vals.length} of ${rowsOf.length}`; col.distinct=d.size;
+        if (num && vals.every(v=>cbNum(v)===0)) col.note='always 0';
+        if (date) col.examples=[...d.keys()].slice(0,2);
+        else if (!num && d.size<=30 && !PERSONAL_RX.test(h)) col.examples=[...d.entries()].sort((a,b)=>b[1]-a[1]).slice(0,15).map(([v,n])=>`${v} (${n})`);
+      }
+      out.push(col);
+    }
+  };
+  if (state.csv && state.csv.mode==='sample') add(state.csv, state.csv.params ? null : rows);
+  else if (state.csv) add(state.csv, null);
+  for (const f of state.csvExtra||[]){ if (f.mode==='sample') add(f, f.params||f.rows.length<2 ? null : f.rows); }
+  return out.slice(0,400);
+}
+function tableSpot(p){
+  const tc=ancestor(p.el,['tc']); if (!tc) return null; const tr=tc.parentNode, tbl=tr && tr.parentNode; if (!tbl) return null;
+  const txt=el=>[...el.getElementsByTagNameNS(W,'t')].map(t=>t.textContent).join('').replace(/\s+/g,' ').trim();
+  const cells=t=>[...t.childNodes].filter(n=>isW(n,'tc'));
+  const tcs=cells(tr); const ci=tcs.indexOf(tc);
+  const trs=[...tbl.childNodes].filter(n=>isW(n,'tr'));
+  let column=''; for (const t of trs){ if (t===tr) break; const c=cells(t)[ci]; const s2=c?txt(c):''; if (s2){ column=s2; break; } }
+  return {row: tcs[0] && tcs[0]!==tc ? txt(tcs[0]).slice(0,80) : '', column: column.slice(0,80)};
+}
+function placeholdersForClaude(){
+  const out=[];
+  for (const r of state.rows){
+    if (!r.enabled || !r.count || userSet(r)) continue;
+    const spots=[];
+    for (const p of state.an.paras){
+      if (p.fallback) continue; const t=p.model.text||''; const at=t.indexOf(r.find); if (at<0) continue;
+      const sp={page:pageLabel(p), text:(t.slice(Math.max(0,at-110), at)+'⟦'+r.find+'⟧'+t.slice(at+r.find.length, at+r.find.length+70)).replace(/\s+/g,' ').trim()};
+      const ts=tableSpot(p); if (ts) sp.table=ts;
+      spots.push(sp); if (spots.length>=2) break;
+    }
+    const code=MERGE_MISMATCH.get(r.find);
+    out.push({id:r.id, text:r.find, kind:r.kind, occurrences:r.count, places:spots, tool_guess:finalTag(r)||'', ...(code?{merge_field_code:code}:{})});
+  }
+  return out.slice(0,150);
+}
+function letterForClaude(max=80000){
+  const an=state.built?state.built.an:state.an; if (!an) return '';
+  let s='';
+  for (const p of an.paras){ if (p.fallback) continue; const t=(p.model.text||'').replace(/\s+/g,' ').trim(); if (!t) continue; const ts=tableSpot(p); s+=`${pageLabel(p)||''}${p.kind!=='body'?' ('+p.kind+')':''}${ts?' [table'+(ts.row?' row “'+ts.row+'”':'')+(ts.column?' column “'+ts.column+'”':'')+']':''}: ${t}\n`; if (s.length>max) break; }
+  return s.slice(0,max);
+}
+function findingsForClaude(){ return (state.built?state.built.checks:[]).filter(x=>x.level!=='info').map(x=>`${x.level}: ${x.html.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').slice(0,300)}`).slice(0,40); }
+function blocksForClaude(){ const b=blockCountsNow(); if (!state.lg) return []; return state.lg.filter(e=>e.kw==='if'||e.kw==='elif').slice(0,60).map(e=>({tag:e.text.slice(0,200), page:pageLabel(e.p), employees: b && b.byKey.has(e.key) ? `${b.byKey.get(e.key)} of ${b.total}` : 'unknown'})); }
+function aiBusy(on, what){ state.aiBusy=on?what:''; renderAiTagsBar(); renderAi(); }
+async function aiSuggestTags(){
+  const places=placeholdersForClaude();
+  if (!places.length){ toast('Every piece of text already has a tag you chose. Nothing to ask.'); return; }
+  aiBusy(true,'tags');
+  try{
+    const j=await postAssist('suggest_tags', {letter_name:state.fileName, tag_style: (state.settings.csvPlace||'both')==='top' ? 'columns are written with their plain name, e.g. {{ basic1 }}' : 'columns from the data file are written as custom_schema.<column>, e.g. {{ custom_schema.basic1 }}', columns:columnsForClaude(), placeholders:places});
+    const conf={high:0.92, medium:0.75, low:0.5}; let n=0;
+    state.claudeSugs=state.claudeSugs||{};
+    for (const sg of j.suggestions||[]){
+      const r=state.rows.find(x=>x.id===sg.id); if (!r) continue;
+      const field=String(sg.field||'').trim(); const tag=straighten(String(sg.tag||'').trim());
+      if (!field && !tag) continue;
+      const built=field ? buildTag(field, isMoney(field)?state.settings.money:'none') : '';
+      state.claudeSugs[r.id]={key:field, override: tag && squash(tag)!==squash(built) ? tag : null, conf:conf[sg.confidence]??0.5, reason:String(sg.reason||'').slice(0,240)};
+      n++;
+    }
+    state.ai={...(state.ai||{}), tagNotes:j.notes||[], tagUsage:j._usage};
+    recordUndo(); analyze(); fullRefresh();
+    toast(n ? `Claude suggested ${n} tag${n>1?'s':''}. Check the ones marked “To check”.` : 'Claude had no suggestions.');
+  }catch(e){ state.ai={...(state.ai||{}), tagErr:e.message}; toast(e.message); }
+  finally{ aiBusy(false); }
+}
+function renderAiTagsBar(){
+  const bar=$('#aiTagsBar'); if (!bar) return;
+  if (!server.ok){ bar.hidden=true; return; }
+  bar.hidden=false;
+  if (!aiReady()){ bar.innerHTML=`<span class="hint">Claude can suggest tags here once your API key is set up. See <b>Ask Claude</b> in the Check tab.</span>`; return; }
+  const a=state.ai||{};
+  bar.innerHTML=`<button class="btn small ai-btn" id="aiTags" type="button"${state.aiBusy?' disabled':''}>${state.aiBusy==='tags'?'Asking Claude…':'✦ Suggest tags with Claude'}</button><span class="hint">Uses the letter's wording, table headings and your data's column names.</span>
+    ${a.tagErr?`<p class="err-msg">${esc(a.tagErr)}</p>`:''}${a.tagNotes&&a.tagNotes.length?`<ul class="ai-notes">${a.tagNotes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}`;
+}
+function renderAi(){
+  const b=$('#aiBlock'); if (!b) return; b.hidden=!server.ok; if (!server.ok) return;
+  const box=$('#aiBody'); const a=state.ai||{}; const info=(server.info&&server.info.assistant)||{};
+  $('#aiStats').textContent = aiReady() ? (info.model||'') : 'not set up';
+  if (!aiReady()){
+    box.innerHTML=`<p class="hint">Claude can review this template, suggest tags, write conditions from a sentence and answer questions about the letter, using your own Anthropic API key.</p>
+      <ol class="ai-setup"><li>In the <code>letter-studio</code> folder, create a file named <code>.env</code> (PyCharm: right-click the folder → New → File).</li><li>Put this line in it, with your key from console.anthropic.com: <code>ANTHROPIC_API_KEY=sk-ant-…</code></li><li>Restart Letter Studio (red ■, then ▶) and refresh this page.</li></ol>
+      <p class="hint">The .env file stays on your computer; git ignores it, so the key never goes to GitHub.</p>`;
+    return;
+  }
+  const lab={fix:'Fix', check:'Check', idea:'Idea'}, lvl={fix:'error', check:'warn', idea:'info'};
+  const review = a.review ? `<p class="ai-sum">${esc(a.review.summary||'')}</p><ul class="checks">${(a.review.items||[]).map(x=>`<li class="ck ${lvl[x.severity]||'info'}"><span class="badge">${lab[x.severity]||'Note'}</span><span><b>${esc(x.title)}</b> ${esc(x.detail)}${x.suggestion?`<br>Suggested: <code>${esc(x.suggestion)}</code>`:''}${x.quote?locChips(locateTags([x.quote],3)):''}</span></li>`).join('')}</ul>` : '';
+  const ans = a.answer ? `<div class="ai-answer"><p class="ai-q">${esc(a.answer.q)}</p><div>${esc(a.answer.answer).replace(/\n/g,'<br>')}</div>${(a.answer.tags||[]).length?`<div class="ai-tags">${a.answer.tags.map(t=>`<code class="mono">${esc(t)}</code>`).join(' ')}</div>`:''}</div>` : '';
+  box.innerHTML=`<p class="hint">Sends this letter's text, its tags and your data's column names to Claude with your API key. No employee rows; only the values of columns with a few categories, such as levels or yes/no.</p>
+    <div class="t-actions"><button class="btn primary ai-btn" id="aiReview" type="button"${state.aiBusy?' disabled':''}>${state.aiBusy==='review'?'Claude is reading the letter…':'✦ Review this template'}</button></div>
+    ${a.reviewErr?`<p class="err-msg">${esc(a.reviewErr)}</p>`:''}${review}
+    <div class="ai-ask"><input id="aiQ" placeholder="Ask about this letter, e.g. which amounts come from the old salary?" aria-label="Question for Claude" value="${esc(a.q||'')}"><button class="btn small ai-btn" id="aiAsk" type="button"${state.aiBusy?' disabled':''}>${state.aiBusy==='ask'?'Asking…':'Ask'}</button></div>
+    ${a.askErr?`<p class="err-msg">${esc(a.askErr)}</p>`:''}${ans}`;
+}
+async function aiReview(){
+  aiBusy(true,'review');
+  try{
+    const rows=csvRows();
+    const j=await postAssist('review', {letter_name:state.fileName, letter:letterForClaude(), findings:findingsForClaude(), blocks:blocksForClaude(), columns:columnsForClaude(), employees: rows.length ? `${rows.length}${state.dataFilter?` (only ${state.dataFilter.col} = ${state.dataFilter.value})`:''}` : 'no data file loaded'});
+    state.ai={...(state.ai||{}), review:j, reviewErr:null};
+  }catch(e){ state.ai={...(state.ai||{}), reviewErr:e.message}; }
+  finally{ aiBusy(false); }
+}
+async function aiAsk(){
+  const q=($('#aiQ')||{}).value||''; if (!q.trim()){ toast('Type a question first.'); return; }
+  state.ai={...(state.ai||{}), q};
+  aiBusy(true,'ask');
+  try{ const j=await postAssist('ask', {question:q, letter_name:state.fileName, letter:letterForClaude(), columns:columnsForClaude()}); state.ai={...(state.ai||{}), answer:{q, answer:j.answer, tags:j.tags||[]}, askErr:null}; }
+  catch(e){ state.ai={...(state.ai||{}), askErr:e.message}; }
+  finally{ aiBusy(false); }
+}
+// the builder: describe the condition in words
+async function aiCondition(btn){
+  const inp=document.querySelector('#selTools .cb-ai-in'); const ask=inp?inp.value.trim():'';
+  if (!ask){ toast('Describe who should see this, e.g. “promoted employees whose PLI changed”.'); inp&&inp.focus(); return; }
+  const ctx=(state.sel.pids||[]).map(pid=>state.an.byPid.get(pid)).filter(Boolean).map(p=>p.model.text).join(' ').slice(0,1200) || (state.sel.text||'') || (state.condEdit?state.condEdit.tag:'');
+  state.cbAsk=ask; btn.disabled=true; btn.textContent='Asking Claude…';
+  try{
+    const j=await postAssist('condition', {request:ask, context:ctx, current:cbExpr(state.cb), columns:columnsForClaude()});
+    state.cb=cbNew(j.condition||''); state.cbNote=`Claude: ${j.explanation||''}${(j.assumptions||[]).length?' Assumed: '+j.assumptions.join('; '):''}`;
+    cbRerender();
+  }catch(e){ toast(e.message); btn.disabled=false; btn.textContent='Ask Claude'; }
+}
+
 /* ======================= change an existing condition ======================= */
 function startCondEdit(key){
   computeLogic(); const e=state.lg.find(x=>x.key===key);
@@ -2726,7 +2933,7 @@ function saveCondEdit(){
 // Fill the letter for every employee with a marker after each if / else if / else, and count
 // who gets each marker: that is who sees the block, nesting and else-if chains included.
 let blockTimer=null, blockSeq=0;
-function dataKey(){ return [state.csv&&state.csv.name, csvRows().length, (state.csvExtra||[]).map(f=>f.name).join(','), JSON.stringify(state.settings)].join('|'); }
+function dataKey(){ return [state.csv&&state.csv.name, csvRows().length, state.dataFilter?state.dataFilter.col+'='+state.dataFilter.value:'', (state.csvExtra||[]).map(f=>f.name).join(','), JSON.stringify(state.settings)].join('|'); }
 function blockKeyNow(){ return state.built ? state.built.sig+'|'+dataKey() : ''; }
 function blockCountsNow(){ const b=state.blockCounts; return b && b.key===blockKeyNow() ? b : null; }
 function scheduleBlockCounts(){ clearTimeout(blockTimer); if (!csvRows().length || !state.built){ return; } if (blockCountsNow()) return; blockTimer=setTimeout(computeBlockCounts, 500); }
@@ -2782,7 +2989,8 @@ const CB_NUM_REV=Object.fromEntries(Object.entries(CB_NUM).map(([k,v])=>[v,k]));
 function cbList(v){ return String(v??'').split(',').map(x=>x.trim()).filter(Boolean); }
 function cbNum(v){ const t=String(v??'').replace(/[,\s₹]/g,''); if (!t) return null; const n=Number(t); return Number.isFinite(n)?n:null; }
 function cbBlank(field=''){ return {field, op: field && cbIsNumeric(field) ? 'gt' : 'is', value:''}; }
-function cbNew(expr){ if (expr){ const p=cbParse(expr); if (p) return p; return {rules:[cbBlank()], join:'and', raw:cleanCondExpr(expr)}; } return {rules:[cbBlank()], join:'and', raw:null}; }
+function cbNew(expr){ state.cbNote=''; return cbNew0(expr); }
+function cbNew0(expr){ if (expr){ const p=cbParse(expr); if (p) return p; return {rules:[cbBlank()], join:'and', raw:cleanCondExpr(expr)}; } return {rules:[cbBlank()], join:'and', raw:null}; }
 function cbRuleExpr(r){
   const f=String(r.field||'').trim(); if (!/^[A-Za-z_][\w.]*$/.test(f)) return '';
   const v=String(r.value??'').trim(); const T=`${f} | string | lower | trim`;
@@ -2857,7 +3065,7 @@ function cbParse(expr){
 }
 // every employee's values, made once per data file
 function allCtx(){
-  const key=[state.csv, (state.csvExtra||[]).length, JSON.stringify(state.settings)];
+  const key=[state.csv, (state.csvExtra||[]).length, JSON.stringify(state.settings), state.dataFilter?state.dataFilter.col+'='+state.dataFilter.value:''];
   const c=state._ctxCache; if (c && c.key.every((x,i)=>x===key[i])) return c.list;
   const rows=csvRows(); const list=rows.slice(0,3000).map((r,i)=>buildCtx(i,{noOverrides:true}).ctx);
   state._ctxCache={key, list}; return list;
@@ -2896,15 +3104,17 @@ function cbHtml(cb){
       ${vals.length?`<div class="cb-chips"><span class="hint">In your data:</span>${vals.map(v=>`<button type="button" class="chip cb-pick${picked.has(v.v.toLowerCase())?' on':''}" data-k="${k}" data-v="${esc(v.v)}" title="${v.n} employee${v.n>1?'s':''}">${esc(v.v||'(empty)')} <span class="n">${v.n}</span></button>`).join('')}</div>`:''}
     </div>`;
   }).join('');
-  return `<div class="cb">${rules}<div class="cb-foot"><button class="linkish cb-add" type="button">+ Add a rule</button><select class="cb-start" aria-label="Start from a common condition"><option value="">Common conditions…</option>${COND_PRESETS.filter(p=>p.expr).map(p=>`<option value="${p.id}">${esc(p.label)}</option>`).join('')}</select><button class="linkish cb-toraw" type="button">Write it myself</button></div>${foot}</div>`;
+  const ai = aiReady() ? `<div class="cb-ai"><input class="cb-ai-in" placeholder="Or describe it, e.g. promoted employees whose PLI changed" aria-label="Describe the condition" value="${esc(state.cbAsk||'')}"><button class="btn small ai-btn cb-ai-go" type="button">Ask Claude</button></div>` : '';
+  return `<div class="cb">${rules}${ai}<div class="cb-foot"><button class="linkish cb-add" type="button">+ Add a rule</button><select class="cb-start" aria-label="Start from a common condition"><option value="">Common conditions…</option>${COND_PRESETS.filter(p=>p.expr).map(p=>`<option value="${p.id}">${esc(p.label)}</option>`).join('')}</select><button class="linkish cb-toraw" type="button">Write it myself</button></div>${foot}</div>`;
 }
 let cbInfoTimer, cbInfoSeq=0;
 function cbRefreshInfo(){
   const box=document.querySelector('#selTools .cb-info'); if (!box || !state.cb) return;
   const expr=cbExpr(state.cb); const en=cbEnglish(state.cb);
   const why = expr ? tagSyntaxProblem(`{% if ${expr} %}`) : '';
-  box.innerHTML = !expr ? '<span class="hint">Pick a field, a test and a value.</span>'
-    : `${en?`<div class="cb-en">Shown when ${esc(en)}.</div>`:''}<code class="cb-tag mono">{% if ${esc(expr)} %}</code>${why?`<div class="cb-bad">${esc(why)}</div>`:''}<span class="cb-count"></span>`;
+  const note = state.cbNote ? `<div class="cb-note">${esc(state.cbNote)}</div>` : '';
+  box.innerHTML = note + (!expr ? '<span class="hint">Pick a field, a test and a value.</span>'
+    : `${en?`<div class="cb-en">Shown when ${esc(en)}.</div>`:''}<code class="cb-tag mono">{% if ${esc(expr)} %}</code>${why?`<div class="cb-bad">${esc(why)}</div>`:''}<span class="cb-count"></span>`);
   clearTimeout(cbInfoTimer); const seq=++cbInfoSeq;
   if (!expr || why || !csvRows().length) return;
   cbInfoTimer=setTimeout(async ()=>{ const r=await cbCount(expr); if (seq!==cbInfoSeq) return; const c=document.querySelector('#selTools .cb-count'); if (!c || !r) return;
@@ -2944,6 +3154,7 @@ function cbBind(root){
     else if (t.classList.contains('cb-toraw')){ cb.raw=cbExpr(cb); cbRerender('.cb-rawin'); }
     else if (t.classList.contains('cb-tobuilder')){ const p=cbParse(cb.raw||''); state.cb = p || {rules:[cbBlank()], join:'and', raw:null}; cbRerender(); }
     else if (t.classList.contains('cb-reset')){ state.cb={rules:[cbBlank()], join:'and', raw:null}; cbRerender('#cbf-0'); }
+    else if (t.classList.contains('cb-ai-go')){ aiCondition(t); }
   });
 }
 
@@ -3288,6 +3499,7 @@ function runChecks(an, st){
   if (st.filled) add('fixed', `Filled ${st.filled} empty table cell${st.filled>1?'s':''} with tags.`);
   for (const t of state.tables){ if (!t.enabled) continue; const c=tableCounts(t); if (c.all>c.done) add('warn', `Table ${t.n}: ${c.all-c.done} empty cell${c.all-c.done>1?'s have':' has'} no tag and will stay blank.`); }
   if (st.fields) add('fixed', `Converted ${st.fields} Word merge field${st.fields>1?'s':''} to plain text so they can be tagged.`);
+  for (const [shown, code] of MERGE_MISMATCH) add('warn', `The letter shows <code>${esc(shown)}</code>, but that merge field is really <code>${esc(code)}</code>. Word's mail merge prints ${esc(code)} there, so the old letters may have had the wrong value in this place. The tag is suggested from the name shown (${esc(shown.replace(/[«»]/g,''))}); check that is the value you want.`, null, [shown]);
   const need=state.rows.filter(r=>r.enabled && r.count && !finalTag(r)).length;
   if (need) add('warn', `${need} piece${need>1?'s':''} of dynamic text still need a tag and will stay as typed.`);
   const chk=state.rows.filter(r=>rowStatus(r)==='check' && r.count).length;
@@ -3709,6 +3921,7 @@ async function loadDocx(buf, name, isSample){
   if (!zip.file(main)) throw new Error('This .docx has no main document part. Try re-saving it from Word.');
   const paths=[main, ...Object.keys(zip.files).filter(p=>/^word\/(header\d*|footer\d*|footnotes|endnotes)\.xml$/.test(p)).sort()];
   const xml={}; for (const p of paths) xml[p]=await zip.file(p).async('string');
+  MERGE_MISMATCH.clear(); state.claudeSugs={}; state.ai=null;
   state.srcBuf=buf; state.fileName=name; state.isSample=!!isSample; state.xml=xml; state.mainPath=main; state.origXml={...xml}; state.origHash=hashStr(xml[main]);
   state.parts=paths.map(p=>({path:p, kind: p===main?'body':partKind(p)}));
   state.comments=!!zip.file('word/comments.xml');
@@ -3723,7 +3936,8 @@ async function loadDocx(buf, name, isSample){
   fullRefresh();
   const rb=$('#restoreBanner'); rb.hidden=true;
   if (!isSample){ const auto=readAutosave(state.origHash); if (auto && setupHasWork(auto)){ rb.innerHTML=`<span>You worked on this letter before (saved ${esc(fmtWhen(Date.parse(auto.savedAt)))}).</span><button class="btn small primary" id="rbRestore" type="button">Restore my work</button><button class="btn small" id="rbDismiss" type="button">Start fresh</button>`; rb.hidden=false; state.pendingRestore=auto; } }
-  renderMerge(); renderAutosaveStats(); renderPvBar(); if (server.ok){ server.check=null; server.err=null; scheduleRealCheck(); }
+  if (state.csv && (!state.dataFilter || state.dataFilter.auto)){ const before=JSON.stringify(state.dataFilter); suggestDataFilter(); if (JSON.stringify(state.dataFilter)!==before){ state.batch=null; state.pvIdx=0; analyze(); renderCsvInfo(); fullRefresh(); } }
+  renderMerge(); renderAutosaveStats(); renderPvBar(); renderAiTagsBar(); renderAi(); if (server.ok){ server.check=null; server.err=null; scheduleRealCheck(); }
   if (state.view==='filled') refreshPreview();
 }
 function ingestCsv(text, name){
@@ -3738,7 +3952,9 @@ function csvFromRows(rows, name){
   const tagCells=c=>rows.filter(r=>/\{\{|\{%/.test(r[c]||'')).length;
   let tagCol=-1, bestN=0; for (let c=0;c<width;c++){ const n=tagCells(c); if (n>bestN){ bestN=n; tagCol=c; } }
   const headerIsData = tagCol>=0 && /\{\{|\{%/.test(rows[0][tagCol]||'');
-  if (tagCol<0) tagCol = hdr.findIndex(h=>/(^|\s)(tag|tags|key|keys|jinja|compup|replace with|template)(\s|$)/.test(h));
+  // a "text → tag" list has its tags in the cells, or is a narrow sheet with a Tag column;
+  // a wide sheet (an employee export with a "Letter Template" column, say) is employee rows
+  if (tagCol<0 && width<=4) tagCol = hdr.findIndex(h=>/(^|\s)(tag|tags|key|keys|jinja|compup|replace with|template)(\s|$)/.test(h));
   let csv;
   if (tagCol>=0 && width>=2){
     let findCol = hdr.findIndex((h,i)=>i!==tagCol && /(find|text|placeholder|label|field|attribute|client|search|letter|original|variable|name|description)/.test(h));
@@ -3761,7 +3977,8 @@ function applyCsv(csv, asExtra){
     const big=f=>f.mode==='sample' ? f.rows.length : 0;
     if (big(csv)>1 && big(state.csv)<=1){ state.csvExtra=[state.csv, ...extra]; state.csv=csv; }   // the employee list leads
     else state.csvExtra=[...extra, csv];
-  } else { state.csv=csv; if (!asExtra) state.csvExtra=[]; }
+  } else { state.csv=csv; if (!asExtra){ state.csvExtra=[]; state.dataFilter=null; } }
+  if (!asExtra) suggestDataFilter();
   state.batch=null; state.pvIdx=0;
   analyze(); renderCsvInfo(); fullRefresh();
   if (state.view==='filled') schedulePreview();
@@ -3776,7 +3993,10 @@ function renderCsvInfo(){
   }
   else if (c.mode==='sample'){
     const opts=c.rows.slice(0,200).map((r,i)=>`<option value="${i}"${i===c.sampleIdx?' selected':''}>Row ${i+2}${r[0]?' · '+esc(r[0].slice(0,24)):''}</option>`).join('');
-    box.innerHTML=`<b>Employee data</b> · ${c.headers.length} columns · ${c.rows.length} employee${c.rows.length>1?'s':''}. The column names are in every tag list; preview and test employees in the Check tab.${u.used?`<br>${u.used} value${u.used>1?'s':''} from this row ${u.used>1?'were':'was'} found in the letter and tagged: <select id="sampleRow" aria-label="Employee row used to find values">${opts}</select>`:''}`;
+    const fc=filterColumns(); const df=state.dataFilter;
+    const fcol=df && fc.find(x=>x.col===df.col);
+    const filt = fc.length ? `<div class="df-row">Use <select id="dfCol" aria-label="Which employees"><option value="">all ${c.rows.length} employees</option>${fc.map(x=>`<option value="${esc(x.col)}"${df&&df.col===x.col?' selected':''}>employees where ${esc(x.col)} is…</option>`).join('')}</select>${fcol?` <select id="dfVal" aria-label="Value">${fcol.values.map(([v,n])=>`<option value="${esc(v)}"${String(df.value).toLowerCase()===v.toLowerCase()?' selected':''}>${esc(v)} (${n})</option>`).join('')}</select> <span class="hint">${csvRows().length} of ${c.rows.length}${df.auto?' · picked from the letter\'s file name':''}</span>`:''}</div>` : '';
+    box.innerHTML=`<b>Employee data</b> · ${c.headers.length} columns · ${c.rows.length} employee${c.rows.length>1?'s':''}. The column names are in every tag list; preview and test employees in the Check tab.${filt}${u.used?`<br>${u.used} value${u.used>1?'s':''} from this row ${u.used>1?'were':'was'} found in the letter and tagged: <select id="sampleRow" aria-label="Employee row used to find values">${opts}</select>`:''}`;
   }
   else box.innerHTML=`<b>Tag list</b> · ${c.keys.length} tags added to the suggestions`;
   const sheetSel=f=>f.sheets && f.sheets.length>1 ? (wbCaches.has(f.book) ? `<select class="sheet-sel" data-file="${esc(f.name)}" id="sh-${hid(f.name)}" aria-label="Sheet of ${esc(f.book)}">${f.sheets.map(n=>`<option${n===f.sheet?' selected':''}>${esc(n)}</option>`).join('')}</select>` : `<b>${esc(f.sheet)}</b> (load the workbook again to switch)`) : '';
@@ -3929,7 +4149,9 @@ $('#btnDocx').addEventListener('click', async ()=>{
   finally { btn.disabled=false; }
 });
 $('#csvInfo').addEventListener('click', e=>{ const b=e.target.closest('[data-rmextra]'); if (!b) return; recordUndo(); state.csvExtra=(state.csvExtra||[]).filter(f=>f.name!==b.dataset.rmextra); state.batch=null; analyze(); renderCsvInfo(); fullRefresh(); if (state.view==='filled') schedulePreview(); toast('Removed the file.'); });
-$('#csvInfo').addEventListener('change', e=>{ const sp=e.target.closest('.sheet-sel'); if (sp){ const f=[state.csv, ...(state.csvExtra||[])].find(x=>x && x.name===sp.dataset.file); const wb=f && wbCaches.get(f.book); const i=wb ? wb.sheets.findIndex(x=>x.name===e.target.value) : -1; if (i>=0){ useSheet(f.book, i, false, f.name); toast(`Using the sheet “${e.target.value}”.`); } return; } if (e.target.id==='sampleRow'){ recordUndo(); state.csv={...state.csv, sampleIdx:+e.target.value}; analyze(); renderCsvInfo(); fullRefresh(); } });
+$('#csvInfo').addEventListener('change', e=>{
+  if (e.target.id==='dfCol'){ const col=e.target.value; if (!col){ setDataFilter(null); return; } const fc=filterColumns().find(x=>x.col===col); const guess=fc && (templateValueFor(fc.values, state.fileName) || fc.values[0][0]); setDataFilter(col, guess); return; }
+  if (e.target.id==='dfVal'){ setDataFilter(state.dataFilter.col, e.target.value); return; } const sp=e.target.closest('.sheet-sel'); if (sp){ const f=[state.csv, ...(state.csvExtra||[])].find(x=>x && x.name===sp.dataset.file); const wb=f && wbCaches.get(f.book); const i=wb ? wb.sheets.findIndex(x=>x.name===e.target.value) : -1; if (i>=0){ useSheet(f.book, i, false, f.name); toast(`Using the sheet “${e.target.value}”.`); } return; } if (e.target.id==='sampleRow'){ recordUndo(); state.csv={...state.csv, sampleIdx:+e.target.value}; analyze(); renderCsvInfo(); fullRefresh(); } });
 
 // settings
 const setMoney=$('#setMoney'), setSpace=$('#setSpace'), setGuard=$('#setGuard'), setHl=$('#setHl');
@@ -4348,6 +4570,9 @@ $('#btnBatchCsv').addEventListener('click', ()=>offer((state.fileName.replace(/\
 $('#batchOut').addEventListener('click', e=>{ const l=e.target.closest('.loc'); if (l){ showPid(l.dataset.pid); return; }
   const bf=e.target.closest('[data-bfix]'); if (bf){ const id=bf.dataset.bfix; if (fixTags(t=>addDefaultTo(t,id), n=>`Added | default(0) to ${id} in ${n} tag${n>1?'s':''}. Run the test again to check.`)) { if (state.batch) state.batch.stale=true; renderBatch(); } return; } const b=e.target.closest('[data-emp]'); if (!b) return; state.pvIdx=+b.dataset.emp; setView('filled'); });
 $('#checksBlock').addEventListener('click', e=>{ const b=e.target.closest('.loc'); if (b) showPid(b.dataset.pid); });
+$('#aiBlock').addEventListener('click', e=>{ const l=e.target.closest('.loc'); if (l){ showPid(l.dataset.pid); return; } if (e.target.id==='aiReview') aiReview(); if (e.target.id==='aiAsk') aiAsk(); });
+$('#aiBlock').addEventListener('keydown', e=>{ if (e.key==='Enter' && e.target.id==='aiQ'){ e.preventDefault(); aiAsk(); } });
+$('#aiTagsBar').addEventListener('click', e=>{ if (e.target.id==='aiTags') aiSuggestTags(); });
 $('#checks').addEventListener('click', e=>{ const b=e.target.closest('[data-fix]'); if (!b) return; const fn=state.fixes[+b.dataset.fix]; if (fn) fn(); });
 // tags already in the letter
 $('#oldTagsBlock').addEventListener('click', e=>{
@@ -4456,7 +4681,7 @@ function csrfToken(){ const m=document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)
 async function probeServer(){
   if (window.claude) return;
   try{ const r=await fetch('api/health', {headers:{'Accept':'application/json'}}); if (!r.ok) return; const j=await r.json(); if (j.app!=='Letter Studio' || !j.validate) return; server.info=j; server.ok=true; }catch(e){ return; }
-  scheduleRealCheck();
+  scheduleRealCheck(); renderAi(); renderAiTagsBar();
 }
 // What to check: the file as uploaded, or (once you've changed something) the template you'd download.
 function realCheckTarget(){ return HISTORY.undo.length ? 'built' : 'file'; }

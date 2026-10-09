@@ -237,3 +237,101 @@ class ValidateTests(SimpleTestCase):
         resp = self.client.post("/api/validate", {"template": ApiTests._file(b"not a zip")})
         self.assertEqual(resp.status_code, 422)
         self.assertEqual(self.client.get("/api/validate").status_code, 405)
+
+
+class AssistTests(SimpleTestCase):
+    """The Claude endpoint, with the Anthropic API replaced by a fake."""
+
+    def post(self, task, payload):
+        return self.client.post("/api/assist", json.dumps({"task": task, "payload": payload}), content_type="application/json")
+
+    def fake_api(self, answer, stop="end_turn", capture=None):
+        from unittest import mock
+
+        class Resp(io.BytesIO):
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+        def urlopen(req, timeout=None, context=None):
+            if capture is not None:
+                capture.append(json.loads(req.data.decode("utf-8")))
+                capture.append(dict(req.header_items()))
+            body = {"model": "claude-sonnet-5-5", "stop_reason": stop, "usage": {"input_tokens": 10, "output_tokens": 5},
+                    "content": [{"type": "text", "text": json.dumps(answer)}]}
+            return Resp(json.dumps(body).encode("utf-8"))
+        return mock.patch("renderer.assistant.urllib.request.urlopen", side_effect=urlopen)
+
+    def with_key(self):
+        from django.test import override_settings
+        from django.conf import settings
+        return override_settings(LETTER_STUDIO={**settings.LETTER_STUDIO, "CLAUDE_API_KEY": "sk-test", "CLAUDE_MODEL": "claude-sonnet-5-5"})
+
+    def test_without_a_key_says_how_to_set_it_up(self):
+        from django.test import override_settings
+        from django.conf import settings
+        with override_settings(LETTER_STUDIO={**settings.LETTER_STUDIO, "CLAUDE_API_KEY": ""}):
+            resp = self.post("ask", {"question": "hi"})
+            self.assertFalse(self.client.get("/api/health").json()["assistant"]["ready"])
+        self.assertEqual(resp.status_code, 503)
+        self.assertIn("ANTHROPIC_API_KEY", resp.json()["error"])
+
+    def test_suggest_tags_sends_schema_and_key_and_returns_json(self):
+        sent = []
+        answer = {"suggestions": [{"id": "g:«BASIC»", "field": "custom_schema.basic1", "tag": "{{ custom_schema.basic1 | indian_comma }}",
+                                   "confidence": "high", "reason": "Last Drawn column, Basic Salary row."}], "notes": []}
+        with self.with_key(), self.fake_api(answer, capture=sent):
+            resp = self.post("suggest_tags", {"letter_name": "x.docx", "columns": [{"name": "basic1"}],
+                                              "placeholders": [{"id": "g:«BASIC»", "text": "«BASIC»", "table": {"row": "Basic Salary", "column": "Last Drawn"}}]})
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.assertEqual(resp.json()["suggestions"][0]["field"], "custom_schema.basic1")
+        body, headers = sent
+        self.assertEqual(body["model"], "claude-sonnet-5-5")
+        self.assertEqual(body["output_config"]["format"]["type"], "json_schema")
+        self.assertIn("Basic Salary", body["messages"][0]["content"])
+        self.assertEqual(headers.get("X-api-key"), "sk-test")
+
+    def test_api_errors_are_plain_words(self):
+        import urllib.error
+        from unittest import mock
+        for code, words in [(401, "key was refused"), (429, "credit"), (529, "busy"), (404, "isn't available")]:
+            err = urllib.error.HTTPError("u", code, "x", {}, io.BytesIO(b'{"error":{"message":"nope"}}'))
+            with self.with_key(), mock.patch("renderer.assistant.urllib.request.urlopen", side_effect=err):
+                resp = self.post("ask", {"question": "hi"})
+            self.assertIn(words, resp.json()["error"], code)
+        with self.with_key(), mock.patch("renderer.assistant.urllib.request.urlopen", side_effect=urllib.error.URLError("no route")):
+            self.assertIn("Couldn't reach", self.post("ask", {"question": "hi"}).json()["error"])
+
+    def test_cut_off_answer_and_bad_requests(self):
+        with self.with_key(), self.fake_api({"answer": "x", "tags": []}, stop="max_tokens"):
+            self.assertEqual(self.post("ask", {"question": "hi"}).status_code, 422)
+        self.assertEqual(self.post("nope", {}).status_code, 400)
+        self.assertEqual(self.client.post("/api/assist", "{bad", content_type="application/json").status_code, 400)
+        with self.with_key():
+            self.assertEqual(self.post("condition", {"request": ""}).status_code, 400)
+        self.assertEqual(self.client.get("/api/assist").status_code, 405)
+
+    def test_condition_and_review(self):
+        with self.with_key(), self.fake_api({"condition": 'custom_schema.promo | string | lower | trim == "yes"', "explanation": "Promoted.", "fields": ["custom_schema.promo"], "assumptions": []}):
+            self.assertIn("promo", self.post("condition", {"request": "promoted people", "columns": []}).json()["condition"])
+        with self.with_key(), self.fake_api({"summary": "ok", "items": []}):
+            self.assertEqual(self.post("review", {"letter": "Dear {{ first_name }}"}).json()["summary"], "ok")
+
+
+class EnvFileTests(SimpleTestCase):
+    def test_env_file_lines(self):
+        import os
+        import tempfile
+        from letterstudio.settings import load_env_file
+        with tempfile.NamedTemporaryFile("w", suffix=".env", delete=False) as f:
+            f.write('# comment\nexport LS_TEST_A="one"\nLS_TEST_B=two\n\nnot a line\n')
+        try:
+            load_env_file(f.name)
+            self.assertEqual(os.environ.get("LS_TEST_A"), "one")
+            self.assertEqual(os.environ.get("LS_TEST_B"), "two")
+        finally:
+            os.unlink(f.name)
+            os.environ.pop("LS_TEST_A", None)
+            os.environ.pop("LS_TEST_B", None)

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import os
 import socket
 import subprocess
@@ -37,6 +38,33 @@ TABS = ["tags", "logic", "check", "lib"]
 # Buttons whose job is to leave the page or that only wait for a file picker
 SKIP = {"inDoc", "inCsv", "inCsv2", "inMerge", "inSetup", "btnBatchStop"}
 IGNORE = ["favicon.ico", "fonts.googleapis", "fonts.gstatic", "ERR_ABORTED"]
+MAILMERGE = ("ACME Letter - MHPromotion.docx", "employees_export.csv")   # Word merge fields + an export with a Letter Template column
+
+
+async def fake_claude(page):
+    """Stand in for the Claude API so the Claude buttons can be clicked without a key."""
+    async def health(route):
+        resp = await route.fetch()
+        data = await resp.json()
+        data["assistant"] = {"ready": True, "model": "fake"}
+        await route.fulfill(json=data)
+
+    async def assist(route):
+        body = json.loads(route.request.post_data or "{}")
+        task, pl = body.get("task"), body.get("payload") or {}
+        if task == "suggest_tags":
+            out = {"suggestions": [{"id": x["id"], "field": "custom_schema.basic1", "tag": "{{ custom_schema.basic1 | indian_comma }}",
+                                    "confidence": ["high", "medium", "low"][k % 3], "reason": "fake"} for k, x in enumerate(pl.get("placeholders", [])[:5])],
+                   "notes": ["fake note"]}
+        elif task == "review":
+            out = {"summary": "fake review", "items": [{"severity": "fix", "title": "t", "detail": "d", "quote": "Dear", "suggestion": "{{ first_name }}"}]}
+        elif task == "condition":
+            out = {"condition": 'custom_schema.promo | string | lower | trim == "yes"', "explanation": "fake", "fields": ["custom_schema.promo"], "assumptions": []}
+        else:
+            out = {"answer": "fake answer", "tags": ["{{ first_name }}"]}
+        await route.fulfill(json=out)
+    await page.route("**/api/health", health)
+    await page.route("**/api/assist", assist)
 
 
 def free_port():
@@ -237,6 +265,49 @@ class Sweep:
             await self.pg.locator("#cbApply").click()
             await self.settle(500)
 
+    async def mail_merge(self):
+        """A Word mail-merge letter with an employee export: the group filter, merge-field checks, and Claude."""
+        letter, data = MAILMERGE
+        await self.load_letter(letter)
+        await self.load_data(data)
+        self.doing = "mail-merge letter"
+        n = await self.pg.evaluate("()=>csvRows().length")
+        if n != 4:
+            self.fail(f"expected the 4 employees whose Letter Template matches the file name, got {n}")
+        await self.tab("check")
+        if not await self.pg.locator("#checks li", has_text="that merge field is really").count():
+            self.fail("the merge field shown as «HRA» but coded BASIC wasn't flagged")
+        await self.tab("tags")
+        if await self.pg.locator("#aiTags").count():
+            self.doing = "Claude: suggest tags"
+            await self.pg.locator("#aiTags").click()
+            await self.settle(800)
+        await self.tab("check")
+        for sel in ["#aiReview", "#aiAsk"]:
+            if await self.pg.locator(sel).count():
+                self.doing = f"Claude: {sel}"
+                if sel == "#aiAsk":
+                    await self.pg.fill("#aiQ", "which amounts are old?")
+                await self.pg.locator(sel).click()
+                await self.settle(600)
+        await self.view("source")
+        paras = self.pg.locator("#paper p.lp.body")
+        if await paras.count() > 4:
+            await paras.nth(4).click(position={"x": 4, "y": 4})
+            await self.settle(300)
+            await self.pg.keyboard.press("Escape")
+            if await self.pg.locator("#selTools .cb-ai-go").count():
+                self.doing = "Claude: condition from words"
+                await self.pg.fill("#selTools .cb-ai-in", "promoted employees")
+                await self.pg.locator("#selTools .cb-ai-go").click()
+                await self.settle(600)
+                if await self.pg.locator("#cbApply").count():
+                    await self.pg.locator("#cbApply").click()
+                    await self.settle(500)
+        for t in TABS:
+            await self.tab(t)
+            await self.click_all(f"#panel-{t}", limit=20)
+
     async def select_text(self):
         self.doing = "selecting text in the letter"
         await self.pg.evaluate("""()=>{
@@ -298,6 +369,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab")
     ap.add_argument("--headed", action="store_true")
+    ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
     proc = None
@@ -315,6 +387,8 @@ async def main():
             ctx = await browser.new_context(viewport={"width": 1400, "height": 950}, accept_downloads=True)
             page = await ctx.new_page()
             sw = Sweep(page, quick=args.quick)
+            if not args.real_claude:
+                await fake_claude(page)
             await page.goto(url)
             await page.wait_for_function("window.__lt && window.__lt.state && window.__lt.state.built", timeout=30000)
             await sw.settle(800)
@@ -324,6 +398,7 @@ async def main():
                 await sw.click_all(f"#panel-{t}", limit=20)
             for letter in letters:
                 await sw.letter_round(letter, data)
+            await sw.mail_merge()
             for name in TAGGED:
                 await sw.check_tagged(name)
             # broken files: each must give a message, not a crash

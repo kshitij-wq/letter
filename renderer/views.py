@@ -15,6 +15,7 @@ from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.templatetags.static import static
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+from . import assistant
 from .engine import RenderError, docx_text, render_docx, validate_docx
 
 log = logging.getLogger("renderer")
@@ -35,6 +36,7 @@ def health(request):
         "app": "Letter Studio",
         "validate": True,
         "render": True,
+        "assistant": {"ready": assistant.ready(), "model": assistant.config()["model"]},
         "autoescape": settings.LETTER_STUDIO["AUTOESCAPE"],
         "versions": {"python": platform.python_version(), "django": django.get_version(),
                      "docxtpl": getattr(docxtpl, "__version__", ""), "jinja2": jinja2.__version__},
@@ -129,3 +131,22 @@ def validate(request):
         return JsonResponse(validate_docx(upload.read(), employees, autoescape=autoescape))
     except RenderError as exc:
         return JsonResponse(exc.as_dict(), status=422)
+
+
+@_json_errors
+def assist(request):
+    """POST JSON {task, payload}: ask Claude (your API key, set on this computer) for suggestions.
+    task: suggest_tags | review | condition | ask."""
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"error": "The request isn't valid JSON."}, status=400)
+    task = assistant.TASKS.get(body.get("task"))
+    if not task or not isinstance(body.get("payload"), dict):
+        return JsonResponse({"error": f"task must be one of {', '.join(assistant.TASKS)}, with a payload object."}, status=400)
+    try:
+        return JsonResponse(task(body["payload"]))
+    except assistant.AssistError as exc:
+        return JsonResponse({"error": exc.message, "kind": "assistant"}, status=exc.status)

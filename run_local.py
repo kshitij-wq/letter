@@ -30,6 +30,11 @@ def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "letterstudio.settings")
     import django
     django.setup()
+    from renderer import assistant
+    if assistant.ready():
+        print(f"Claude: ready ({assistant.config()['model']})")
+    else:
+        print("Claude: not set up (optional). Copy .env.example to .env and add your ANTHROPIC_API_KEY.")
 
     url = f"http://127.0.0.1:{PORT}/"
     print(f"\nLetter Studio is starting at {url}\n")

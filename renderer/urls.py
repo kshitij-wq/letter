@@ -7,4 +7,5 @@ urlpatterns = [
     path("api/health", views.health, name="health"),
     path("api/render", views.render, name="render"),
     path("api/validate", views.validate, name="validate"),
+    path("api/assist", views.assist, name="assist"),
 ]
