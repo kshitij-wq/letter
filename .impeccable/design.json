@@ -243,54 +243,54 @@
         ]
       },
       "tag-ink": {
-        "role": "neutral",
+        "role": "accent",
         "displayName": "Tag Ink",
-        "canonical": "#2E3B36",
-        "oklch": "oklch(34% 0.019 170)",
-        "dark": "#D7E2DD",
+        "canonical": "#7A4300",
+        "oklch": "oklch(44% 0.102 61)",
+        "dark": "#FFC873",
         "tonalRamp": [
-          "#0D1915",
-          "#293631",
-          "#485651",
-          "#6A7873",
-          "#8D9C96",
-          "#ACBCB5",
-          "#CCDCD5",
-          "#E3F3EC"
+          "#250000",
+          "#4A1700",
+          "#6E3800",
+          "#935A22",
+          "#B97D47",
+          "#E0A26C",
+          "#FFC891",
+          "#FFEBD0"
         ]
       },
       "tag-wash": {
-        "role": "neutral",
+        "role": "accent",
         "displayName": "Tag Wash",
-        "canonical": "#EEF2F0",
-        "oklch": "oklch(96% 0.005 165)",
-        "dark": "#24302B",
+        "canonical": "#FFF2D9",
+        "oklch": "oklch(96% 0.036 84)",
+        "dark": "#3A2A0E",
         "tonalRamp": [
-          "#141715",
-          "#313432",
-          "#505352",
-          "#727574",
-          "#969997",
-          "#B5B8B6",
-          "#D5D8D6",
-          "#EBEFED"
+          "#120900",
+          "#312713",
+          "#514631",
+          "#736852",
+          "#978B74",
+          "#BCB098",
+          "#E3D6BE",
+          "#F8F1E5"
         ]
       },
       "tag-line": {
-        "role": "neutral",
+        "role": "accent",
         "displayName": "Tag Line",
-        "canonical": "#D3DBD7",
-        "oklch": "oklch(88% 0.010 165)",
-        "dark": "#36443E",
+        "canonical": "#EDCB8A",
+        "oklch": "oklch(86% 0.091 83)",
+        "dark": "#6B4B17",
         "tonalRamp": [
-          "#121815",
-          "#2E3531",
-          "#4E5451",
-          "#6F7673",
-          "#939A97",
-          "#B2B9B6",
-          "#D2DAD6",
-          "#E9F1ED"
+          "#1C0300",
+          "#3E2200",
+          "#5F4200",
+          "#826421",
+          "#A78747",
+          "#CDAC6C",
+          "#F5D391",
+          "#FFF0D0"
         ]
       },
       "highlighter": {
@@ -716,7 +716,7 @@
       "refersTo": "tag-chip",
       "description": "A Jinja tag set inline in the letter: mono pill on a neutral wash; condition tags are indigo.",
       "html": "<p class=\"ds-p\">Dear <span class=\"ds-tg\">{{ first_name }}</span>, <span class=\"ds-tg ds-blk\">{% if band == \"A\" %}</span></p>",
-      "css": ".ds-p{margin:0;font:400 15px/1.55 var(--font-letter,'Source Serif 4',Georgia,serif);color:var(--paper-ink,#1B1B1B)} .ds-tg{font-family:var(--font-mono,'IBM Plex Mono',ui-monospace,monospace);font-size:.82em;background:var(--tag-bg,#EEF2F0);color:var(--tag,#2E3B36);border:1px solid var(--tag-line,#D3DBD7);border-radius:3px;padding:0 3px;white-space:pre-wrap} .ds-blk{background:var(--cond-soft,#ECEDFB);color:var(--cond,#4B4FA8);border-color:var(--cond,#4B4FA8)}"
+      "css": ".ds-p{margin:0;font:400 15px/1.55 var(--font-letter,'Source Serif 4',Georgia,serif);color:var(--paper-ink,#1B1B1B)} .ds-tg{font-family:var(--font-mono,'IBM Plex Mono',ui-monospace,monospace);font-size:.82em;background:var(--tag-bg,#FFF2D9);color:var(--tag,#7A4300);border:1px solid var(--tag-line,#EDCB8A);border-radius:3px;padding:0 3px;white-space:pre-wrap} .ds-blk{background:var(--cond-soft,#ECEDFB);color:var(--cond,#4B4FA8);border-color:var(--cond,#4B4FA8)}"
     },
     {
       "name": "Condition Bracket",
