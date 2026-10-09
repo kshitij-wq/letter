@@ -860,7 +860,7 @@ table.bt th{position:sticky;top:0;z-index:1;padding:6px 10px;text-align:left;fon
 table.bt td{padding:4px 10px;border-top:1px solid var(--line-2);vertical-align:middle}
 table.bt tbody tr:first-child td{border-top:0}
 table.bt td.emp{max-width:0;width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-table.bt td.act{width:1%;text-align:right;white-space:nowrap}
+table.bt td.bt-act{width:1%;text-align:right;white-space:nowrap}
 .bt-st{display:inline-flex;align-items:center;gap:5px;font-weight:600;white-space:nowrap}
 .bt-st .ic{width:14px;height:14px}
 .bt-st.ok .ic{color:var(--ok)} .bt-st.warn .ic{color:var(--warn)}
@@ -1343,7 +1343,7 @@ body.no-letter #filesBlock,body.no-letter #teamBlock,body.no-letter #setupBlock{
             <li class="fr-sep" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></li>
             <li><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download</li>
           </ul>
-          <p class="fr-privacy">Your files stay in this browser. Checks with real Jinja send the template to this tool's own server, never to anyone else; Test every employee also sends the employee values there. Claude helpers, if you use them, get the letter text and column names, never employee rows.</p>
+          <p class="fr-privacy">Your files stay in this browser. Checks with real Jinja send the template to this tool's own server, never to anyone else. Test every employee also sends the employee values there. Claude helpers, if you use them, get the letter text and column names, never employee rows.</p>
         </section>
         <article class="paper" id="paper" tabindex="-1" hidden></article>
       </div>
@@ -3498,7 +3498,7 @@ function batchTableHtml(B){
   const only = bad>0 && (state.batchOnlyBad===undefined ? true : !!state.batchOnlyBad);
   const list = only ? B.perEmp.filter(x=>x.n>0) : B.perEmp;
   const shown=list.slice(0,500);
-  const tr=x=>{ const l=empLabel(x.i); return `<tr><td class="emp" title="${esc(l)}">${esc(l)}</td><td><span class="bt-st ${x.n?'warn':'ok'}">${icon(x.n?'alert-triangle':'check-circle')}${x.n?`${x.n} problem${x.n>1?'s':''}`:'OK'}</span></td><td class="act"><button class="btn small" type="button" data-emp="${x.i}" aria-label="Preview ${esc(l)}">Preview</button></td></tr>`; };
+  const tr=x=>{ const l=empLabel(x.i); return `<tr><td class="emp" title="${esc(l)}">${esc(l)}</td><td><span class="bt-st ${x.n?'warn':'ok'}">${icon(x.n?'alert-triangle':'check-circle')}${x.n?`${x.n} problem${x.n>1?'s':''}`:'OK'}</span></td><td class="bt-act"><button class="btn small" type="button" data-emp="${x.i}" aria-label="Preview ${esc(l)}">Preview</button></td></tr>`; };
   const table=`<div class="bt-wrap"><table class="bt"><thead><tr><th scope="col">Employee</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody>${shown.map(tr).join('')}</tbody></table></div>${list.length>shown.length?`<p class="bt-more">and ${list.length-shown.length} more.${dl?' Download the results for the full list.':''}</p>`:''}`;
   if (!bad) return `<details class="bt-all"><summary>Show all ${B.done} employees</summary>${table}</details>`;
   return `<div class="bt-tools"><h3 class="bt-h">Employees</h3><label class="check small"><input type="checkbox" id="batchOnlyBad"${only?' checked':''}><span>Only employees with problems</span></label></div>${table}`;
