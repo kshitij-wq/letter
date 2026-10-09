@@ -604,13 +604,163 @@ body.resizing{cursor:col-resize;user-select:none}
   .row-map{grid-template-columns:1fr}
 }
 @media (max-width:440px){
-  .brand h1{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* the product name stays; the header actions give way instead (Export mapping CSV and Download live in the Export step too) */
+  .brand{gap:8px}
+  .brand h1{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:var(--fs-md)}
+  #btnMap{display:none}
+}
+@media (max-width:380px){
+  /* very narrow phones: Download shows its icon only (the name stays for screen readers) */
+  #btnDocx{width:32px;padding:0}
+  #btnDocx .lbl{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 }
 @media (prefers-reduced-motion:reduce){.row.flash{animation:none}}
 /* §tags */
 /* §logic */
 /* §check */
 /* §export */
+/* Document step, first run, employee preview and export (Phase B4) */
+.notice.err{background:var(--err-soft);color:var(--ink)}
+.notice.err .ic{color:var(--err)}
+.notice .notice-x{flex:none;margin-left:auto}
+label[data-pick]{cursor:pointer}
+/* the table-cell hint class .ghost also matches .btn.ghost: put the button back to the UI look */
+.btn.ghost{font-family:var(--font-ui);font-size:var(--fs-md);display:inline-flex;max-width:none;padding:5px 12px;border-style:solid;border-radius:var(--r-ctl);overflow-wrap:normal;vertical-align:baseline}
+.btn.small.ghost{font-size:var(--fs-sm);padding:3px 10px}
+.btn.icon.ghost{padding:0}
+
+/* files: one row per file */
+#filesBlock{display:flex;flex-direction:column;gap:12px}
+#filesBlock>.block-head{margin-bottom:0}
+.frow{display:grid;grid-template-columns:minmax(0,1fr);min-width:0;gap:10px;padding:12px;border:1px solid var(--line);border-radius:var(--r-panel);background:var(--panel);transition:border-color .15s,background-color .15s}
+.frow.over{border-color:var(--accent);background:var(--accent-soft)}
+.frow-top{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.frow-ic{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r-ctl);background:var(--surface-2);color:var(--muted);transition:background-color .15s,color .15s}
+.frow.loaded .frow-ic{background:var(--accent-soft);color:var(--accent)}
+.frow-main{display:grid;gap:1px;min-width:0}
+.frow-label{display:flex;align-items:center;gap:6px;font-size:var(--fs-sm);font-weight:600;color:var(--muted)}
+.frow-name{font-weight:600;overflow-wrap:anywhere}
+.frow-name.none{font-weight:400;color:var(--muted)}
+.frow-meta{font-size:var(--fs-sm);color:var(--muted)}
+.frow-meta:empty{display:none}
+.frow-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.frow>.hint{margin:0}
+.csv-info{margin:0;padding-top:10px;border-top:1px solid var(--line-2);display:grid;grid-template-columns:minmax(0,1fr);gap:10px;font-size:var(--fs-sm);color:var(--muted)}
+.csv-info b{color:var(--ink);font-weight:600}
+.csv-info .df-row,.csv-info .sheet-pick{margin:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.csv-info select{margin-left:0;max-width:100%;font-size:var(--fs-sm)}
+.csv-info .ci-note{margin:0}
+.extra-files{margin:0;gap:6px}
+.extra-files li{align-items:center}
+.extra-files li>span{min-width:0;overflow-wrap:anywhere}
+.add-extra{margin:0;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+
+/* save your work */
+.where{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:10px}
+.where li{display:flex;gap:10px;align-items:flex-start}
+.where-ic{flex:none;display:grid;place-items:center;width:24px;height:24px;color:var(--muted)}
+.where b{display:block;font-weight:600}
+.where .hint{display:block}
+.t-actions+.hint{margin-top:10px}
+.lib-list li{border:0;border-top:1px solid var(--line-2);border-radius:0;padding:8px 0}
+.lib-list li:first-child{border-top:0}
+
+/* first run: no letter yet */
+.firstrun{max-width:640px;margin:40px auto 64px;display:grid;gap:20px}
+.firstrun h2{margin:0;font-size:var(--fs-xl);font-weight:600;line-height:1.3;text-wrap:balance}
+.fr-drop{display:grid;justify-items:center;gap:8px;padding:36px 24px;border:1.5px dashed var(--muted);border-radius:var(--r-panel);background:var(--panel);text-align:center;cursor:pointer;transition:border-color .15s,background-color .15s}
+@supports (color:color-mix(in srgb,red,blue)){.fr-drop{border-color:color-mix(in srgb,var(--muted) 60%,transparent)}}
+.fr-drop .ic{width:28px;height:28px;color:var(--accent)}
+.fr-drop:hover,.fr-drop.over,.fr-drop:focus-visible{border-color:var(--accent);background:var(--accent-soft)}
+.fr-drop:hover .fr-pick,.fr-drop:focus-visible .fr-pick{background:var(--accent-hover);border-color:var(--accent-hover)}
+.fr-drop:active .fr-pick{transform:translateY(.5px)}
+.fr-drop-title{font-size:var(--fs-lg);font-weight:600}
+.fr-drop-or{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+.fr-pick{pointer-events:none;transition:background-color .15s,border-color .15s}
+.fr-formats{font-size:var(--fs-sm);color:var(--muted)}
+.fr-data{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:20px 0 0;border-top:1px solid var(--line);transition:background-color .15s}
+.fr-data.over{background:var(--accent-soft)}
+.fr-data h3{display:flex;align-items:center;gap:8px;margin:0 0 4px;font-size:var(--fs-md);font-weight:600}
+.fr-data p{margin:0;max-width:52ch;font-size:var(--fs-sm);color:var(--muted)}
+.fr-data .fr-data-name{margin-top:6px;display:flex;align-items:center;gap:6px;color:var(--ink);font-weight:600}
+.fr-data .fr-data-name .ic{color:var(--ok)}
+.fr-data>.btn{flex:none}
+.fr-sample{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;color:var(--muted)}
+.fr-flow{list-style:none;margin:0;padding:16px 0 0;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;color:var(--muted);font-size:var(--fs-sm);font-weight:600}
+.fr-flow li{display:inline-flex;align-items:center;gap:6px}
+.fr-sep{opacity:.6}
+.fr-privacy{margin:0;max-width:62ch;font-size:var(--fs-sm);color:var(--muted)}
+.need-letter{display:none}
+body.no-letter .need-letter{display:grid}
+body.no-letter .tabpanel:not(#panel-doc)>:not(.need-letter){display:none!important}
+body.no-letter .viewer-bar{display:none}
+.need-letter .btn{margin-top:6px}
+@media (max-width:600px){
+  .firstrun{margin:20px auto 40px;gap:16px}
+  .fr-drop{padding:28px 16px}
+  .fr-data{flex-direction:column;align-items:flex-start}
+}
+
+/* employee preview bar */
+.pv-bar{gap:10px;padding:10px 12px;border-radius:var(--r-panel)}
+.pvr{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;min-width:0}
+.pvr.split{justify-content:space-between}
+.pv-badge{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:2px 8px;border-radius:var(--r-ctl);background:var(--line-2);color:var(--muted);font-size:var(--fs-sm);font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+.pv-badge.real{background:var(--ok-soft);color:var(--ok)}
+.pv-badge.smp{background:var(--warn-soft);color:var(--warn);font-weight:700}
+.pv-search{position:relative;flex:1 1 180px;max-width:260px;min-width:0}
+.pv-search .ic{position:absolute;left:9px;top:50%;margin-top:-8px;color:var(--muted);pointer-events:none}
+.pv-search{--x-mark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M4 4l8 8M12 4l-8 8'/%3E%3C/svg%3E")}
+.pv-search input{width:100%;padding-left:30px}
+.pv-search input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;width:14px;height:14px;margin:0 2px 0 4px;cursor:pointer;background:var(--muted);-webkit-mask:var(--x-mark) center/contain no-repeat;mask:var(--x-mark) center/contain no-repeat}
+.pv-search input::-webkit-search-cancel-button:hover{background:var(--ink)}
+.pvr .linkish{min-height:28px}
+.pv-pick{display:flex;gap:4px;align-items:center;flex:1 1 300px;min-width:0}
+.pv-pick select{flex:1 1 auto;min-width:0;width:100%}
+.pv-count{font-size:var(--fs-sm);color:var(--muted);font-variant-numeric:tabular-nums}
+.pv-sum{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-md);font-weight:600}
+.pv-sum.good{color:var(--ok)}.pv-sum.meh{color:var(--warn)}.pv-sum.bad{color:var(--err)}.pv-sum.wait{color:var(--muted);font-weight:500}
+.pv-sum.wait .ic{animation:spin 1s linear infinite}
+.pvr .btn.small .ic,.pvr .linkish .ic{width:14px;height:14px}
+.pv-more{margin-left:auto}
+.pv-issues{max-height:180px;padding-top:2px}
+.pv-note{margin:0;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.pv-values{margin-top:16px}
+.pv-values summary{margin-top:0;padding:5px 0}
+#pvBlock .set-row{min-width:0}
+#pvBlock select{min-width:0;max-width:100%}
+/* values in the letter */
+.fv{background:none;border-radius:2px;text-decoration:underline solid var(--ok);text-decoration-thickness:1px;text-underline-offset:3px;box-shadow:none}
+.fv.smp{text-decoration:underline dotted var(--muted);text-decoration-thickness:2px}
+.fv.empty{font-family:var(--font-mono);font-size:.72em;color:var(--err);border:1px dashed var(--err);border-radius:3px;padding:0 4px;background:var(--err-soft);text-decoration:none;white-space:nowrap}
+body[data-canvas="filled"] #legend span:nth-child(1) i{background:none!important;box-shadow:inset 0 -2px 0 var(--ok)!important}
+body[data-canvas="filled"] #legend span:nth-child(2) i{background:none!important;box-shadow:none!important;border-bottom:2px dotted var(--muted)!important}
+/* values table (Preview & export) */
+.pv-grid{display:block;max-height:360px;overflow:auto;margin:8px 0;border:1px solid var(--line);border-radius:var(--r-ctl);background:var(--panel)}
+.pv-table{width:100%;border-collapse:separate;border-spacing:0;font-size:var(--fs-sm)}
+.pv-table th{position:sticky;top:0;z-index:1;padding:6px 8px;background:var(--surface-2);border-bottom:1px solid var(--line);color:var(--muted);font-weight:600;text-align:left;white-space:nowrap}
+.pv-table td{padding:4px 8px;border-top:1px solid var(--line-2);vertical-align:middle}
+.pv-table tbody tr:first-child td{border-top:0}
+.pv-table .c-field{width:36%;max-width:0}
+.pv-table .c-src{width:1%;white-space:nowrap}
+.pv-table code{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv-table .pv-in{width:100%;min-height:28px;font-size:var(--fs-sm)}
+.pv-table .badge{font-size:var(--fs-xs)}
+
+/* export checklist */
+.rd-list{list-style:none;margin:0 0 16px;padding:0;display:grid}
+.rd{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line-2)}
+.rd:first-child{border-top:0}
+.rd-ic{flex:none;display:grid;place-items:center;width:20px;height:20px}
+.rd-ok .rd-ic{color:var(--ok)}.rd-warn .rd-ic{color:var(--warn)}.rd-err .rd-ic{color:var(--err)}.rd-idle .rd-ic{color:var(--muted)}
+.rd-text{flex:1;min-width:0}
+.rd-sub{display:block;font-size:var(--fs-sm);color:var(--muted)}
+.rd-go{flex:none;display:inline-flex;align-items:center;gap:2px;min-height:28px;padding:0 4px;font-size:var(--fs-sm)}
+.rd-go .ic{width:14px;height:14px}
+.exp-list{display:grid;gap:16px}
+.exp{display:grid;gap:4px;justify-items:start}
+.exp .hint{margin:0}
+.exp-warn{display:flex;gap:6px;align-items:center;margin:0;font-size:var(--fs-sm);color:var(--err)}
 </style>
 
 <div class="app">
@@ -683,34 +833,52 @@ body.resizing{cursor:col-resize;user-select:none}
       <div class="tabpanel" id="panel-doc" role="tabpanel" aria-labelledby="tab-doc">
         <div class="block" id="filesBlock">
           <div class="block-head"><h2>Files</h2><span class="stats" id="filesStats"></span></div>
-          <div class="uploads">
-            <label class="drop" id="dropDoc">
-              <input type="file" id="inDoc" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-              <span class="drop-title">Client letter</span>
-              <span class="drop-file" id="docName">sample-appraisal-letter.docx</span>
-              <span class="drop-hint">.docx · drop or click</span>
-            </label>
-            <label class="drop" id="dropCsv">
-              <input type="file" id="inCsv" accept=".csv,.xlsx,.xlsm,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
-              <span class="drop-title">Data file <em>optional</em></span>
-              <span class="drop-file none" id="csvName">None loaded</span>
-              <span class="drop-hint">CSV or Excel: employee rows, a params sheet, column names, or text → tag</span>
-            </label>
+          <div class="notice err" id="loadErr" role="alert" hidden></div>
+          <div class="frow" id="dropDoc">
+            <div class="frow-top">
+              <span class="frow-ic" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg></span>
+              <div class="frow-main">
+                <span class="frow-label">Client letter</span>
+                <span class="frow-name none" id="docName">No letter loaded</span>
+                <span class="frow-meta" id="docMeta"></span>
+              </div>
+            </div>
+            <div class="frow-actions">
+              <label class="btn small" for="inDoc" id="lblDoc" data-pick>Choose a letter…</label>
+              <label class="btn small ghost" for="inCheck" data-pick>Check a tagged template…</label>
+            </div>
+            <p class="hint">Already tagged? Check it to see every problem with its tags and conditions, and where each one is.</p>
+            <input type="file" id="inDoc" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+            <input type="file" id="inCheck" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
           </div>
-          <div class="under-drop">
-            <span id="docMeta"></span>
-            <span><button class="linkish" id="btnCsvTpl" type="button">Get CSV template</button><span id="csvClearWrap" hidden> · <button class="linkish" id="btnCsvClear" type="button">Remove CSV</button></span></span>
+          <div class="frow" id="dropCsv">
+            <div class="frow-top">
+              <span class="frow-ic" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-table"/></svg></span>
+              <div class="frow-main">
+                <span class="frow-label">Employee data <span class="badge">Optional</span></span>
+                <span class="frow-name none" id="csvName">None loaded</span>
+                <span class="frow-meta" id="csvMeta"></span>
+              </div>
+            </div>
+            <p class="hint" id="csvHow">Fills the preview, offers its column names as tags and lets you test every employee. Drop a CSV or Excel file here.</p>
+            <div class="frow-actions">
+              <label class="btn small" for="inCsv" id="lblCsv" data-pick>Add data file…</label>
+              <button class="btn small ghost" id="btnCsvTpl" type="button">Get CSV template</button>
+              <span id="csvClearWrap" hidden><button class="btn small danger" id="btnCsvClear" type="button">Remove</button></span>
+            </div>
+            <div class="csv-info" id="csvInfo" hidden></div>
+            <input type="file" id="inCsv" accept=".csv,.xlsx,.xlsm,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden>
+            <input type="file" id="inCsv2" accept=".csv,.xlsx,.xlsm,.xls,text/csv" hidden>
           </div>
-          <div class="csv-info" id="csvInfo" hidden></div>
-          <input type="file" id="inCsv2" accept=".csv,.xlsx,.xlsm,.xls,text/csv" hidden>
-          <input type="file" id="inCheck" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
-          <p class="hint check-entry">Already tagged? <label class="linkish" for="inCheck">Check a tagged template</label> to see every problem with its tags and conditions, and where it is.</p>
-          <div class="err-msg" id="loadErr" hidden></div>
         </div>
         <div class="block" id="setupBlock">
-          <div class="block-head"><h2>Save your work</h2><span class="stats" id="autosaveStats"></span></div>
-          <p class="hint">A setup file holds every choice you made for this letter: tags, table cells, logic tags, clean-up changes and settings. Load it later to carry on, or load it on next year's version of the letter to redo most of the work automatically. It holds your CSV's column names, never its employee rows.</p>
-          <div class="t-actions"><button class="btn primary" id="btnSetupSave" type="button">Download setup file</button><label class="btn" for="inSetup">Load setup file</label><input type="file" id="inSetup" accept=".json,application/json" hidden></div>
+          <div class="block-head"><h2>Save your work</h2></div>
+          <ul class="where">
+            <li><span class="where-ic" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-monitor"/></svg></span><span><b>Autosaved in this browser</b><span class="hint" id="autosaveStats"></span></span></li>
+            <li><span class="where-ic" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg></span><span><b>Setup file</b><span class="hint">Download a setup file to keep it or share it. It holds every choice for this letter and your data's column names, never its employee rows.</span></span></li>
+          </ul>
+          <div class="t-actions"><button class="btn primary" id="btnSetupSave" type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download setup file</button><label class="btn" for="inSetup" data-pick>Load setup file…</label><input type="file" id="inSetup" accept=".json,application/json" hidden></div>
+          <p class="hint">Load a setup file to carry on later, or on next year's version of the letter to redo most of the work.</p>
           <div class="hint" id="setupReport"></div>
         </div>
         <div class="block" id="teamBlock">
@@ -826,18 +994,18 @@ body.resizing{cursor:col-resize;user-select:none}
 
       <div class="tabpanel" id="panel-export" role="tabpanel" aria-labelledby="tab-export" hidden>
         <div class="block" id="pvBlock">
-          <div class="block-head"><h2>Preview as an employee</h2><span class="stats" id="pvStats"></span></div>
+          <div class="block-head"><h2>Preview settings</h2><span class="stats" id="pvStats"></span></div>
           <p class="hint" id="pvInfo"></p>
           <div class="set-grid">
             <label class="set-row"><span>Your CSV columns are available in the template as</span>
               <select id="setCsvPlace"><option value="both">Both basic and custom_schema.basic</option><option value="top">basic only</option><option value="custom">custom_schema.basic only</option></select></label>
             <label class="set-row"><span>Numbers in the CSV</span>
               <select id="setCsvNum"><option value="text">Keep as text, like an upload (stricter)</option><option value="number">Treat them as numbers</option></select></label>
-            <label class="check"><input type="checkbox" id="setSamples" checked><span>Fill CompUp fields that aren't in the CSV with made-up sample values</span></label>
+            <label class="check"><input type="checkbox" id="setSamples" checked><span>Fill fields missing from the data with made-up sample values (clearly marked)</span></label>
           </div>
-          <div class="t-actions"><button class="btn primary" id="btnPreview" type="button">Open employee preview</button></div>
+          <div class="t-actions"><button class="btn primary" id="btnPreview" type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-eye"/></svg>Open employee preview</button></div>
           <details class="pv-values" id="pvValues"><summary>Values in this preview <span id="pvValuesN"></span></summary>
-            <p class="hint">Change a value to test a condition, such as setting a promotion field to yes.</p>
+            <p class="hint">Change a value to test a condition, such as setting a promotion field to yes. A changed value stays until you reset it.</p>
             <div class="pv-grid" id="pvGrid"></div>
             <button class="btn small" id="pvReset" type="button" hidden>Reset changed values</button>
           </details>
@@ -845,10 +1013,20 @@ body.resizing{cursor:col-resize;user-select:none}
         <div class="block" id="exportBlock">
           <div class="block-head"><h2>Export</h2></div>
           <div id="exportSummary"></div>
-          <div class="t-actions">
-            <button class="btn primary" id="btnDocx2" type="button" disabled><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span class="lbl">Download tagged .docx</span></button>
-            <button class="btn" id="btnMap2" type="button" disabled><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span class="lbl">Export mapping CSV</span></button>
-            <button class="btn" id="btnSetupSave2" type="button" disabled><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span class="lbl">Download setup file</span></button>
+          <div class="exp-list">
+            <div class="exp">
+              <button class="btn primary" id="btnDocx2" type="button" disabled><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span class="lbl">Download tagged .docx</span></button>
+              <p class="hint">Upload this to CompUp.</p>
+              <p class="exp-warn" id="exportWarn" hidden></p>
+            </div>
+            <div class="exp">
+              <button class="btn" id="btnMap2" type="button" disabled><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-table"/></svg><span class="lbl">Export mapping CSV</span></button>
+              <p class="hint">Which text became which tag.</p>
+            </div>
+            <div class="exp">
+              <button class="btn" id="btnSetupSave2" type="button" disabled><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><span class="lbl">Download setup file</span></button>
+              <p class="hint">Reopen this work later or reuse it next cycle.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -866,10 +1044,44 @@ body.resizing{cursor:col-resize;user-select:none}
         <div class="legend" id="legend"></div>
         <button class="btn icon small ghost btn-top" id="btnTop" type="button" aria-label="Back to top of letter" data-tip="Back to top of letter" data-tip-end><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow-up"/></svg></button>
       </div>
-      <div class="notice" id="sampleBanner"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><span>Sample letter for a made-up company (Northwind Appliances).</span><label class="btn small" for="inDoc">Upload a client letter</label></div>
+      <div class="notice" id="sampleBanner" hidden><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><span>Sample letter for a made-up company (Northwind Appliances).</span><label class="btn small" for="inDoc" data-pick>Upload a client letter</label></div>
       <div class="notice warn" id="restoreBanner" hidden></div>
       <div class="pv-bar" id="pvBar" hidden></div>
-      <div class="paper-wrap" id="paperWrap"><article class="paper" id="paper" tabindex="-1"></article></div>
+      <div class="paper-wrap" id="paperWrap">
+        <section class="firstrun" id="firstRun" aria-labelledby="frTitle">
+          <h2 id="frTitle">Turn a client letter into a CompUp template</h2>
+          <div class="notice err" id="frErr" role="alert" hidden></div>
+          <label class="fr-drop" id="frDrop" for="inDoc" data-pick tabindex="0" role="button" aria-label="Choose the client's letter, a Word .docx file">
+            <svg class="ic" aria-hidden="true" focusable="false"><use href="#i-upload"/></svg>
+            <span class="fr-drop-title">Drop the client's letter here</span>
+            <span class="fr-drop-or">or <span class="btn primary fr-pick">Choose a .docx file</span></span>
+            <span class="fr-formats">.docx (Word 2007 or later). Data: .csv, .xlsx, .xls.</span>
+          </label>
+          <div class="fr-data" id="frData">
+            <div class="fr-data-text">
+              <h3>Employee data <span class="badge">Optional</span></h3>
+              <p>Add a CSV or Excel file of employees to fill previews and test every employee. Without it, previews use made-up sample values.</p>
+              <p class="fr-data-name" id="frDataName" hidden></p>
+            </div>
+            <label class="btn" for="inCsv" data-pick>Add employee data…</label>
+          </div>
+          <div class="fr-sample">
+            <span>No file to hand?</span>
+            <button class="btn ghost" id="btnSample" type="button">Open the sample letter</button>
+          </div>
+          <ul class="fr-flow" aria-label="The steps">
+            <li><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-tag"/></svg>Map placeholders</li>
+            <li class="fr-sep" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></li>
+            <li><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-branch"/></svg>Add conditions</li>
+            <li class="fr-sep" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></li>
+            <li><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-check-circle"/></svg>Validate</li>
+            <li class="fr-sep" aria-hidden="true"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></li>
+            <li><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-download"/></svg>Download</li>
+          </ul>
+          <p class="fr-privacy" id="frPrivacy"></p>
+        </section>
+        <article class="paper" id="paper" tabindex="-1" hidden></article>
+      </div>
     </section>
 
     <aside class="inspector" id="inspector" aria-label="Inspector" hidden>
@@ -1276,6 +1488,7 @@ const untagged=t=>/\{[{%#]/.test(t) ? t.replace(RX_TAG, m=>' '.repeat(m.length))
 function countInDoc(find, skipTyped){ let c=0; for (const p of state.an.paras) if (!p.fallback && !(skipTyped && state.typed.has(p.pid))) c+=findAll(untagged(p.model.text), find).length; return c; }
 
 function analyze(){
+  if (!state.srcBuf) return;   // no letter yet (a data file can be added first)
   const {docs, fields, joined} = parseAll();
   state.an = buildModel(docs); state.an.fields=fields; state.an.joined=joined;
   const rows=new Map(); let existing=0;
@@ -2275,6 +2488,7 @@ function addTrimMarkers(tag){
 const HISTORY={undo:[], redo:[], group:'', t:0};
 function snapState(){ return {xml:{...state.xml}, csv:state.csv, csvExtra:state.csvExtra, rest:JSON.stringify({edits:state.edits, tableEdits:state.tableEdits, logic:state.logic, tagOps:state.tagOps, settings:state.settings, previewOverrides:state.previewOverrides, unplaced:state.unplaced, typed:[...state.typed], switchOps:state.switchOps})}; }
 function recordUndo(group){
+  if (!state.an) return;   // nothing to undo before a letter is open
   const now=Date.now();
   if (group && group===HISTORY.group && now-HISTORY.t<1500){ HISTORY.t=now; scheduleAutosave(); return; }
   HISTORY.undo.push(snapState()); if (HISTORY.undo.length>80) HISTORY.undo.shift();
@@ -2435,6 +2649,7 @@ function doAutosave(){
 // the status line in the header: only ever says what this browser did
 function renderSaveState(){
   const el=$('#saveState'); if (!el) return;
+  if (!state.an){ el.textContent=''; return; }
   el.textContent = state.isSample ? 'Sample letter'
     : state.autosaveFailed ? 'Not saved: browser storage is full or blocked'
     : state.lastAutosave ? 'Saved in this browser · '+fmtWhen(state.lastAutosave)
@@ -2743,7 +2958,7 @@ async function teamSaveChoices(){
   catch(e){ teamWriteError(e); }
 }
 async function teamSaveSetup(name){
-  const t=state.team; if (!t) return; name=String(name||'').trim()||state.fileName.replace(/\.docx$/i,'');
+  const t=state.team; if (!t) return; if (!state.an){ toast('Open a letter first.'); return; } name=String(name||'').trim()||state.fileName.replace(/\.docx$/i,'');
   const setup=exportSetup({includeSource:true}); let body={client:t.id, name, fileName:state.fileName, savedAt:new Date().toISOString(), setup};
   if (jsonBytes(body)>TEAM_MAX){ body.setup=exportSetup({includeSource:false}); body.noSource=true; }
   if (jsonBytes(body)>TEAM_MAX){ toast('This setup is too large for the team library. Download the setup file instead.'); return; }
@@ -2847,7 +3062,7 @@ function updateHeaderActions(){
 let pvToken=0, pvTimer=null;
 function schedulePreview(){ clearTimeout(pvTimer); pvTimer=setTimeout(refreshPreview, 200); }
 async function refreshPreview(){
-  if (state.view!=='filled') return;
+  if (state.view!=='filled' || !state.an) return;
   const token=++pvToken; state.pv={...(state.pv||{}), loading:true}; renderPvBar();
   let next;
   try{
@@ -2868,18 +3083,58 @@ async function refreshPreview(){
   state.pv={...next, loading:false};
   renderPaper(); renderPvBar();
 }
+// the employees whose label or any cell contains the search text (null = no search, everyone)
+const PV_MAX=3000;
+function pvMatches(rows){
+  const q=String(state.pvQuery||'').trim().toLowerCase(); if (!q || !rows.length) return null;
+  let c=state._pvText; if (!c || c.rows!==rows){ c={rows, text:rows.map((r,i)=>(empLabel(i)+' '+r.join(' ')).toLowerCase())}; state._pvText=c; }
+  const out=[]; for (let i=0;i<rows.length;i++) if (c.text[i].includes(q)) out.push(i);
+  return out;
+}
+// previous / next employee, within the search results when there is a search
+function pvStep(dir){
+  const rows=csvRows(); if (!rows.length) return;
+  const list=pvMatches(rows) || rows.map((_,i)=>i); if (!list.length) return;
+  let k=list.indexOf(state.pvIdx); k = k<0 ? (dir>0?0:list.length-1) : (k+dir+list.length)%list.length;
+  state.pvIdx=list[k]; refreshPreview(); if (state.tab==='export') renderPvPanel();
+}
 function renderPvBar(){
+  document.body.dataset.canvas=state.view;
   const bar=$('#pvBar'); if (!bar) return;
   if (state.view!=='filled'){ bar.hidden=true; bar.innerHTML=''; return; }
   bar.hidden=false;
+  const ae=document.activeElement; const keep = ae && bar.contains(ae) && ae.id ? {id:ae.id, s:ae.selectionStart, e:ae.selectionEnd} : null;
   const rows=csvRows(); const pv=state.pv||{}; const iss=pv.issues||[];
+  if (!rows.length) state.pvQuery='';
+  const q=state.pvQuery||'';
   const errs=iss.filter(x=>x.level==='error').length, warns=iss.filter(x=>x.level==='warn').length;
-  const opts=rows.length ? rows.slice(0,3000).map((r,i)=>`<option value="${i}"${i===state.pvIdx?' selected':''}>${esc(empLabel(i))}</option>`).join('') : '<option>Sample employee (made-up values)</option>';
-  const sum = pv.loading ? 'Filling the letter…' : pv.error ? '<span class="bad">Can\'t fill the letter</span>' : (errs||warns) ? `<span class="${errs?'bad':'meh'}">${errs?`${errs} problem${errs>1?'s':''}`:''}${errs&&warns?' · ':''}${warns?`${warns} to check`:''}</span>` : '<span class="good">Looks fine</span>';
+  // data source: real rows, or made-up values that are always called that
+  const badge = rows.length
+    ? `<span class="pv-badge real">${icon('check-circle')}Real data · ${esc(state.csv.name)}</span>`
+    : `<span class="pv-badge smp">${icon('alert-triangle')}SAMPLE DATA · made-up values</span>`;
+  // employee picker
+  const m=pvMatches(rows); const list=m || rows.map((_,i)=>i);
+  let shown=list.slice(0,PV_MAX); if (rows.length && !shown.includes(state.pvIdx) && list.includes(state.pvIdx)) shown.push(state.pvIdx);
+  const opts = !rows.length ? '<option>Sample employee (made-up values)</option>' : shown.length ? shown.map(i=>`<option value="${i}"${i===state.pvIdx?' selected':''}>${esc(empLabel(i))}</option>`).join('') : '<option>No employee matches</option>';
+  const pos=list.indexOf(state.pvIdx);
+  const count = !rows.length ? '' : m ? `${m.length} of ${rows.length} match${m.length&&pos>=0?` · Employee ${pos+1} of ${m.length}`:''}` : `Employee ${state.pvIdx+1} of ${rows.length}${list.length>PV_MAX?` · listing the first ${PV_MAX.toLocaleString('en-US')}, search to find the rest`:''}`;
+  const nav = rows.length>1 && list.length>1;
+  // status
+  const sum = pv.loading ? `<span class="pv-sum wait" role="status">${icon('refresh')}Filling the letter…</span>`
+    : pv.error ? `<span class="pv-sum bad" role="status">${icon('alert-circle')}Can't fill the letter</span>`
+    : (errs||warns) ? `<span class="pv-sum ${errs?'bad':'meh'}" role="status">${icon(errs?'alert-circle':'alert-triangle')}${errs?`${errs} problem${errs>1?'s':''}`:''}${errs&&warns?' · ':''}${warns?`${warns} to check`:''}</span>`
+    : `<span class="pv-sum good" role="status">${icon('check-circle')}Looks fine</span>`;
   const lab={error:'Fix',warn:'Check',info:'Note'};
-  bar.innerHTML=`<div class="pv-top"><button class="btn small" id="pvPrev" type="button" aria-label="Previous employee" ${rows.length>1?'':'disabled'}>‹</button><select id="pvEmp" aria-label="Employee" ${rows.length?'':'disabled'}>${opts}</select><button class="btn small" id="pvNext" type="button" aria-label="Next employee" ${rows.length>1?'':'disabled'}>›</button><span class="pv-sum">${sum}</span><button class="linkish" id="pvValuesBtn" type="button">Change values</button></div>
-    ${(iss.length||pv.error)?`<ul class="pv-issues">${pv.error?`<li class="ck error"><span class="badge">Fix</span><span>${esc(pv.error.msg)}${pv.error.tag?` Near <code>${esc(pv.error.tag)}</code>.`:''}</span></li>`:''}${iss.slice(0,6).map(x=>`<li class="ck ${x.level}"><span class="badge">${lab[x.level]}</span><span>${x.msg}</span></li>`).join('')}${iss.length>6?`<li class="hint">and ${iss.length-6} more</li>`:''}</ul>`:''}
-    ${rows.length?'':'<p class="hint">Showing made-up values. Load a CSV with one row per employee to preview real data.</p>'}`;
+  const hasIssues = iss.length || pv.error;
+  const open = hasIssues && (state.pvIssuesOpen || !!pv.error);
+  const used = rows.length ? [...templateIdentifiers().keys()].filter(id=>(pv.sampled||new Set()).has(id)).length : 0;
+  bar.innerHTML=`<div class="pvr split">${badge}<button class="btn small ghost" id="pvBack" type="button">${icon('arrow-left')}Back to tagged template</button></div>
+    <div class="pvr">${rows.length?`<div class="pv-search">${icon('search')}<input id="pvSearch" type="search" placeholder="Search employees" aria-label="Search employees" value="${esc(q)}" autocomplete="off" spellcheck="false"></div>`:''}<div class="pv-pick"><button class="btn icon" id="pvPrev" type="button" aria-label="Previous employee" data-tip="Previous employee" ${nav?'':'disabled'}>${icon('chevron-left')}</button><select id="pvEmp" aria-label="Employee" ${rows.length&&shown.length?'':'disabled'}>${opts}</select><button class="btn icon" id="pvNext" type="button" aria-label="Next employee" data-tip="Next employee" data-tip-end ${nav?'':'disabled'}>${icon('chevron-right')}</button></div>${count?`<span class="pv-count" aria-live="polite">${esc(count)}</span>`:''}</div>
+    <div class="pvr">${sum}${hasIssues?`<button class="linkish" id="pvIssuesBtn" type="button" aria-expanded="${open}" aria-controls="pvIssues" ${pv.error?'disabled':''}>${open?'Hide':'Show'} problems</button>`:''}<button class="btn small pv-more" id="pvValuesBtn" type="button" aria-label="Show and change the values used in this preview">${icon('table')}Values</button></div>
+    ${open?`<ul class="pv-issues" id="pvIssues">${pv.error?`<li class="ck error"><span class="badge">Fix</span><span>${esc(pv.error.msg)}${pv.error.tag?` Near <code>${esc(pv.error.tag)}</code>.`:''}</span></li>`:''}${iss.slice(0,6).map(x=>`<li class="ck ${x.level}"><span class="badge">${lab[x.level]}</span><span>${x.msg}</span></li>`).join('')}${iss.length>6?`<li class="hint">and ${iss.length-6} more</li>`:''}</ul>`:''}
+    ${rows.length?(used?`<p class="hint pv-note">${used} field${used>1?'s':''} in this letter ${used>1?'are':'is'} not in your data and use${used>1?'':'s'} made-up sample values (dotted underline).</p>`:''):`<p class="hint pv-note">Every value here is made up. ${state.csv?'Your data file has no employee rows.':''} <label class="btn small" for="inCsv" data-pick>Add employee data…</label></p>`}`;
+  pickify();
+  if (keep){ const el=document.getElementById(keep.id); if (el && !el.disabled){ el.focus({preventScroll:true}); if (keep.s!=null){ try{ el.setSelectionRange(keep.s, keep.e); }catch(err){} } } }
 }
 function filledHtml(text, fc){
   const wrap=s=>fc?`<span class="${fc}">${s}</span>`:s;
@@ -2889,8 +3144,8 @@ function filledHtml(text, fc){
     out+=wrap(esc(text.slice(last,m.index)));
     const k=+m[1]; const tag=tags[k]||''; let id=cache.get(k); if (id===undefined){ id=tagPrimaryIds(tag)[0]||''; cache.set(k,id); }
     const v=m[2];
-    if (!v.trim()) out+=`<span class="fv empty" title="${esc(tag)}">empty · ${esc(id||'value')}</span>`;
-    else out+=`<span class="fv${smp.has(id)?' smp':''}" title="${esc(tag)}${smp.has(id)?' · made-up sample value':''}">${wrap(esc(v))}</span>`;
+    if (!v.trim()) out+=`<span class="fv empty" title="${esc(tag)}">Empty: ${esc(id||'value')}</span>`;
+    else out+=`<span class="fv${smp.has(id)?' smp':''}" title="${smp.has(id)?'Made-up sample value · ':''}${esc(tag)}">${wrap(esc(v))}</span>`;
     last=re.lastIndex;
   }
   out+=wrap(esc(text.slice(last).replace(/[-]/g,'')));
@@ -2900,15 +3155,18 @@ function renderCheckTab(){ renderPvPanel(); renderBatch(); renderAi(); }
 function renderPvPanel(){
   const box=$('#pvInfo'); if (!box) return;
   const rows=csvRows();
-  box.innerHTML = rows.length ? `${rows.length} employee${rows.length>1?'s':''} in <b>${esc(state.csv.name)}</b>.` : state.csv ? `Your CSV has no employee rows (${state.csv.mode==='keys'?'only column names':'a text → tag list'}), so the preview uses made-up values.` : 'No CSV loaded, so the preview uses made-up values.';
+  box.innerHTML = rows.length ? `<span class="badge ok">Real data</span> ${rows.length} employee${rows.length>1?'s':''} in <b>${esc(state.csv.name)}</b>.` : `<span class="badge warn">Sample data</span> ${state.csv ? `Your CSV has no employee rows (${state.csv.mode==='keys'?'only column names':'a text → tag list'}), so the preview uses made-up values.` : 'No CSV loaded, so the preview uses made-up values.'}`;
+  $('#pvStats').textContent = rows.length ? 'Real data' : 'Sample data';
   const ids=[...templateIdentifiers().keys()].sort();
   $('#pvValuesN').textContent = ids.length ? `(${ids.length})` : '';
   const {ctx, sampled, fromCsv}=buildCtx(rows.length?(state.pvIdx||0):null);
-  $('#pvGrid').innerHTML = ids.length ? ids.map(id=>{
+  const SRC={changed:['Changed','info'], data:['Data','ok'], sample:['Sample','warn'], notset:['Not set','err']};
+  $('#pvGrid').innerHTML = ids.length ? `<table class="pv-table"><thead><tr><th class="c-field" scope="col">Field</th><th scope="col">Value</th><th class="c-src" scope="col">Source</th></tr></thead><tbody>${ids.map(id=>{
     const v=getPath(ctx,id); const ov=Object.prototype.hasOwnProperty.call(state.previewOverrides,id);
-    const src= ov?'changed':fromCsv.has(id)?'CSV':sampled.has(id)?'sample':v===undefined?'not set':'';
-    return `<div class="pv-row"><code title="${esc(id)}">${esc(id)}</code><input class="pv-in mono" data-id="${esc(id)}" id="pvv-${hid(id)}" value="${esc(v==null||typeof v==='object'?'':String(v))}" placeholder="not set" spellcheck="false" aria-label="Value of ${esc(id)}"><span class="pv-src s-${src.replace(' ','')}">${src}</span></div>`;
-  }).join('') : '<p class="hint">There are no tags in the template yet.</p>';
+    const k = ov?'changed':fromCsv.has(id)?'data':sampled.has(id)?'sample':v===undefined?'notset':'';
+    const sb = k ? `<span class="badge ${SRC[k][1]}">${SRC[k][0]}</span>` : '<span class="badge">Set</span>';
+    return `<tr><td class="c-field"><code title="${esc(id)}">${esc(id)}</code></td><td><input class="pv-in mono" data-id="${esc(id)}" id="pvv-${hid(id)}" value="${esc(v==null||typeof v==='object'?'':String(v))}" placeholder="not set" spellcheck="false" aria-label="Value of ${esc(id)}"></td><td class="c-src">${sb}</td></tr>`;
+  }).join('')}</tbody></table>` : '<p class="hint" style="padding:8px">There are no tags in the template yet.</p>';
   $('#pvReset').hidden=!Object.keys(state.previewOverrides).length;
 }
 function renderBatch(){
@@ -3473,6 +3731,7 @@ function renderTeam(){
 }
 function renderAutosaveStats(){
   const el=$('#autosaveStats'); if (!el) return;
+  if (!state.an){ el.textContent='Starts once a letter is open'; return; }
   el.textContent = state.isSample ? "Sample letter isn't saved" : state.autosaveFailed ? "Couldn't save in this browser" : state.lastAutosave ? 'Saved in this browser '+fmtWhen(state.lastAutosave) : 'Saves in this browser as you work';
 }
 function setupReportText(r){
@@ -4234,7 +4493,8 @@ function scheduleBuild(){ clearTimeout(buildTimer); buildTimer=setTimeout(()=>{ 
 function fullRefresh(){ tagOptions(); renderTables(); renderRows(); renderLogic(); renderPaper(); renderSelTools(); build(); renderOldTags(); if (state.tab==='check') renderCheckTab(); if (state.tab==='export') renderPvPanel(); if (state.tab==='logic') renderMerge(); updateHeaderActions(); }
 
 async function loadDocx(buf, name, isSample){
-  $('#loadErr').hidden=true;
+  clearErr();
+  if (!buf || !buf.byteLength) throw new Error('That file is empty (0 bytes), so there is no letter in it. Choose the .docx again, or save it again from Word.');
   let zip;
   try { zip = await JSZip.loadAsync(buf); } catch(e){ throw new Error('That file is not a .docx. If it is an older .doc, open it in Word and use Save As → Word Document (.docx).'); }
   const ct = zip.file('[Content_Types].xml') ? await zip.file('[Content_Types].xml').async('string') : '';
@@ -4252,10 +4512,9 @@ async function loadDocx(buf, name, isSample){
   state.tagOps=[]; state.previewOverrides={}; state.unplaced=[]; state.typed=new Set(); state.switchOps=[]; state.tColl=new Set(); state.tOpts=new Set(); state.pv={}; state.built=null; state.pvIdx=0; state.batch=null; state.compiled=null; state.mergeB=null; state.switchUi=null; state.inlineUi=null; state.placing=null; state.lastAutosave=null; state.autosaveFailed=false; state.pendingRestore=null;
   resetHistory();
   analyze();
-  $('#docName').textContent=name; $('#barFile').textContent=name; updateFilesStats();
+  $('#barFile').textContent=name; updateFilesStats();
   $('#sampleBanner').hidden=!isSample;
-  const hf=state.parts.filter(x=>x.kind==='header'||x.kind==='footer').length;
-  $('#docMeta').textContent=`${state.an.paras.filter(p=>!p.fallback && p.model.text.trim()).length} paragraphs${hf?` · ${hf} header/footer part${hf>1?'s':''}`:''}${state.an.existingTags?` · ${state.an.existingTags} existing tag${state.an.existingTags>1?'s':''}`:''}`;
+  renderDocRow(); syncEmptyState();
   fullRefresh();
   const rb=$('#restoreBanner'); rb.hidden=true;
   if (!isSample){ const auto=readAutosave(state.origHash); if (auto && setupHasWork(auto)){ rb.innerHTML=`<span>You worked on this letter before (saved ${esc(fmtWhen(Date.parse(auto.savedAt)))}).</span><button class="btn small primary" id="rbRestore" type="button">Restore my work</button><button class="btn small" id="rbDismiss" type="button">Start fresh</button>`; rb.hidden=false; state.pendingRestore=auto; } }
@@ -4306,30 +4565,47 @@ function applyCsv(csv, asExtra){
   analyze(); renderCsvInfo(); fullRefresh();
   if (state.view==='filled') schedulePreview();
 }
+function csvMetaText(c){
+  if (!c) return '';
+  if (c.mode==='mapping') return `${c.entries.length} text → tag row${c.entries.length===1?'':'s'}`;
+  if (c.mode==='keys') return `${c.keys.length} tag${c.keys.length===1?'':'s'}`;
+  if (c.params) return `${c.headers.length} parameters, one employee's values`;
+  const n=csvRows().length, all=c.rows.length;
+  return `${n===all?all:`${n} of ${all}`} employee${all===1?'':'s'} · ${c.headers.length} columns`;
+}
 function renderCsvInfo(){
-  updateFilesStats(); const cn=$('#csvName'); if (state.csv){ cn.textContent=state.csv.name; cn.classList.remove('none'); $('#csvClearWrap').hidden=false; } else { cn.textContent='None loaded'; cn.classList.add('none'); $('#csvClearWrap').hidden=true; }
-  const box=$('#csvInfo'); const c=state.csv; if (!c){ box.hidden=true; return; }
+  updateFilesStats();
+  const c=state.csv, cn=$('#csvName');
+  $('#dropCsv').classList.toggle('loaded', !!c);
+  $('#csvClearWrap').hidden=!c;
+  $('#lblCsv').textContent = c ? 'Replace data…' : 'Add data file…';
+  if (c){ cn.textContent=c.name; cn.classList.remove('none'); } else { cn.textContent='None loaded'; cn.classList.add('none'); }
+  $('#csvMeta').textContent=csvMetaText(c);
+  renderFrData();
+  const box=$('#csvInfo'); if (!c){ box.hidden=true; box.innerHTML=''; return; }
   box.hidden=false; const u=state.csvUse||{used:0,alias:0,missing:[]};
-  if (c.mode==='mapping') box.innerHTML=`<b>Text → tag list</b> · ${c.entries.length} rows · ${u.used} used in this letter${u.alias?` · ${u.alias} kept as suggestions`:''}`;
-  else if (c.mode==='sample' && c.params){
-    box.innerHTML=`<b>Params sheet</b> · ${c.headers.length} parameters with one employee's values. Their names are in every tag list, and the preview uses these values (numbers stay numbers, as in a formula).`;
-  }
+  const out=[];
+  if (c.mode==='mapping') out.push(`<p class="ci-note"><b>Text → tag list.</b> ${u.used} used in this letter${u.alias?`, ${u.alias} kept as suggestions`:''}.</p>`);
+  else if (c.mode==='sample' && c.params) out.push(`<p class="ci-note"><b>Params sheet.</b> Its names are in every tag list, and the preview uses these values (numbers stay numbers, as in a formula).</p>`);
   else if (c.mode==='sample'){
     const opts=c.rows.slice(0,200).map((r,i)=>`<option value="${i}"${i===c.sampleIdx?' selected':''}>Row ${i+2}${r[0]?' · '+esc(r[0].slice(0,24)):''}</option>`).join('');
     const fc=filterColumns(); const df=state.dataFilter;
     const fcol=df && fc.find(x=>x.col===df.col);
-    const filt = fc.length ? `<div class="df-row">Use <select id="dfCol" aria-label="Which employees"><option value="">all ${c.rows.length} employees</option>${fc.map(x=>`<option value="${esc(x.col)}"${df&&df.col===x.col?' selected':''}>employees where ${esc(x.col)} is…</option>`).join('')}</select>${fcol?` <select id="dfVal" aria-label="Value">${fcol.values.map(([v,n])=>`<option value="${esc(v)}"${String(df.value).toLowerCase()===v.toLowerCase()?' selected':''}>${esc(v)} (${n})</option>`).join('')}</select> <span class="hint">${csvRows().length} of ${c.rows.length}${df.auto?' · picked from the letter\'s file name':''}</span>`:''}</div>` : '';
-    box.innerHTML=`<b>Employee data</b> · ${c.headers.length} columns · ${c.rows.length} employee${c.rows.length>1?'s':''}. The column names are in every tag list; preview an employee in Preview & export, and test every employee in Validate.${filt}${u.used?`<br>${u.used} value${u.used>1?'s':''} from this row ${u.used>1?'were':'was'} found in the letter and tagged: <select id="sampleRow" aria-label="Employee row used to find values">${opts}</select>`:''}`;
+    out.push(`<p class="ci-note">The column names are in every tag list. Preview an employee in Preview &amp; export; test every employee in Validate.</p>`);
+    if (fc.length) out.push(`<div class="df-row">Use <select id="dfCol" aria-label="Which employees"><option value="">all ${c.rows.length} employees</option>${fc.map(x=>`<option value="${esc(x.col)}"${df&&df.col===x.col?' selected':''}>employees where ${esc(x.col)} is…</option>`).join('')}</select>${fcol?` <select id="dfVal" aria-label="Value">${fcol.values.map(([v,n])=>`<option value="${esc(v)}"${String(df.value).toLowerCase()===v.toLowerCase()?' selected':''}>${esc(v)} (${n})</option>`).join('')}</select> <span class="hint">${csvRows().length} of ${c.rows.length}${df.auto?' · picked from the letter\'s file name':''}</span>`:''}</div>`);
+    if (u.used) out.push(`<div class="df-row">${u.used} value${u.used>1?'s':''} from this row ${u.used>1?'were':'was'} found in the letter and tagged: <select id="sampleRow" aria-label="Employee row used to find values">${opts}</select></div>`);
   }
-  else box.innerHTML=`<b>Tag list</b> · ${c.keys.length} tags added to the suggestions`;
+  else out.push(`<p class="ci-note"><b>Tag list.</b> ${c.keys.length} tags added to the suggestions.</p>`);
   const sheetSel=f=>f.sheets && f.sheets.length>1 ? (wbCaches.has(f.book) ? `<select class="sheet-sel" data-file="${esc(f.name)}" id="sh-${hid(f.name)}" aria-label="Sheet of ${esc(f.book)}">${f.sheets.map(n=>`<option${n===f.sheet?' selected':''}>${esc(n)}</option>`).join('')}</select>` : `<b>${esc(f.sheet)}</b> (load the workbook again to switch)`) : '';
-  if (c.sheets && c.sheets.length>1) box.innerHTML+=`<div class="sheet-pick">Sheet: ${sheetSel(c)}</div>`;
+  if (c.sheets && c.sheets.length>1) out.push(`<div class="sheet-pick">Sheet: ${sheetSel(c)}</div>`);
   const ex=(state.csvExtra||[]);
   if (ex.length){
     const mc=idCol(c);
-    box.innerHTML+=`<ul class="extra-files">${ex.map(f=>{ const rows=f.mode==='sample'?f.rows.length:0; const m=f.mode==='sample'?extraMatchCount(f):0; const how = f.mode!=='sample' ? `${fileHeaders(f).length} names` : rows===1 && !m ? `${f.headers.length} ${f.params?'parameters':'columns'} · one row, used for every employee in the preview` : `${f.headers.length} ${f.params?'parameters':'columns'} · ${rows} row${rows===1?'':'s'} · ${mc>=0&&idCol(f)>=0?`${m} of ${csvRows().length} employees matched by ${esc(f.headers[idCol(f)])}`:'no employee-code column to match on'}`; return `<li><span><b>Also:</b> ${esc(f.name)} · ${how}${f.sheets&&f.sheets.length>1?` · sheet ${sheetSel(f)}`:''}</span><button class="del" type="button" data-rmextra="${esc(f.name)}" aria-label="Remove ${esc(f.name)}">×</button></li>`; }).join('')}</ul>`;
+    out.push(`<ul class="extra-files">${ex.map(f=>{ const rows=f.mode==='sample'?f.rows.length:0; const m=f.mode==='sample'?extraMatchCount(f):0; const how = f.mode!=='sample' ? `${fileHeaders(f).length} names` : rows===1 && !m ? `${f.headers.length} ${f.params?'parameters':'columns'} · one row, used for every employee in the preview` : `${f.headers.length} ${f.params?'parameters':'columns'} · ${rows} row${rows===1?'':'s'} · ${mc>=0&&idCol(f)>=0?`${m} of ${csvRows().length} employees matched by ${esc(f.headers[idCol(f)])}`:'no employee-code column to match on'}`; return `<li><span><b>Also:</b> ${esc(f.name)} · ${how}${f.sheets&&f.sheets.length>1?` · sheet ${sheetSel(f)}`:''}</span><button class="btn icon small ghost" type="button" data-rmextra="${esc(f.name)}" aria-label="Remove ${esc(f.name)}" data-tip="Remove" data-tip-end>${icon('x')}</button></li>`; }).join('')}</ul>`);
   }
-  if (c.mode!=='mapping') box.innerHTML+=`<div class="add-extra"><label class="linkish" for="inCsv2">+ Add another data file</label> <span class="hint">e.g. the params sheet and the old-salary upload; rows are matched on employee code</span></div>`;
+  if (c.mode!=='mapping') out.push(`<div class="add-extra"><label class="btn small ghost" for="inCsv2" data-pick>${icon('plus')}Add another data file</label><span class="hint">e.g. the params sheet and the old-salary upload; rows are matched on employee code</span></div>`);
+  box.innerHTML=out.join('');
+  pickify();
 }
 
 
@@ -4429,13 +4705,26 @@ function templateCsv(){
 }
 
 /* ======================= events ======================= */
+// A drop target: any element can take a dropped file; bindDrop adds the file picker's own input to it.
+function dropZone(el, handler){
+  el.addEventListener('dragover', e=>{ e.preventDefault(); el.classList.add('over'); });
+  el.addEventListener('dragleave', e=>{ if (!e.relatedTarget || !el.contains(e.relatedTarget)) el.classList.remove('over'); });
+  el.addEventListener('drop', e=>{ e.preventDefault(); el.classList.remove('over'); const f=e.dataTransfer.files[0]; if (f) handler(f); });
+}
 function bindDrop(label, input, handler){
-  label.addEventListener('dragover', e=>{ e.preventDefault(); label.classList.add('over'); });
-  label.addEventListener('dragleave', ()=>label.classList.remove('over'));
-  label.addEventListener('drop', e=>{ e.preventDefault(); label.classList.remove('over'); const f=e.dataTransfer.files[0]; if (f) handler(f); });
+  dropZone(label, handler);
   input.addEventListener('change', ()=>{ const f=input.files[0]; if (f) handler(f); input.value=''; });
 }
-function showErr(msg){ const el=$('#loadErr'); el.textContent=msg; el.hidden=false; }
+// Errors for a file that could not be opened: in the Document step and, while there is no letter, on the first-run page.
+function showErr(msg){
+  for (const id of ['#loadErr','#frErr']){
+    const el=$(id); if (!el) continue;
+    el.innerHTML=`${icon('alert-circle')}<span></span><button class="btn icon small ghost notice-x" type="button" aria-label="Dismiss" data-dismiss>${icon('x')}</button>`;
+    el.querySelector('span').textContent=msg; el.hidden=false;
+  }
+  if (state.an && state.tab!=='doc') toast(msg);
+}
+function clearErr(){ for (const id of ['#loadErr','#frErr']){ const el=$(id); if (el) el.hidden=true; } }
 // A real letter with changes is open: ask before it is replaced. Its work is flushed to the browser's autosave first.
 async function confirmReplace(){
   if (state.isSample || !HISTORY.undo.length) return true;
@@ -4443,11 +4732,13 @@ async function confirmReplace(){
   if (ok){ clearTimeout(autosaveTimer); doAutosave(); }
   return ok;
 }
-bindDrop($('#dropDoc'), $('#inDoc'), async f=>{
-  if (!/\.docx$/i.test(f.name)) { showErr(/\.doc$/i.test(f.name) ? 'That is an older .doc file. Open it in Word and use Save As → Word Document (.docx).' : 'Upload a Word .docx file.'); return; }
+const onDocFile=async f=>{
+  if (!/\.docx$/i.test(f.name)) { showErr(/\.doc$/i.test(f.name) ? 'That is an older .doc file. Open it in Word and use Save As → Word Document (.docx).' : /\.(csv|xlsx|xlsm|xls)$/i.test(f.name) ? 'That looks like a data file. Add it as employee data, and choose the Word .docx letter here.' : 'Upload a Word .docx file.'); return; }
   if (!(await confirmReplace())) return;
   try { await loadDocx(await f.arrayBuffer(), f.name, false); toast(`Loaded ${f.name}`); } catch(e){ console.warn(e); showErr(e.message); }
-});
+};
+bindDrop($('#dropDoc'), $('#inDoc'), onDocFile);
+dropZone($('#frDrop'), onDocFile);
 // a template that is already tagged: load it and go straight to the check
 $('#inCheck').addEventListener('change', async e=>{
   const f=e.target.files[0]; e.target.value=''; if (!f) return;
@@ -4461,7 +4752,7 @@ $('#inCheck').addEventListener('change', async e=>{
   } catch(err){ console.warn(err); showErr(err.message); }
 });
 async function loadDataFile(f, extra){
-  addingExtra=!!extra; $('#loadErr').hidden=true;
+  addingExtra=!!extra; clearErr();
   try {
     if (/\.(xlsx|xlsm|xls)$/i.test(f.name)){ toast('Reading the workbook…'); await ingestWorkbook(await f.arrayBuffer(), f.name); }
     else ingestCsv(await f.text(), f.name);
@@ -4470,8 +4761,12 @@ async function loadDataFile(f, extra){
   finally { addingExtra=false; }
 }
 $('#inCsv2').addEventListener('change', ()=>{ const f=$('#inCsv2').files[0]; $('#inCsv2').value=''; if (f) loadDataFile(f, true); });
-bindDrop($('#dropCsv'), $('#inCsv'), async f=>{ await loadDataFile(f, false); });
-$('#btnCsvClear').addEventListener('click', ()=>{ recordUndo(); state.csv=null; state.csvExtra=[]; state.batch=null; state.pvIdx=0; analyze(); renderCsvInfo(); fullRefresh(); if (state.view==='filled') schedulePreview(); });
+const onCsvFile=async f=>{ await loadDataFile(f, false); };
+bindDrop($('#dropCsv'), $('#inCsv'), onCsvFile);
+dropZone($('#frData'), onCsvFile);
+$('#btnCsvClear').addEventListener('click', async ()=>{
+  if (!(await confirmDialog({title:'Remove the employee data?', body:'Tags you mapped to its columns stay; previews switch to sample values.', confirm:'Remove', danger:true}))) return;
+  recordUndo(); state.csv=null; state.csvExtra=[]; state.batch=null; state.pvIdx=0; analyze(); renderCsvInfo(); fullRefresh(); if (state.view==='filled') schedulePreview(); });
 $('#btnCsvTpl').addEventListener('click', ()=>offer('compup-letter-tags-template.csv', templateCsv()));
 $('#btnMap').addEventListener('click', ()=>offer((state.fileName.replace(/\.docx$/i,'')||'letter')+'-tag-mapping.csv', mappingCsv()));
 // the two download buttons (header and Preview & export) show the same state: Building… then a 2 s Downloaded
@@ -4912,13 +5207,20 @@ $('#restoreBanner').addEventListener('click', e=>{
 });
 // employee preview + test
 $('#pvBar').addEventListener('click', e=>{
-  const rows=csvRows();
-  if (e.target.id==='pvPrev' && rows.length){ state.pvIdx=(state.pvIdx-1+rows.length)%rows.length; refreshPreview(); }
-  if (e.target.id==='pvNext' && rows.length){ state.pvIdx=(state.pvIdx+1)%rows.length; refreshPreview(); }
-  if (e.target.id==='pvValuesBtn'){ setTab('export'); const d=$('#pvValues'); d.open=true; d.scrollIntoView({block:'start', inline:'nearest', behavior:'smooth'}); }
+  const b=e.target.closest('button'); if (!b) return;
+  if (b.id==='pvPrev') pvStep(-1);
+  else if (b.id==='pvNext') pvStep(1);
+  else if (b.id==='pvBack') setView('tagged');
+  else if (b.id==='pvIssuesBtn'){ state.pvIssuesOpen=!state.pvIssuesOpen; renderPvBar(); }
+  else if (b.id==='pvValuesBtn'){ setTab('export', {open:true}); const d=$('#pvValues'); d.open=true; d.scrollIntoView({block:'start', inline:'nearest', behavior:'smooth'}); }
+});
+$('#pvBar').addEventListener('input', e=>{
+  if (e.target.id!=='pvSearch') return;
+  state.pvQuery=e.target.value; const m=pvMatches(csvRows());
+  if (m && m.length && !m.includes(state.pvIdx)){ state.pvIdx=m[0]; refreshPreview(); if (state.tab==='export') renderPvPanel(); } else renderPvBar();
 });
 $('#pvBar').addEventListener('change', e=>{ if (e.target.id==='pvEmp'){ state.pvIdx=+e.target.value; refreshPreview(); if (state.tab==='export') renderPvPanel(); } });
-$('#btnPreview').addEventListener('click', ()=>setView('filled'));
+$('#btnPreview').addEventListener('click', ()=>{ setView('filled'); if (NARROW.matches) setSide(false); });
 ['setCsvPlace','setCsvNum','setSamples'].forEach(id=>$('#'+id).addEventListener('change', previewSettingsChanged));
 $('#pvGrid').addEventListener('change', e=>{ const inp=e.target.closest('.pv-in'); if (!inp) return; recordUndo(); state.previewOverrides={...state.previewOverrides, [inp.dataset.id]:inp.value}; renderPvPanel(); if (state.view==='filled') schedulePreview(); else setView('filled'); });
 $('#pvReset').addEventListener('click', ()=>{ recordUndo(); state.previewOverrides={}; renderPvPanel(); if (state.view==='filled') schedulePreview(); });
@@ -4953,7 +5255,7 @@ $('#mergeBody').addEventListener('input', e=>{ const mb=state.mergeB; if (!mb) r
 $('#mergeBody').addEventListener('click', e=>{ if (e.target.id==='mgApply') applyMerge(); if (e.target.id==='mgClear'){ state.mergeB=null; renderMerge(); } });
 // save & share
 $('#btnSetupSave').addEventListener('click', ()=>offer((state.fileName.replace(/\.docx$/i,'')||'letter')+'-tagger-setup.json', JSON.stringify(exportSetup())));
-$('#inSetup').addEventListener('change', async ()=>{ const f=$('#inSetup').files[0]; $('#inSetup').value=''; if (!f) return; try{ const r=importSetup(JSON.parse(await f.text())); $('#setupReport').textContent=setupReportText(r); toast('Setup loaded.'); }catch(err){ $('#setupReport').textContent=/JSON/.test(err.message)?"That file isn't a setup file.":err.message; } });
+$('#inSetup').addEventListener('change', async ()=>{ const f=$('#inSetup').files[0]; $('#inSetup').value=''; if (!f) return; if (!state.an){ $('#setupReport').textContent='Open the client letter first, then load its setup file.'; return; } try{ const r=importSetup(JSON.parse(await f.text())); $('#setupReport').textContent=setupReportText(r); toast('Setup loaded.'); }catch(err){ $('#setupReport').textContent=/JSON/.test(err.message)?"That file isn't a setup file.":err.message; } });
 $('#teamBody').addEventListener('change', e=>{ if (e.target.id==='teamClient'){ setTeamClient(e.target.value); renderTeam(); } if (e.target.id==='teamUse' && state.team){ state.team.use=e.target.checked; lsSet('lt.team.use', e.target.checked); analyze(); fullRefresh(); } });
 $('#teamBody').addEventListener('click', async e=>{
   const id=e.target.id;
@@ -5151,11 +5453,158 @@ document.addEventListener('keydown', e=>{ if ((e.ctrlKey||e.metaKey) && e.key===
 /* §logic-js */
 /* §check-js */
 /* §export-js */
-initTeam(); syncSettingsUI(); updateUndoButtons(); setTab(lsGet('lt.tab','doc')); renderLegend(); probeServer();
-(async ()=>{
+/* ---- first run, Document step and export (Phase B4) ---- */
+
+// Keyboard access for the label buttons that open a file picker.
+function pickify(){ document.querySelectorAll('label[data-pick]:not([role])').forEach(l=>{ l.setAttribute('role','button'); l.tabIndex=0; }); }
+document.addEventListener('keydown', e=>{ if ((e.key==='Enter' || e.key===' ') && e.target.matches && e.target.matches('label[data-pick]')){ e.preventDefault(); e.target.click(); } });
+document.addEventListener('click', e=>{
+  const d=e.target.closest && e.target.closest('[data-dismiss]'); if (d){ const n=d.closest('.notice'); if (n) n.hidden=true; }
+  if (e.target.closest && e.target.closest('[data-need-drop]')) focusDropZone();
+});
+// A file dropped outside a drop zone must not make the browser open it and leave the page.
+(function guardFileDrops(){
+  const isFiles=e=>!!(e.dataTransfer && [...(e.dataTransfer.types||[])].includes('Files'));
+  const zones='#dropDoc,#dropCsv,#frDrop,#frData,#dropMerge';
+  window.addEventListener('dragover', e=>{ if (isFiles(e)) e.preventDefault(); });
+  window.addEventListener('drop', e=>{
+    if (!isFiles(e)) return; e.preventDefault();
+    if (e.target.closest && e.target.closest(zones)) return;
+    const f=e.dataTransfer.files[0]; if (!f) return;
+    if (!state.an && /\.docx$/i.test(f.name)) onDocFile(f); else toast('To open a file, use the Document step.');
+  });
+})();
+
+// Two steps wrap existing functions so this phase stays out of their code: with no letter a full refresh only syncs the empty
+// state, and the readiness checklist follows the step badges.
+{
+  const _fullRefresh=fullRefresh;
+  fullRefresh=function(){ if (!state.an){ updateHeaderActions(); syncEmptyState(); updateTabBadges(); return; } return _fullRefresh.apply(this, arguments); };
+  const _updateTabBadges=updateTabBadges;
+  updateTabBadges=function(){ const r=_updateTabBadges.apply(this, arguments); renderExportSummary(); return r; };
+}
+
+function privacyLine(){
+  // matches what the code does: the real check posts the template; Test every employee also posts employee values; Claude gets letter text and column names
+  let t="Your files stay in this browser.";
+  if (server.ok) t+=" The real Jinja check sends the template to this tool's server; employee rows go there only if you run Test every employee.";
+  if (aiReady()) t+=" Claude helpers, if you use them, get the letter text and column names, never employee rows.";
+  return t;
+}
+function renderFrData(){
+  const el=$('#frDataName'); if (!el) return; const c=state.csv;
+  el.hidden=!c;
+  if (c){ el.innerHTML=`${icon('check-circle')}<span></span>`; el.querySelector('span').textContent=`${c.name} · ${csvMetaText(c)}`; }
+}
+function renderFirstRun(){ const p=$('#frPrivacy'); if (p) p.textContent=privacyLine(); renderFrData(); }
+function focusDropZone(){
+  if (typeof NARROW!=='undefined' && NARROW.matches && typeof setSide==='function') setSide(false);
+  const z=$('#frDrop'); if (z){ z.scrollIntoView({block:'center'}); z.focus(); }
+}
+// The first-run page shows while there is no letter; the steps that need one say so.
+function syncEmptyState(){
+  const has=!!state.an;
+  document.body.classList.toggle('no-letter', !has);
+  const fr=$('#firstRun'); if (fr) fr.hidden=has;
+  const paper=$('#paper'); if (paper) paper.hidden=!has;
+  if (!has){ const b=$('#sampleBanner'); if (b) b.hidden=true; }
+  const sv=$('#btnSetupSave'); if (sv) sv.disabled=!has;
+  renderFrData();
+}
+function initNeedLetter(){
+  for (const k of ['tags','logic','check','export']){
+    const p=$('#panel-'+k); if (!p || p.querySelector(':scope>.need-letter')) continue;
+    const d=document.createElement('div'); d.className='need-letter empty-state';
+    d.innerHTML=`${icon('file')}<span class="es-title">Load a letter first</span><span>Placeholders, conditions and checks appear once a letter is open.</span><button class="btn small" type="button" data-need-drop>Choose a letter…</button>`;
+    p.prepend(d);
+  }
+}
+// the Client letter row of the Document step
+function renderDocRow(){
+  const has=!!state.an, nm=$('#docName'), meta=$('#docMeta');
+  $('#dropDoc').classList.toggle('loaded', has);
+  nm.textContent = has ? state.fileName+(state.isSample?' (sample letter)':'') : 'No letter loaded';
+  nm.classList.toggle('none', !has);
+  $('#lblDoc').textContent = has ? 'Replace letter…' : 'Choose a letter…';
+  if (!has){ meta.textContent=''; return; }
+  const paras=state.an.paras.filter(p=>!p.fallback && p.model.text.trim()).length;
+  const hf=state.parts.filter(x=>x.kind==='header'||x.kind==='footer').length;
+  const tags=state.an.existingTags||0;
+  if (!paras){ meta.textContent='No text found in this letter'; toast("There is no text in that letter. Check it's the right file."); return; }
+  meta.textContent=[`${paras} paragraph${paras===1?'':'s'}`, hf?`${hf} header/footer part${hf>1?'s':''}`:'', tags?`${tags} tag${tags>1?'s':''} already in it`:'no tags yet'].filter(Boolean).join(' · ');
+}
+
+// the readiness checklist in Preview & export: every line comes from the page's current state
+function exportFacts(){
+  const live=state.rows.filter(r=>r.count && rowStatus(r)!=='off');
+  let cellsAll=0, cellsDone=0; for (const t of state.tables){ if (!t.enabled) continue; const c=tableCounts(t); cellsAll+=c.all; cellsDone+=c.done; }
+  const needTag=live.filter(r=>rowStatus(r)==='need').length + (cellsAll-cellsDone);
+  const toCheck=live.filter(r=>rowStatus(r)==='check').length;
+  const total=live.length+cellsAll;
+  const lg=state.lg||[];
+  const ifs=lg.filter(e=>e.kw==='if').length;
+  const openN=lg.filter(e=>e.status==='open').length;
+  const bad=lg.filter(e=>e.status==='open'||e.status==='stray'||(e.status==='cells'&&(e.kw||'').startsWith('end'))).length+(state.unplaced||[]).length;
+  let errs, warns;
+  const vc = typeof window.__validateCounts==='function' ? window.__validateCounts() : window.__validateCounts;
+  if (vc && typeof vc==='object'){ errs=+vc.errors||0; warns=+vc.warnings||0; }
+  else if (state.checkCounts){ errs=state.checkCounts.e; warns=state.checkCounts.w; }
+  else { const ch=state.built?state.built.checks:[]; errs=ch.filter(x=>x.level==='error').length; warns=ch.filter(x=>x.level==='warn').length; }
+  return {total, needTag, toCheck, ifs, openN, bad, errs, warns};
+}
+function renderExportSummary(){
+  const box=$('#exportSummary'), warn=$('#exportWarn'); if (!box) return;
+  if (!state.an){ box.innerHTML=''; if (warn) warn.hidden=true; return; }
+  const F=exportFacts(); const pl=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+  const ICON={ok:'check-circle', warn:'alert-triangle', err:'alert-circle', idle:'info'};
+  const SR={ok:'Done: ', warn:'Needs a look: ', err:'Problem: ', idle:'Not done: '};
+  const items=[];
+  const add=(kind, text, sub, step, stepLabel)=>items.push(`<li class="rd rd-${kind}"><span class="rd-ic">${icon(ICON[kind])}</span><span class="rd-text"><span class="sr-only">${SR[kind]}</span>${esc(text)}${sub?`<span class="rd-sub">${esc(sub)}</span>`:''}</span>${step?`<button class="linkish rd-go" type="button" data-step="${step}" aria-label="Go to ${esc(stepLabel)}">${esc(stepLabel)}${icon('chevron-right')}</button>`:''}</li>`);
+  // placeholders
+  if (!F.total) add('idle', 'No placeholders found in this letter', '', 'tags', 'Tags & fields');
+  else if (!F.needTag && !F.toCheck) add('ok', `All ${F.total} mapped`, '', 'tags', 'Tags & fields');
+  else add('warn', [F.needTag?`${F.needTag} still need${F.needTag===1?'s':''} a tag`:'', F.toCheck?`${F.toCheck} to check`:''].filter(Boolean).join(' · '), `${F.total-F.needTag-F.toCheck} of ${F.total} mapped`, 'tags', 'Tags & fields');
+  // conditions
+  if (F.bad) add('err', [F.openN?`${F.openN} not closed`:'', F.bad-F.openN?`${F.bad-F.openN} to fix`:''].filter(Boolean).join(' · '), '', 'logic', 'Conditions');
+  else if (F.ifs) add('ok', `${pl(F.ifs,'condition')}, all closed`, '', 'logic', 'Conditions');
+  else add('idle', 'None (optional)', '', 'logic', 'Conditions');
+  // validate: this page's own checks, then the real Jinja check
+  if (!state.built) add('idle', 'Not checked yet', '', 'check', 'Validate');
+  else if (F.errs) add('err', pl(F.errs,'error'), F.warns?pl(F.warns,'warning')+' to check':'', 'check', 'Validate');
+  else if (F.warns) add('warn', 'No errors', pl(F.warns,'warning')+' to check', 'check', 'Validate');
+  else add('ok', 'No errors', '', 'check', 'Validate');
+  const sc=server.check;
+  if (!server.ok) add('idle', 'Real Jinja check not available here', 'It runs when this page is opened from Letter Studio.');
+  else if (server.err) add('warn', "Real Jinja check didn't run", server.err, 'check', 'Validate');
+  else if (!sc || server.checking) add('idle', 'Real Jinja check is running…');
+  else if (sc.syntax.length) add('err', `Real Jinja check found ${pl(sc.syntax.length,'typing mistake')}`, '', 'check', 'Validate');
+  else add('ok', 'Real Jinja check passed', sc.target==='built' ? 'No typing mistakes in the template with your changes.' : 'No typing mistakes in the file as uploaded.');
+  // employee test
+  const B=state.batch, nRows=csvRows().length;
+  if (!B) add('idle', 'Not run yet', nRows ? 'Run Test every employee in Validate.' : 'Needs employee data.', 'check', 'Validate');
+  else if (B.running) add('idle', `Testing employees… ${B.done} of ${B.total}`, '', 'check', 'Validate');
+  else if (B.error) add('err', "The template can't be filled", B.error.msg||'', 'check', 'Validate');
+  else { const bad=B.perEmp.filter(x=>x.n>0).length, ok=B.done-bad; add(bad||B.stale?'warn':'ok', `Tested ${pl(B.done,'employee')}: ${ok} fine`, [bad?`${bad} to look at`:'', B.stale?'The template changed since this test. Run it again.':'', B.cancelled?'Stopped early.':''].filter(Boolean).join(' · '), 'check', 'Validate'); }
+  box.innerHTML=`<ul class="rd-list">${items.join('')}</ul>`;
+  // the download stays available with errors; say what will be in the file
+  const realN = server.ok && sc && !server.checking ? sc.syntax.length : 0;
+  if (warn){
+    const n=F.errs||realN;
+    warn.hidden=!n;
+    if (n) warn.innerHTML=`${icon('alert-circle')}<span>${F.errs?pl(F.errs,'error'):pl(realN,'typing mistake')} will stay in the file.</span>`;
+  }
+}
+$('#exportSummary').addEventListener('click', e=>{ const b=e.target.closest('[data-step]'); if (b) setTab(b.dataset.step, {open:true}); });
+
+// start with no letter: the first-run page, and the sample letter only when asked for
+state.isSample=false;
+$('#btnSample').addEventListener('click', async ()=>{
   try { await loadDocx(await sampleDocx(), 'sample-appraisal-letter.docx', true); }
   catch(e){ console.warn(e); showErr('Could not load the sample letter: '+e.message); }
-})();
+});
+initNeedLetter(); pickify(); renderDocRow(); renderCsvInfo(); syncEmptyState(); renderFirstRun();
+initTeam(); syncSettingsUI(); updateUndoButtons(); setTab('doc'); renderLegend(); renderSaveState(); updateTabBadges();
+probeServer().then(renderFirstRun);
 </script>
 
 </body>

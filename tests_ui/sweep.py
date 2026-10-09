@@ -31,7 +31,7 @@ FIX = HERE / "fixtures"
 LETTERS = ["letterA.docx", "with_header.docx", "northwind.docx", "acme_tagged.docx", "oldtemplate.docx", "letterB.docx"]
 TAGGED = ["broken_tagged.docx", "tagged_missing_field.docx", "conditions_tagged.docx"]   # loaded through "Check a tagged template"
 DATA = ["emps.csv", "emps.xlsx"]
-BAD_LETTERS = ["bad_not_a_docx.docx", "bad_no_body.docx"]
+BAD_LETTERS = ["bad_not_a_docx.docx", "bad_no_body.docx", "zero_bytes.docx"]
 BAD_DATA = ["bad_empty.csv", "bad_header_only.csv", "bad.xlsx"]
 VIEWS = ["source", "tagged", "filled"]
 TABS = ["doc", "tags", "logic", "check", "export"]
@@ -177,6 +177,38 @@ class Sweep:
         self.doing = f"loading data {name}"
         await self.pg.set_input_files("#inCsv2" if extra else "#inCsv", str(name if Path(name).is_absolute() else FIX / name))
         await self.settle(1500)
+
+    async def first_run(self):
+        """No letter yet: the getting-started page shows, nothing throws on any step, and a bad file gives a message."""
+        self.doing = "first run (no letter)"
+        pg = self.pg
+        if not await pg.locator("#firstRun").is_visible():
+            self.fail("the getting-started page isn't showing before a letter is loaded")
+        if await pg.evaluate("()=>!!window.__lt.state.an"):
+            self.fail("a letter was loaded before anyone asked for one")
+        if not await pg.locator("#btnDocx").is_disabled():
+            self.fail("Download tagged .docx is enabled with no letter")
+        for t in TABS:
+            await self.tab(t)
+            await self.click_all(f"#panel-{t}", limit=12)
+        await self.tab("doc")
+        # a bad file with no letter open: the message shows on the page itself
+        await pg.set_input_files("#inDoc", str(FIX / "zero_bytes.docx"))
+        await self.settle(600)
+        if not await pg.locator("#frErr").is_visible() or "empty" not in (await pg.locator("#frErr").inner_text()).lower():
+            self.fail("a 0-byte .docx gave no clear message on the first-run page")
+        await pg.set_input_files("#inDoc", str(FIX / "bad_not_a_docx.docx"))
+        await self.settle(600)
+        if not await pg.locator("#frErr").is_visible():
+            self.fail("a file that isn't a .docx gave no message on the first-run page")
+        # employee data can come first
+        await pg.set_input_files("#inCsv", str(FIX / "emps.csv"))
+        await self.settle(800)
+        if "emps.csv" not in await pg.locator("#frDataName").inner_text():
+            self.fail("employee data added before a letter wasn't shown")
+        await pg.evaluate("()=>window.__lt.setView('filled')")   # a view switch with no letter must be harmless
+        await self.settle(300)
+        await pg.evaluate("()=>window.__lt.setView('source')")
 
     async def view(self, v):
         await self.close_overlays()
@@ -422,9 +454,13 @@ async def main():
             if not args.real_claude:
                 await fake_claude(page)
             await page.goto(url)
-            await page.wait_for_function("window.__lt && window.__lt.state && window.__lt.state.built", timeout=30000)
+            await page.wait_for_function("window.__lt && window.__lt.state", timeout=30000)
             await sw.settle(800)
+            await sw.first_run()
             sw.doing = "sample letter"
+            await page.locator("#btnSample").click()
+            await page.wait_for_function("window.__lt.state.built", timeout=30000)
+            await sw.settle(800)
             for t in TABS:
                 await sw.tab(t)
                 await sw.click_all(f"#panel-{t}", limit=20)
@@ -437,6 +473,8 @@ async def main():
             # broken files: each must give a message, not a crash
             for bad in BAD_LETTERS:
                 await sw.load_letter(bad)
+                if await page.evaluate("()=>document.querySelector('#loadErr').hidden"):
+                    sw.fail(f"{bad}: no message was shown")
                 await sw.close_overlays()
             await sw.load_letter(letters[0])
             for bad in BAD_DATA:
