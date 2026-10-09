@@ -539,7 +539,13 @@ body.resizing{cursor:col-resize;user-select:none}
 @media (max-width:600px){
   .bar{padding:0 12px;gap:8px}
   .bar-actions{gap:4px}
-  .brand-co,.brand-div,#barFile,#saveState{display:none}
+  .brand-co,.brand-div,#barFile{display:none}
+  /* phones: the save status sits under the product name, so it stays visible on every step */
+  .brand{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:8px;align-items:center}
+  .brand:has(#saveState:not(:empty)) .brand-mark{grid-row:1 / span 2}
+  .brand h1{font-size:var(--fs-md);line-height:1.2}
+  #saveState{display:block;grid-column:2;font-size:var(--fs-xs);line-height:1.25;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #saveState:empty{display:none}
   #btnDocx .lbl-b{display:none}
 }
 @media (max-width:520px){
@@ -1044,12 +1050,12 @@ body.no-letter .viewer-bar{display:none}
 /* Before a letter is loaded the middle of the screen owns the upload; the Document step only points to it. */
 .doc-start{display:none}
 .doc-start p{margin:0 0 var(--s3);font-size:var(--fs-md)}
-.doc-start .hint{margin:var(--s2) 0 0}
+.doc-start .hint{margin:0 0 var(--s2)}
 body.no-letter .doc-start{display:block}
 body.no-letter #dropDoc,body.no-letter #dropCsv,body.no-letter #teamBlock,body.no-letter #setupBlock,body.no-letter #filesBlock .block-head{display:none!important}
 body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
 .save-line{display:none;margin:0 0 var(--s3);font-size:var(--fs-sm);color:var(--muted)}
-@media (max-width:600px){.save-line:not(:empty){display:block}}
+
 .need-letter .btn{margin-top:6px}
 @media (max-width:600px){
   .firstrun{margin:20px auto 40px;gap:16px}
@@ -1189,8 +1195,8 @@ body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
         <p class="save-line" id="saveLine"></p>
         <div class="block doc-start" id="docStart">
           <p>Start by choosing the client's letter in the middle of the screen.</p>
-          <label class="btn small ghost" for="inSetup" data-pick>Load setup file…</label>
-          <p class="hint">Continue work you saved earlier.</p>
+          <p class="hint">Saved a setup file before? Load it to carry on.</p>
+          <label class="btn small" for="inSetup" data-pick>Load setup file…</label>
         </div>
         <div class="block" id="filesBlock">
           <div class="block-head"><h2>Files</h2><span class="stats" id="filesStats"></span></div>
