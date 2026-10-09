@@ -1,0 +1,806 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-09T14:16:10Z",
+  "title": "Design System: Letter Tagger",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Desk Ground",
+        "canonical": "#EEF1EF",
+        "oklch": "oklch(96% 0.004 157)",
+        "dark": "#0F1513",
+        "tonalRamp": [
+          "#151715",
+          "#313332",
+          "#515352",
+          "#727573",
+          "#969997",
+          "#B5B8B6",
+          "#D5D8D6",
+          "#ECEFED"
+        ]
+      },
+      "notesheet": {
+        "role": "neutral",
+        "displayName": "Notesheet",
+        "canonical": "#F6F8F6",
+        "oklch": "oklch(98% 0.003 146)",
+        "dark": "#1B2420",
+        "tonalRamp": [
+          "#151615",
+          "#323332",
+          "#515351",
+          "#737573",
+          "#979997",
+          "#B6B8B6",
+          "#D6D8D6",
+          "#EDEFED"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel White",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100% 0.000 90)",
+        "dark": "#161E1B",
+        "tonalRamp": [
+          "#161616",
+          "#333333",
+          "#525252",
+          "#747474",
+          "#989898",
+          "#B7B7B7",
+          "#D7D7D7",
+          "#EEEEEE"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100% 0.000 90)",
+        "dark": "#1C2421",
+        "tonalRamp": [
+          "#161616",
+          "#333333",
+          "#525252",
+          "#747474",
+          "#989898",
+          "#B7B7B7",
+          "#D7D7D7",
+          "#EEEEEE"
+        ]
+      },
+      "paper-ink": {
+        "role": "neutral",
+        "displayName": "Paper Ink",
+        "canonical": "#1B1B1B",
+        "oklch": "oklch(22% 0.000 90)",
+        "dark": "#E6EAE8",
+        "tonalRamp": [
+          "#161616",
+          "#333333",
+          "#525252",
+          "#747474",
+          "#989898",
+          "#B7B7B7",
+          "#D7D7D7",
+          "#EEEEEE"
+        ]
+      },
+      "paper-line": {
+        "role": "neutral",
+        "displayName": "Paper Line",
+        "canonical": "#E1E4E2",
+        "oklch": "oklch(92% 0.004 157)",
+        "dark": "#2F3B36",
+        "tonalRamp": [
+          "#151715",
+          "#313332",
+          "#515352",
+          "#727573",
+          "#969997",
+          "#B5B8B6",
+          "#D5D8D6",
+          "#ECEFED"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Office Ink",
+        "canonical": "#17211D",
+        "oklch": "oklch(24% 0.016 168)",
+        "dark": "#E3ECE8",
+        "tonalRamp": [
+          "#0F1815",
+          "#2B3631",
+          "#4A5651",
+          "#6C7873",
+          "#8F9C96",
+          "#AEBBB5",
+          "#CEDBD5",
+          "#E5F2EC"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Filing Grey",
+        "canonical": "#58665F",
+        "oklch": "oklch(50% 0.020 164)",
+        "dark": "#9AABA4",
+        "tonalRamp": [
+          "#0D1914",
+          "#293630",
+          "#49564F",
+          "#6A7871",
+          "#8D9C95",
+          "#ACBCB4",
+          "#CCDCD4",
+          "#E3F3EB"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#DCE2DE",
+        "oklch": "oklch(91% 0.008 157)",
+        "dark": "#2A3632",
+        "tonalRamp": [
+          "#131714",
+          "#2F3431",
+          "#4F5451",
+          "#717672",
+          "#949A96",
+          "#B3B9B5",
+          "#D3D9D5",
+          "#EAF0EC"
+        ]
+      },
+      "hairline-soft": {
+        "role": "neutral",
+        "displayName": "Hairline Soft",
+        "canonical": "#E9EEEB",
+        "oklch": "oklch(94% 0.007 160)",
+        "dark": "#212B27",
+        "tonalRamp": [
+          "#141715",
+          "#303432",
+          "#4F5451",
+          "#717673",
+          "#959A97",
+          "#B4B9B6",
+          "#D4D9D6",
+          "#EBF0ED"
+        ]
+      },
+      "teal": {
+        "role": "primary",
+        "displayName": "CompUp Teal",
+        "canonical": "#0B6E5F",
+        "oklch": "oklch(48% 0.086 179)",
+        "dark": "#4CC2A6",
+        "tonalRamp": [
+          "#001C16",
+          "#003D33",
+          "#036153",
+          "#2E8575",
+          "#57AA99",
+          "#77CAB8",
+          "#97EBD8",
+          "#BAFFEF"
+        ]
+      },
+      "teal-deep": {
+        "role": "primary",
+        "displayName": "Deep Teal",
+        "canonical": "#095C50",
+        "oklch": "oklch(43% 0.075 180)",
+        "dark": "#6BD3BA",
+        "tonalRamp": [
+          "#001C17",
+          "#003C34",
+          "#106054",
+          "#3C8376",
+          "#61A89A",
+          "#81C8B9",
+          "#A0E8D9",
+          "#BBFFF0"
+        ]
+      },
+      "teal-wash": {
+        "role": "primary",
+        "displayName": "Teal Wash",
+        "canonical": "#E0F0EB",
+        "oklch": "oklch(94% 0.018 175)",
+        "dark": "#163A32",
+        "tonalRamp": [
+          "#0D1916",
+          "#293632",
+          "#485652",
+          "#6A7874",
+          "#8D9C98",
+          "#ACBBB7",
+          "#CCDCD7",
+          "#E3F3EE"
+        ]
+      },
+      "on-teal": {
+        "role": "primary",
+        "displayName": "On Teal",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100% 0.000 90)",
+        "dark": "#06241D",
+        "tonalRamp": [
+          "#161616",
+          "#333333",
+          "#525252",
+          "#747474",
+          "#989898",
+          "#B7B7B7",
+          "#D7D7D7",
+          "#EEEEEE"
+        ]
+      },
+      "tag-ink": {
+        "role": "neutral",
+        "displayName": "Tag Ink",
+        "canonical": "#2E3B36",
+        "oklch": "oklch(34% 0.019 170)",
+        "dark": "#D7E2DD",
+        "tonalRamp": [
+          "#0D1915",
+          "#293631",
+          "#485651",
+          "#6A7873",
+          "#8D9C96",
+          "#ACBCB5",
+          "#CCDCD5",
+          "#E3F3EC"
+        ]
+      },
+      "tag-wash": {
+        "role": "neutral",
+        "displayName": "Tag Wash",
+        "canonical": "#EEF2F0",
+        "oklch": "oklch(96% 0.005 165)",
+        "dark": "#24302B",
+        "tonalRamp": [
+          "#141715",
+          "#313432",
+          "#505352",
+          "#727574",
+          "#969997",
+          "#B5B8B6",
+          "#D5D8D6",
+          "#EBEFED"
+        ]
+      },
+      "tag-line": {
+        "role": "neutral",
+        "displayName": "Tag Line",
+        "canonical": "#D3DBD7",
+        "oklch": "oklch(88% 0.010 165)",
+        "dark": "#36443E",
+        "tonalRamp": [
+          "#121815",
+          "#2E3531",
+          "#4E5451",
+          "#6F7673",
+          "#939A97",
+          "#B2B9B6",
+          "#D2DAD6",
+          "#E9F1ED"
+        ]
+      },
+      "highlighter": {
+        "role": "tertiary",
+        "displayName": "Highlighter",
+        "canonical": "#FFF0A3",
+        "oklch": "oklch(95% 0.098 99)",
+        "dark": "#5E5200",
+        "tonalRamp": [
+          "#1C1600",
+          "#3C3300",
+          "#605200",
+          "#837528",
+          "#A8994E",
+          "#C7B96D",
+          "#E8D98D",
+          "#FFF0A3"
+        ]
+      },
+      "highlighter-ink": {
+        "role": "tertiary",
+        "displayName": "Highlighter Ink",
+        "canonical": "#3A3200",
+        "oklch": "oklch(32% 0.066 100)",
+        "dark": "#FFF7C2",
+        "tonalRamp": [
+          "#1B1600",
+          "#3B3301",
+          "#5B5325",
+          "#7E7547",
+          "#A29A6A",
+          "#C1B988",
+          "#E1D9A7",
+          "#F9F0BE"
+        ]
+      },
+      "flag-red": {
+        "role": "tertiary",
+        "displayName": "Flag Red",
+        "canonical": "#B42318",
+        "oklch": "oklch(50% 0.182 30)",
+        "dark": "#FF8A7E",
+        "tonalRamp": [
+          "#350000",
+          "#670000",
+          "#9F0000",
+          "#C93A2C",
+          "#F46351",
+          "#FF9787",
+          "#FEC9C0",
+          "#FEE9E5"
+        ]
+      },
+      "flag-red-wash": {
+        "role": "tertiary",
+        "displayName": "Flag Red Wash",
+        "canonical": "#FCEBE9",
+        "oklch": "oklch(95% 0.019 26)",
+        "dark": "#3A1714",
+        "tonalRamp": [
+          "#1E1312",
+          "#3C2F2E",
+          "#5D4F4D",
+          "#7F706F",
+          "#A49492",
+          "#C3B3B1",
+          "#E4D3D1",
+          "#FBEAE8"
+        ]
+      },
+      "flag-amber": {
+        "role": "tertiary",
+        "displayName": "Flag Amber",
+        "canonical": "#8F5600",
+        "oklch": "oklch(51% 0.112 67)",
+        "dark": "#F2B55C",
+        "tonalRamp": [
+          "#251000",
+          "#4B2A00",
+          "#764600",
+          "#A0661D",
+          "#C78A46",
+          "#E8A966",
+          "#FFCD9A",
+          "#FFEBD7"
+        ]
+      },
+      "flag-amber-wash": {
+        "role": "tertiary",
+        "displayName": "Flag Amber Wash",
+        "canonical": "#FFF3DC",
+        "oklch": "oklch(97% 0.033 84)",
+        "dark": "#352711",
+        "tonalRamp": [
+          "#1D1504",
+          "#3B321F",
+          "#5B513E",
+          "#7E735F",
+          "#A29782",
+          "#C1B6A0",
+          "#E2D6C0",
+          "#F9EDD6"
+        ]
+      },
+      "flag-green": {
+        "role": "tertiary",
+        "displayName": "Flag Green",
+        "canonical": "#17784A",
+        "oklch": "oklch(51% 0.113 157)",
+        "dark": "#5ED39A",
+        "tonalRamp": [
+          "#001D0C",
+          "#003E22",
+          "#01633A",
+          "#2D8859",
+          "#56AD7C",
+          "#76CD9A",
+          "#96EEB9",
+          "#C5FFDA"
+        ]
+      },
+      "flag-green-wash": {
+        "role": "tertiary",
+        "displayName": "Flag Green Wash",
+        "canonical": "#E3F3EA",
+        "oklch": "oklch(95% 0.021 161)",
+        "dark": "#12301F",
+        "tonalRamp": [
+          "#0D1913",
+          "#2A362F",
+          "#49564F",
+          "#6A7871",
+          "#8E9C94",
+          "#ACBCB3",
+          "#CCDCD3",
+          "#E3F3EA"
+        ]
+      },
+      "flag-blue": {
+        "role": "tertiary",
+        "displayName": "Flag Blue",
+        "canonical": "#2F5B86",
+        "oklch": "oklch(46% 0.086 250)",
+        "dark": "#9DB8D8",
+        "tonalRamp": [
+          "#001631",
+          "#04345C",
+          "#295580",
+          "#4B78A5",
+          "#6F9DCC",
+          "#8DBCED",
+          "#BADBFE",
+          "#E3F0FE"
+        ]
+      },
+      "flag-blue-wash": {
+        "role": "tertiary",
+        "displayName": "Flag Blue Wash",
+        "canonical": "#E8F0F8",
+        "oklch": "oklch(95% 0.014 248)",
+        "dark": "#18232F",
+        "tonalRamp": [
+          "#11171C",
+          "#2D343A",
+          "#4D535A",
+          "#6E757C",
+          "#9299A1",
+          "#B1B8C0",
+          "#D1D8E0",
+          "#E8F0F8"
+        ]
+      },
+      "flag-indigo": {
+        "role": "tertiary",
+        "displayName": "Flag Indigo",
+        "canonical": "#4B4FA8",
+        "oklch": "oklch(47% 0.140 278)",
+        "dark": "#A9ACF5",
+        "tonalRamp": [
+          "#11004E",
+          "#272277",
+          "#43459D",
+          "#6269C5",
+          "#848EED",
+          "#A6B0FF",
+          "#CED5FE",
+          "#EAEDFE"
+        ]
+      },
+      "flag-indigo-wash": {
+        "role": "tertiary",
+        "displayName": "Flag Indigo Wash",
+        "canonical": "#ECEDFB",
+        "oklch": "oklch(95% 0.019 283)",
+        "dark": "#23264A",
+        "tonalRamp": [
+          "#15151E",
+          "#31323C",
+          "#51515D",
+          "#727380",
+          "#9697A4",
+          "#B5B6C3",
+          "#D5D6E4",
+          "#ECEDFB"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "First-run heading only (18px, 600)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Product name, dialog titles, drop-zone titles, the all-clear line (15px, 600)."
+      },
+      "subtitle": {
+        "displayName": "Subtitle",
+        "purpose": "Panel block heads, inspector section heads, step labels, buttons (13.5px, 600)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running UI text, inputs and list items (13.5px, 400)."
+      },
+      "body-small": {
+        "displayName": "Body Small",
+        "purpose": "Hints, counts, row summaries, notices, chips (12.5px; 11.5px for metadata)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Badge text, count pills and flag letters (11px, 600, tabular figures)."
+      },
+      "tag": {
+        "displayName": "Tag",
+        "purpose": "Every Jinja tag, field name and expression, in IBM Plex Mono (12.5px in the inspector, 0.82em inline)."
+      },
+      "letter": {
+        "displayName": "Letter",
+        "purpose": "The paper and quoted letter text, in Source Serif 4 (15px, 1.55)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "paper-lift",
+        "value": "0 1px 2px rgb(23 33 29 / .06), 0 6px 24px rgb(23 33 29 / .08)",
+        "purpose": "The letter resting on its desk; the only resting shadow."
+      },
+      {
+        "name": "pop",
+        "value": "0 8px 28px rgb(23 33 29 / .16)",
+        "purpose": "Anything floating over the page: popovers, dialogs, toast, overlay drawers."
+      },
+      {
+        "name": "key-lift",
+        "value": "0 1px 2px rgb(23 33 29 / .14)",
+        "purpose": "The selected segment of the view switch."
+      },
+      {
+        "name": "paper-lift-dark",
+        "value": "0 1px 2px rgb(0 0 0 / .35), 0 6px 24px rgb(0 0 0 / .35)",
+        "purpose": "Paper lift in the dark theme (pop is 0 8px 28px rgb(0 0 0 / .5), key lift 0 1px 2px rgb(0 0 0 / .45))."
+      }
+    ],
+    "motion": [
+      {
+        "name": "tint",
+        "value": "150ms ease",
+        "purpose": "Colour, background and border changes on controls, rows, chips and tabs."
+      },
+      {
+        "name": "drawer",
+        "value": "200ms ease",
+        "purpose": "The step panel sliding in on narrow screens."
+      },
+      {
+        "name": "flash",
+        "value": "1.2s ease (teal wash fading to transparent)",
+        "purpose": "Shows the row, cell or issue a click landed on."
+      },
+      {
+        "name": "tooltip-delay",
+        "value": "150ms",
+        "purpose": "Hover and focus tooltips wait before showing."
+      },
+      {
+        "name": "spin",
+        "value": "0.7s to 0.8s linear infinite",
+        "purpose": "Busy spinners; all motion drops to near zero under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-paper",
+        "value": "1500px",
+        "purpose": "Paper padding narrows from 80/72 to 56px."
+      },
+      {
+        "name": "inspector-overlay",
+        "value": "1280px",
+        "purpose": "Inspector floats over the right edge as a drawer."
+      },
+      {
+        "name": "stacked",
+        "value": "980px",
+        "purpose": "Page scrolls normally; step panel becomes a left drawer; gutters 16px."
+      },
+      {
+        "name": "compact-header",
+        "value": "600px",
+        "purpose": "Header drops company name, file name and save state."
+      },
+      {
+        "name": "phone",
+        "value": "520px",
+        "purpose": "Single-column uploads; view switch fills the width."
+      },
+      {
+        "name": "narrow-phone",
+        "value": "440px",
+        "purpose": "Export mapping CSV leaves the header; Download remains."
+      },
+      {
+        "name": "tiny-phone",
+        "value": "380px",
+        "purpose": "Download becomes icon-only."
+      }
+    ],
+    "layout": {
+      "headerHeight": "52px",
+      "stepBarHeight": "44px",
+      "viewToolbarHeight": "48px",
+      "stepPanelWidth": "380px",
+      "inspectorWidth": "380px",
+      "paperMaxWidth": "816px",
+      "paperPadding": "72px 80px",
+      "gutter": "24px"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one primary action in a view, such as Download tagged .docx.",
+      "html": "<button class=\"ds-btn ds-btn-primary\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M8 2v8M4.5 7 8 10.5 11.5 7M3 13h10\"/></svg>Download tagged .docx</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:5px 12px;border:1px solid var(--line,#DCE2DE);border-radius:6px;background:var(--panel,#fff);color:var(--ink,#17211D);font:600 13.5px/1.25 var(--font-ui,'Public Sans',system-ui,sans-serif);cursor:pointer;transition:background-color .15s,border-color .15s,color .15s} .ds-btn:hover{background:var(--line-2,#E9EEEB);border-color:var(--muted,#58665F)} .ds-btn:active{transform:translateY(.5px)} .ds-btn:focus-visible{outline:2px solid var(--accent,#0B6E5F);outline-offset:2px} .ds-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.ds-btn-primary{background:var(--accent,#0B6E5F);border-color:var(--accent,#0B6E5F);color:var(--accent-ink,#fff)}.ds-btn-primary:hover{background:var(--accent-hover,#095C50);border-color:var(--accent-hover,#095C50)}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Default outlined button for every other action.",
+      "html": "<button class=\"ds-btn\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M2.5 4h11v8h-11zM2.5 7h11M6.5 4v8\"/></svg>Export mapping CSV</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:5px 12px;border:1px solid var(--line,#DCE2DE);border-radius:6px;background:var(--panel,#fff);color:var(--ink,#17211D);font:600 13.5px/1.25 var(--font-ui,'Public Sans',system-ui,sans-serif);cursor:pointer;transition:background-color .15s,border-color .15s,color .15s} .ds-btn:hover{background:var(--line-2,#E9EEEB);border-color:var(--muted,#58665F)} .ds-btn:active{transform:translateY(.5px)} .ds-btn:focus-visible{outline:2px solid var(--accent,#0B6E5F);outline-offset:2px} .ds-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Quiet tool such as undo, redo or a collapse control.",
+      "html": "<button class=\"ds-btn ds-btn-ghost\">Details</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:5px 12px;border:1px solid var(--line,#DCE2DE);border-radius:6px;background:var(--panel,#fff);color:var(--ink,#17211D);font:600 13.5px/1.25 var(--font-ui,'Public Sans',system-ui,sans-serif);cursor:pointer;transition:background-color .15s,border-color .15s,color .15s} .ds-btn:hover{background:var(--line-2,#E9EEEB);border-color:var(--muted,#58665F)} .ds-btn:active{transform:translateY(.5px)} .ds-btn:focus-visible{outline:2px solid var(--accent,#0B6E5F);outline-offset:2px} .ds-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.ds-btn-ghost{background:transparent;border-color:transparent;color:var(--muted,#58665F)}.ds-btn-ghost:hover{background:var(--line-2,#E9EEEB);border-color:transparent;color:var(--ink,#17211D)}"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Single-line input: 32px high, hairline border, teal focus ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search text or field\">",
+      "css": ".ds-input{min-height:32px;width:240px;padding:5px 8px;border:1px solid var(--line,#DCE2DE);border-radius:6px;background:var(--panel,#fff);color:var(--ink,#17211D);font:400 13.5px/1.45 var(--font-ui,'Public Sans',system-ui,sans-serif)} .ds-input::placeholder{color:var(--muted,#58665F);opacity:1} .ds-input:focus-visible{outline:2px solid var(--accent,#0B6E5F);outline-offset:-1px;border-color:var(--accent,#0B6E5F)}"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Filter toggle with a count; selected turns Teal Wash.",
+      "html": "<span class=\"ds-chips\"><button class=\"ds-chip on\">All <span class=\"ds-n\">3</span></button><button class=\"ds-chip\">Needs a tag <span class=\"ds-n\">0</span></button></span>",
+      "css": ".ds-chips{display:inline-flex;gap:6px}.ds-chip{display:inline-flex;align-items:center;gap:4px;min-height:28px;padding:0 10px;border:1px solid var(--line,#DCE2DE);border-radius:6px;background:var(--panel,#fff);color:var(--ink,#17211D);font:500 12.5px var(--font-ui,'Public Sans',system-ui,sans-serif);cursor:pointer;transition:background-color .15s,border-color .15s,color .15s} .ds-chip:hover{border-color:var(--muted,#58665F)}.ds-chip:focus-visible{outline:2px solid var(--accent,#0B6E5F);outline-offset:2px} .ds-chip .ds-n{font-weight:600;color:var(--muted,#58665F)} .ds-chip.on{background:var(--accent-soft,#E0F0EB);border-color:var(--accent,#0B6E5F);color:var(--accent,#0B6E5F)}.ds-chip.on .ds-n{color:inherit}"
+    },
+    {
+      "name": "Status Badges",
+      "kind": "custom",
+      "refersTo": "badge",
+      "description": "The five flag colours as badges: each colour keeps one job.",
+      "html": "<span class=\"ds-badges\"><span class=\"ds-badge ds-err\">Fix</span><span class=\"ds-badge ds-warn\">Check</span><span class=\"ds-badge ds-info\">Note</span><span class=\"ds-badge ds-ok\">Resolved</span><span class=\"ds-badge ds-cond\">Condition</span></span>",
+      "css": ".ds-badges{display:inline-flex;gap:6px;flex-wrap:wrap}.ds-badge{display:inline-flex;align-items:center;font:600 11px/1.5 var(--font-ui,'Public Sans',system-ui,sans-serif);border-radius:4px;padding:0 6px;background:var(--line-2,#E9EEEB);color:var(--muted,#58665F)} .ds-err{background:var(--err-soft,#FCEBE9);color:var(--err,#B42318)}.ds-warn{background:var(--warn-soft,#FFF3DC);color:var(--warn,#8F5600)}.ds-info{background:var(--info-soft,#E8F0F8);color:var(--info,#2F5B86)}.ds-ok{background:var(--ok-soft,#E3F3EA);color:var(--ok,#17784A)}.ds-cond{background:var(--cond-soft,#ECEDFB);color:var(--cond,#4B4FA8)}"
+    },
+    {
+      "name": "Notice",
+      "kind": "custom",
+      "refersTo": "notice",
+      "description": "Inline strip for information and problems; tint, no border.",
+      "html": "<div class=\"ds-notice\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M8 7.5v3.5M8 5.2v.01\"/></svg><span>Changing this updates all 3 places.</span></div>",
+      "css": ".ds-notice{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;background:var(--info-soft,#E8F0F8);color:var(--info,#2F5B86);font:400 12.5px/1.45 var(--font-ui,'Public Sans',system-ui,sans-serif);max-width:340px} .ds-notice svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Step Bar",
+      "kind": "nav",
+      "refersTo": "step-tab",
+      "description": "Numbered steps on the notesheet strip; done steps show a green check, the selected step a teal underline.",
+      "html": "<div class=\"ds-steps\"><button class=\"ds-tab ds-done\"><span class=\"ds-st\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"m3.5 8.5 3 3 6-7\"/></svg></span>Document</button><span class=\"ds-line\"></span><button class=\"ds-tab ds-sel\"><span class=\"ds-st\">2</span>Tags &amp; fields<span class=\"ds-count\">10</span></button><span class=\"ds-line\"></span><button class=\"ds-tab\"><span class=\"ds-st\">3</span>Conditions</button></div>",
+      "css": ".ds-steps{display:flex;align-items:stretch;height:44px;padding:0 12px;background:var(--surface-2,#F6F8F6);border-bottom:1px solid var(--line,#DCE2DE)} .ds-line{align-self:center;width:20px;height:1px;background:var(--line,#DCE2DE)} .ds-tab{position:relative;display:inline-flex;align-items:center;gap:8px;padding:0 10px;border:0;background:none;color:var(--muted,#58665F);font:600 13.5px var(--font-ui,'Public Sans',system-ui,sans-serif);cursor:pointer;transition:color .15s} .ds-tab:hover{color:var(--ink,#17211D)}.ds-tab:focus-visible{outline:2px solid var(--accent,#0B6E5F);outline-offset:-3px;border-radius:6px} .ds-st{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;font:600 11px/1 var(--font-ui,'Public Sans',system-ui,sans-serif);font-variant-numeric:tabular-nums} .ds-st svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .ds-sel{color:var(--ink,#17211D)}.ds-sel::after{content:\"\";position:absolute;left:8px;right:8px;bottom:0;height:2px;border-radius:2px 2px 0 0;background:var(--accent,#0B6E5F)} .ds-done .ds-st{background:var(--ok,#17784A);border-color:var(--ok,#17784A);color:var(--panel,#fff)} .ds-count{padding:0 6px;min-width:18px;border-radius:999px;background:var(--warn-soft,#FFF3DC);color:var(--warn,#8F5600);font:600 11px/18px var(--font-ui,'Public Sans',system-ui,sans-serif);text-align:center}"
+    },
+    {
+      "name": "Placeholder Row",
+      "kind": "custom",
+      "refersTo": "placeholder-row",
+      "description": "A found placeholder: status mark, text and mapped field, count. Status restyles the mark; the row never changes size.",
+      "html": "<ul class=\"ds-rows\"><li class=\"ds-row ds-sel\"><span class=\"ds-mark ds-tagged\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"m3.5 8.5 3 3 6-7\"/></svg></span><span class=\"ds-body\"><b>Asha</b><code>first_name</code></span><span class=\"ds-side\">3 times</span></li><li class=\"ds-row\"><span class=\"ds-mark ds-need\"></span><span class=\"ds-body\"><b>XXXX</b><code>Needs a tag</code></span><span class=\"ds-side\">1 time</span></li></ul>",
+      "css": ".ds-rows{list-style:none;margin:0;padding:0;width:320px;display:grid;gap:2px} .ds-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:6px;background:transparent;color:var(--ink,#17211D);font:400 13.5px var(--font-ui,'Public Sans',system-ui,sans-serif);cursor:pointer;transition:background-color .15s,box-shadow .15s} .ds-row:hover{background:var(--line-2,#E9EEEB)}.ds-row.ds-sel{background:var(--accent-soft,#E0F0EB);box-shadow:inset 0 0 0 1px var(--accent,#0B6E5F)} .ds-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--line-2,#E9EEEB);color:var(--muted,#58665F)} .ds-mark svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round} .ds-tagged{background:var(--ok-soft,#E3F3EA);color:var(--ok,#17784A)}.ds-need{background:var(--hl,#FFF0A3)} .ds-body{display:grid;gap:1px;min-width:0}.ds-body b{font-weight:500}.ds-body code{font:400 11px var(--font-mono,'IBM Plex Mono',ui-monospace,monospace);color:var(--muted,#58665F)} .ds-side{font-size:11.5px;color:var(--muted,#58665F)}"
+    },
+    {
+      "name": "Margin Flag",
+      "kind": "custom",
+      "refersTo": "margin-flag-error",
+      "description": "Lettered pennant in the paper margin: red for an error, amber to check. The only issue marker on the letter.",
+      "html": "<span class=\"ds-flags\"><button class=\"ds-flag ds-r\" aria-label=\"Issue A\">A</button><button class=\"ds-flag ds-a\" aria-label=\"Issue B\">B</button><button class=\"ds-flag ds-r ds-on\" aria-label=\"Issue C, open\">C</button></span>",
+      "css": ".ds-flags{display:inline-flex;gap:12px}.ds-flag{width:20px;height:18px;padding:0 4px 0 0;border:0;color:var(--panel,#fff);font:700 11px/18px var(--font-ui,'Public Sans',system-ui,sans-serif);text-align:center;cursor:pointer;clip-path:polygon(0 0,76% 0,100% 50%,76% 100%,0 100%);transition:filter .15s} .ds-r{background:var(--err,#B42318)}.ds-a{background:var(--warn,#8F5600)}.ds-flag:hover{filter:brightness(.9)} .ds-flag:focus-visible{outline:2px solid var(--accent,#0B6E5F);outline-offset:3px} .ds-on{outline:2px solid var(--ink,#17211D);outline-offset:2px;clip-path:none;border-radius:2px}"
+    },
+    {
+      "name": "Tag Chip",
+      "kind": "chip",
+      "refersTo": "tag-chip",
+      "description": "A Jinja tag set inline in the letter: mono pill on a neutral wash; condition tags are indigo.",
+      "html": "<p class=\"ds-p\">Dear <span class=\"ds-tg\">{{ first_name }}</span>, <span class=\"ds-tg ds-blk\">{% if band == \"A\" %}</span></p>",
+      "css": ".ds-p{margin:0;font:400 15px/1.55 var(--font-letter,'Source Serif 4',Georgia,serif);color:var(--paper-ink,#1B1B1B)} .ds-tg{font-family:var(--font-mono,'IBM Plex Mono',ui-monospace,monospace);font-size:.82em;background:var(--tag-bg,#EEF2F0);color:var(--tag,#2E3B36);border:1px solid var(--tag-line,#D3DBD7);border-radius:3px;padding:0 3px;white-space:pre-wrap} .ds-blk{background:var(--cond-soft,#ECEDFB);color:var(--cond,#4B4FA8);border-color:var(--cond,#4B4FA8)}"
+    },
+    {
+      "name": "Condition Bracket",
+      "kind": "custom",
+      "refersTo": "condition-tag",
+      "description": "An if-block shown as a 2px indigo bar in the paper margin, with a condition line above the paragraph.",
+      "html": "<div class=\"ds-paper\"><div class=\"ds-line-c\"><code>{% if band == \"A\" %}</code><span class=\"ds-en\">Band is A</span></div><p class=\"ds-in\">You are in the top band this year.</p><div class=\"ds-line-c\"><code>{% endif %}</code></div></div>",
+      "css": ".ds-paper{position:relative;width:340px;padding:12px 20px 12px 28px;background:var(--paper,#fff);color:var(--paper-ink,#1B1B1B);border-radius:2px;box-shadow:var(--shadow-paper,0 1px 2px rgb(23 33 29/.06),0 6px 24px rgb(23 33 29/.08))} .ds-line-c{display:flex;align-items:center;gap:8px;margin:.35em 0;padding:2px 4px;border-radius:3px;font:400 12px/1.35 var(--font-ui,'Public Sans',system-ui,sans-serif);cursor:pointer;transition:background-color .15s} .ds-line-c:hover{background:var(--cond-soft,#ECEDFB)}.ds-line-c::after{content:\"\";flex:1;min-width:12px;border-top:1px solid var(--paper-line,#E1E4E2)} .ds-line-c code{order:0;padding:0 5px;border-radius:3px;background:var(--cond-soft,#ECEDFB);color:var(--cond,#4B4FA8);font:400 11.5px var(--font-mono,'IBM Plex Mono',ui-monospace,monospace)} .ds-en{order:0;color:var(--muted,#58665F)} .ds-in{position:relative;margin:0 0 .55em;font:400 15px/1.55 var(--font-letter,'Source Serif 4',Georgia,serif)} .ds-in::after{content:\"\";position:absolute;left:-16px;top:1px;bottom:-.4em;width:2px;border-radius:1px;background:var(--cond,#4B4FA8)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Office File",
+    "overview": "The letter is the correspondence, and everything the tool knows about it is a lettered noting in its margin, like flagged pages in a government file. The page is built as a desk: a pale green-grey ground, a slightly lighter notesheet layer for the steps and the current step's panel, and the letter itself on white paper in the middle. The category's usual arrangement, a document wedged between a long settings sidebar and a stack of cards, is refused. The left panel holds only the current step; the right inspector appears only when something is selected; the findings live on the paper.\n\nThe mood is quiet, clerical and exact: hairline rules instead of boxes, one calm teal reserved for the action you take, and a small set of flag colours that each mean one thing. It is a tool for HR and compensation people who open it a few times a cycle, so every surface says what is wrong, where, and the one action that fixes it, in short plain sentences.\n\nDark mode keeps the same world: the desk goes to deep green-black, the notesheet lifts one step, and the paper itself darkens, so the letter never glares against its ground.",
+    "keyCharacteristics": [
+      "Three tonal layers (ground, notesheet, white) separated by 1px hairlines, not shadows.",
+      "Teal #0B6E5F marks the primary action, selection and focus, and nothing else.",
+      "Five flag colours with fixed jobs: red error, amber to-check, indigo condition, blue note, green tagged or resolved.",
+      "Three type voices that never swap: Public Sans for the tool, IBM Plex Mono for tags, Source Serif 4 for the letter.",
+      "Margin flags are lettered pennants (A, B, C) that match the lettered items in the Validate list.",
+      "Status restyles a row; it never reflows it. Resolved items stay visible as Resolved.",
+      "6px controls, 8px panels, 2px paper."
+    ],
+    "rules": [
+      {
+        "name": "The Earned Teal Rule",
+        "body": "Teal means \"this is what you do\" or \"this is what you have selected\". It never colours a status, a decoration or a heading. If something is teal, clicking it moves the work forward.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Job Per Flag Rule",
+        "body": "Red, amber, indigo, blue and green each keep one meaning on every surface. A condition is never amber; a note is never red; a success is never teal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Notesheet Layering Rule",
+        "body": "Depth between regions comes from the ground, notesheet and white steps plus a hairline, in that order from the edge of the screen inward.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Voices Rule",
+        "body": "Sans is the tool, mono is a tag, serif is the letter. A tag in a sentence is set in mono; a quoted line from the letter is set in serif; never the reverse.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "Headings, buttons and labels are sentence case at weight 600. Emphasis comes from weight and ink, not capitals or tracking.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline First Rule",
+        "body": "Separate with a 1px rule or a tone change before reaching for a shadow. A panel, row or card never gets one.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Paper Is Lifted Rule",
+        "body": "The letter is the only resting surface that casts a shadow; anything else that casts one is floating above it.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Pennant Rule",
+        "body": "A lettered pennant is the only way a finding is marked on the paper. Do not invent other marker shapes for issues.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** keep the letter in the middle and on white (or the dark paper), set in Source Serif 4, with the tool around it on the notesheet and ground layers.",
+      "**Do** mark every finding on the paper as a lettered pennant and give the matching Validate item the same letter.",
+      "**Do** let status change colour and mark only: a row, step or flag keeps its size and position when its status changes.",
+      "**Do** keep resolved items on screen, labelled Resolved, in a collapsible group.",
+      "**Do** use teal for the one primary action, selection and focus; use the flag colours only for their one job each.",
+      "**Do** separate regions with a 1px Hairline or a tone change, with 6px controls and 8px panels.",
+      "**Do** write tags in IBM Plex Mono at their size and quotes from the letter in Source Serif 4.",
+      "**Do** label sample values as sample (dotted underline, amber \"Sample\" badge) and never style them like real data.",
+      "**Do** keep copy plain and short, in sentence case, saying what is wrong, where, and the one fix."
+    ],
+    "donts": [
+      "**Don't** put the letter in a card inside a stack of cards or beside a long settings sidebar; the current step is a single panel and the inspector appears only on demand.",
+      "**Don't** colour a status, heading or decoration teal.",
+      "**Don't** give panels, rows, cards or buttons a resting shadow; only the paper has one, and floating layers take the Pop shadow.",
+      "**Don't** add small uppercase, letter-spaced labels above headings; section titles are sentence-case semibold.",
+      "**Don't** put a coloured stripe on a card, row or notice; the only stripe in the system is the condition bracket in the letter's margin.",
+      "**Don't** mark issues with any shape other than the lettered pennant, or use glyph characters in place of the authored 16px stroke icons.",
+      "**Don't** swap the three type voices: no serif in controls, no sans or mono for the letter body.",
+      "**Don't** make elements vanish when they are done; mark them done."
+    ]
+  }
+}

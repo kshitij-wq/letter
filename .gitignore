@@ -17,3 +17,6 @@ private/
 
 # screenshots from local test runs
 /*.png
+
+# design review screenshots (local evidence only)
+.impeccable/review/

@@ -9,9 +9,13 @@ your own computer. Nothing else to install: no LibreOffice, no database.
 **Tag a client letter.** Upload the Word letter, pick a tag for every name, amount and date,
 and add conditions. Download the tagged `.docx` for CompUp.
 
-**Check a tagged template.** Click *Check a tagged template* (under the letter upload, or in
-the Check tab) and upload a template that is already tagged. The Check tab lists every
-problem with its tags and conditions, and where it is:
+The page walks through five steps: **Document → Tags & fields → Conditions → Validate →
+Preview & export**. The letter stays in the middle; clicking a placeholder, a paragraph or a
+problem opens its editor on the right.
+
+**Check a tagged template.** Click *Check a tagged template* (in the Document step, or at the
+top of the Validate step) and upload a template that is already tagged. The Validate step lists every
+problem with its tags and conditions, and where it is (a lettered flag marks each one in the letter's margin):
 
 - typing mistakes: a single `=` in a condition, a filter Jinja doesn't know (`| floot`),
   a quote or bracket left open, `{% iff %}`;
@@ -46,14 +50,14 @@ words, how many employees it is true for, and writes the `if` / `else` / `end if
 
 With an Anthropic API key, the page gets four Claude helpers:
 
-- **Suggest tags with Claude** (Tags tab): Claude reads the letter's wording, the table row
+- **Suggest tags with Claude** (Tags & fields step): Claude reads the letter's wording, the table row
   and column headings ("Basic Salary", "Last Drawn" vs "Revised") and your data's column
   names, and suggests a tag for every piece of text you haven't tagged yourself. Its
   suggestions show as "Claude: …" in the row; anything it isn't sure of is marked *To check*.
-- **Review this template** (Check tab → Ask Claude): a review like an experienced template
+- **Review this template** (Validate step → Ask Claude): a review like an experienced template
   author would do: swapped old/new amounts, totals, conditions that pick the wrong people,
   missing formatting. Each point links to the place in the letter.
-- **Ask a question** about the letter (Check tab → Ask Claude).
+- **Ask a question** about the letter (Validate step → Ask Claude).
 - **Describe a condition in words** (in *Show only when…*): "promoted employees whose PLI
   changed" becomes a condition in the builder, with how many employees it is true for.
 
@@ -179,7 +183,7 @@ docker run --rm -p 8000:8000 -e DJANGO_SECRET_KEY=change-me letter-studio
 
 | Prototype | Here |
 |---|---|
-| FastAPI + SQLite, upload and count tags, "health score" | Django; the Check tab lists each problem with where it is, and real Jinja checks the file |
+| FastAPI + SQLite, upload and count tags, "health score" | Django; the Validate step lists each problem with where it is, and real Jinja checks the file |
 | Adds `{% if %}` around a paragraph, `{%tr if %}` marker rows for table rows | Conditions on paragraphs and words (builder), row hiding inside the existing rows |
 | Planned: users and roles, template library with versions, tag registry, rules, audit log, Sentry error → fix | Not built yet. Ideas below. |
 | Saves every upload in `uploads/` | Nothing is stored; files live in memory for one request |

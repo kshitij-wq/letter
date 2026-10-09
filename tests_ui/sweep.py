@@ -31,12 +31,12 @@ FIX = HERE / "fixtures"
 LETTERS = ["letterA.docx", "with_header.docx", "northwind.docx", "acme_tagged.docx", "oldtemplate.docx", "letterB.docx"]
 TAGGED = ["broken_tagged.docx", "tagged_missing_field.docx", "conditions_tagged.docx"]   # loaded through "Check a tagged template"
 DATA = ["emps.csv", "emps.xlsx"]
-BAD_LETTERS = ["bad_not_a_docx.docx", "bad_no_body.docx"]
+BAD_LETTERS = ["bad_not_a_docx.docx", "bad_no_body.docx", "zero_bytes.docx"]
 BAD_DATA = ["bad_empty.csv", "bad_header_only.csv", "bad.xlsx"]
 VIEWS = ["source", "tagged", "filled"]
-TABS = ["tags", "logic", "check", "lib"]
+TABS = ["doc", "tags", "logic", "check", "export"]
 # Buttons whose job is to leave the page or that only wait for a file picker
-SKIP = {"inDoc", "inCsv", "inCsv2", "inMerge", "inSetup", "btnBatchStop"}
+SKIP = {"inDoc", "inCsv", "inCsv2", "inMerge", "inSetup", "btnBatchStop", "btnSide"}   # btnSide hides the panels the sweep clicks in
 IGNORE = ["favicon.ico", "fonts.googleapis", "fonts.gstatic", "ERR_ABORTED"]
 MAILMERGE = ("ACME Letter - MHPromotion.docx", "employees_export.csv")   # Word merge fields + an export with a Letter Template column
 
@@ -121,11 +121,20 @@ class Sweep:
     async def settle(self, ms=250):
         await self.pg.wait_for_timeout(ms)
 
-    async def close_overlays(self):
+    async def close_overlays(self, keep_inspector=False):
         # a PDF opens a second or two after its button is clicked
         if await self.pg.evaluate("()=>!!window.__ltBusy"):
             await self.settle(500)
-        await self.pg.keyboard.press("Escape")
+        # a confirm window opened by the click before (Accept all suggestions, Delete): say yes, so the action runs
+        if await self.pg.locator("#dlg[open]").count():
+            await self.pg.locator("#dlgOk").click()
+            await self.settle(250)
+        # Esc also closes the inspector (and the side drawer on a narrow screen); between clicks inside the
+        # inspector only close a field list, by leaving the field
+        if keep_inspector and await self.pg.locator("#inspector").is_visible():
+            await self.pg.evaluate("()=>document.activeElement && document.activeElement.blur && document.activeElement.blur()")
+        else:
+            await self.pg.keyboard.press("Escape")
         for sel in ["#pdfClose", "#closeCancel", "#placeCancel", "#swCancel", "#ceCancel"]:
             loc = self.pg.locator(sel)
             if await loc.count() and await loc.first.is_visible():
@@ -137,15 +146,73 @@ class Sweep:
     async def load_letter(self, name):
         self.doing = f"loading {name}"
         await self.pg.set_input_files("#inDoc", str(name if Path(name).is_absolute() else FIX / name))
+        await self.confirm_replace()
         await self.settle(1500)
         rb = self.pg.locator("#rbDismiss")
         if await rb.count() and await rb.is_visible():
             await rb.click()
 
+    async def confirm_replace(self):
+        """Opening a letter while one with changes is open asks first: say yes."""
+        await self.settle(300)
+        if await self.pg.locator("#dlg[open]").count():
+            await self.pg.locator("#dlgOk").click()
+
+    async def replace_dialog(self):
+        """With changes in the open letter, loading another asks first; Cancel and Esc must keep the open one."""
+        self.doing = "replace-letter window"
+        await self.pg.evaluate("()=>recordUndo()")
+        before = await self.pg.evaluate("()=>window.__lt.state.fileName")
+        for how in ("cancel", "esc"):
+            await self.pg.set_input_files("#inDoc", str(FIX / "letterB.docx"))
+            await self.settle(400)
+            if not await self.pg.locator("#dlg[open]").count():
+                self.fail("replacing a letter that has changes didn't ask first")
+                return
+            if how == "cancel":
+                await self.pg.locator("#dlgCancel").click()
+            else:
+                await self.pg.keyboard.press("Escape")
+            await self.settle(400)
+            if await self.pg.evaluate("()=>window.__lt.state.fileName") != before:
+                self.fail(f"the replace-letter window ({how}) still replaced the open letter")
+
     async def load_data(self, name, extra=False):
         self.doing = f"loading data {name}"
         await self.pg.set_input_files("#inCsv2" if extra else "#inCsv", str(name if Path(name).is_absolute() else FIX / name))
         await self.settle(1500)
+
+    async def first_run(self):
+        """No letter yet: the getting-started page shows, nothing throws on any step, and a bad file gives a message."""
+        self.doing = "first run (no letter)"
+        pg = self.pg
+        if not await pg.locator("#firstRun").is_visible():
+            self.fail("the getting-started page isn't showing before a letter is loaded")
+        if await pg.evaluate("()=>!!window.__lt.state.an"):
+            self.fail("a letter was loaded before anyone asked for one")
+        if not await pg.locator("#btnDocx").is_disabled():
+            self.fail("Download tagged .docx is enabled with no letter")
+        for t in TABS:
+            await self.tab(t)
+            await self.click_all(f"#panel-{t}", limit=12)
+        await self.tab("doc")
+        # a bad file with no letter open: the message shows on the page itself
+        await pg.set_input_files("#inDoc", str(FIX / "zero_bytes.docx"))
+        await self.settle(600)
+        if not await pg.locator("#frErr").is_visible() or "empty" not in (await pg.locator("#frErr").inner_text()).lower():
+            self.fail("a 0-byte .docx gave no clear message on the first-run page")
+        await pg.set_input_files("#inDoc", str(FIX / "bad_not_a_docx.docx"))
+        await self.settle(600)
+        if not await pg.locator("#frErr").is_visible():
+            self.fail("a file that isn't a .docx gave no message on the first-run page")
+        # employee data can come first
+        await pg.set_input_files("#inCsv", str(FIX / "emps.csv"))
+        await self.settle(800)
+        if "emps.csv" not in await pg.locator("#frDataName").inner_text():
+            self.fail("employee data added before a letter wasn't shown")
+        await pg.evaluate("()=>window.__lt.setView('filled')")   # a view switch with no letter must be harmless
+        await self.settle(300)
+        await pg.evaluate("()=>window.__lt.setView('source')")
 
     async def view(self, v):
         await self.close_overlays()
@@ -197,11 +264,12 @@ class Sweep:
                 await self.settle(1200)
             else:
                 await self.settle(200)
-            await self.close_overlays()
+            await self.close_overlays(keep_inspector=True)
 
     async def check_tagged(self, name):
         self.doing = f"checking tagged template {name}"
         await self.pg.set_input_files("#inCheck", str(FIX / name))
+        await self.confirm_replace()
         await self.settle(2500)
         if name.startswith("broken") and not await self.pg.locator("#checks li.ck.error").count():
             self.fail(f"{name}: the check found no problems in a template that has some")
@@ -221,7 +289,7 @@ class Sweep:
             self.doing = f"changing a condition in {name}"
             await edit.first.click()
             await self.settle(300)
-            await self.pg.keyboard.press("Escape")
+            await self.close_overlays(keep_inspector=True)
             pick = self.pg.locator("#selTools .cb-pick")
             if await pick.count():
                 await pick.first.click()
@@ -260,7 +328,7 @@ class Sweep:
             await self.pg.locator("#cbv-0").fill("Finance")
         await self.settle(400)
         await self.click_all("#selTools .cb-foot", limit=3)
-        await self.close_overlays()
+        await self.close_overlays(keep_inspector=True)
         if await self.pg.locator("#cbApply").count():
             await self.pg.locator("#cbApply").click()
             await self.settle(500)
@@ -278,11 +346,14 @@ class Sweep:
         if not await self.pg.locator("#checks li", has_text="that merge field is really").count():
             self.fail("the merge field shown as «HRA» but coded BASIC wasn't flagged")
         await self.tab("tags")
+        # earlier clicking may have collapsed a section (the choice is remembered): open them again
+        await self.pg.evaluate("()=>document.querySelectorAll('.block.collapsed').forEach(b=>setBlockCollapsed(b,false))")
         if await self.pg.locator("#aiTags").count():
             self.doing = "Claude: suggest tags"
             await self.pg.locator("#aiTags").click()
             await self.settle(800)
         await self.tab("check")
+        await self.pg.evaluate("()=>document.querySelectorAll('.block.collapsed').forEach(b=>setBlockCollapsed(b,false))")
         for sel in ["#aiReview", "#aiAsk"]:
             if await self.pg.locator(sel).count():
                 self.doing = f"Claude: {sel}"
@@ -295,7 +366,7 @@ class Sweep:
         if await paras.count() > 4:
             await paras.nth(4).click(position={"x": 4, "y": 4})
             await self.settle(300)
-            await self.pg.keyboard.press("Escape")
+            await self.close_overlays(keep_inspector=True)
             if await self.pg.locator("#selTools .cb-ai-go").count():
                 self.doing = "Claude: condition from words"
                 await self.pg.fill("#selTools .cb-ai-in", "promoted employees")
@@ -390,20 +461,27 @@ async def main():
             if not args.real_claude:
                 await fake_claude(page)
             await page.goto(url)
-            await page.wait_for_function("window.__lt && window.__lt.state && window.__lt.state.built", timeout=30000)
+            await page.wait_for_function("window.__lt && window.__lt.state", timeout=30000)
             await sw.settle(800)
+            await sw.first_run()
             sw.doing = "sample letter"
+            await page.locator("#btnSample").click()
+            await page.wait_for_function("window.__lt.state.built", timeout=30000)
+            await sw.settle(800)
             for t in TABS:
                 await sw.tab(t)
                 await sw.click_all(f"#panel-{t}", limit=20)
             for letter in letters:
                 await sw.letter_round(letter, data)
+            await sw.replace_dialog()
             await sw.mail_merge()
             for name in TAGGED:
                 await sw.check_tagged(name)
             # broken files: each must give a message, not a crash
             for bad in BAD_LETTERS:
                 await sw.load_letter(bad)
+                if await page.evaluate("()=>document.querySelector('#loadErr').hidden"):
+                    sw.fail(f"{bad}: no message was shown")
                 await sw.close_overlays()
             await sw.load_letter(letters[0])
             for bad in BAD_DATA:
