@@ -15,7 +15,7 @@
 :root{
   --bg:#EEF1EF; --panel:#FFFFFF; --surface-2:#F6F8F6; --ink:#17211D; --muted:#58665F; --line:#DCE2DE; --line-2:#E9EEEB;
   --accent:#0B6E5F; --accent-hover:#095C50; --accent-ink:#FFFFFF; --accent-soft:#E0F0EB;
-  --tag:#7A4300; --tag-bg:#FFF2D9; --tag-line:#EDCB8A;
+  --tag:#2E3B36; --tag-bg:#EEF2F0; --tag-line:#D3DBD7;
   --hl:#FFF0A3; --hl-ink:#3A3200;
   --paper:#FFFFFF; --paper-ink:#1B1B1B; --paper-line:#E1E4E2;
   --err:#B42318; --err-soft:#FCEBE9; --warn:#8F5600; --warn-soft:#FFF3DC; --ok:#17784A; --ok-soft:#E3F3EA; --info:#2F5B86; --info-soft:#E8F0F8;
@@ -38,7 +38,7 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0F1513; --panel:#161E1B; --surface-2:#1B2420; --ink:#E3ECE8; --muted:#9AABA4; --line:#2A3632; --line-2:#212B27;
   --accent:#4CC2A6; --accent-hover:#6BD3BA; --accent-ink:#06241D; --accent-soft:#163A32;
-  --tag:#FFC873; --tag-bg:#3A2A0E; --tag-line:#6B4B17;
+  --tag:#D7E2DD; --tag-bg:#24302B; --tag-line:#36443E;
   --hl:#5E5200; --hl-ink:#FFF7C2;
   --paper:#1C2421; --paper-ink:#E6EAE8; --paper-line:#2F3B36;
   --err:#FF8A7E; --err-soft:#3A1714; --warn:#F2B55C; --warn-soft:#352711; --ok:#5ED39A; --ok-soft:#12301F; --info:#9DB8D8; --info-soft:#18232F;
@@ -52,7 +52,7 @@
 :root[data-theme="dark"]{
   --bg:#0F1513; --panel:#161E1B; --surface-2:#1B2420; --ink:#E3ECE8; --muted:#9AABA4; --line:#2A3632; --line-2:#212B27;
   --accent:#4CC2A6; --accent-hover:#6BD3BA; --accent-ink:#06241D; --accent-soft:#163A32;
-  --tag:#FFC873; --tag-bg:#3A2A0E; --tag-line:#6B4B17;
+  --tag:#D7E2DD; --tag-bg:#24302B; --tag-line:#36443E;
   --hl:#5E5200; --hl-ink:#FFF7C2;
   --paper:#1C2421; --paper-ink:#E6EAE8; --paper-line:#2F3B36;
   --err:#FF8A7E; --err-soft:#3A1714; --warn:#F2B55C; --warn-soft:#352711; --ok:#5ED39A; --ok-soft:#12301F; --info:#9DB8D8; --info-soft:#18232F;
@@ -243,10 +243,11 @@ body.resizing{cursor:col-resize;user-select:none}
 .ai-bar{display:grid;justify-items:start;gap:6px;margin:0 0 12px}.ai-bar .hint{margin:0}
 .ai-btn{border-color:var(--accent)}
 .ai-notes{margin:4px 0 0;padding-left:18px;font-size:12.5px;width:100%}
+.ai-setup-d{margin:8px 0}.ai-setup-d>summary{cursor:pointer;font-size:var(--fs-sm);color:var(--muted);min-height:28px;display:flex;align-items:center}.ai-setup-d>summary:hover{color:var(--ink)}.ai-setup-d>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 .ai-setup{font-size:13px;padding-left:18px;margin:6px 0}.ai-setup li{margin:3px 0}
 .ai-sum{font-size:13px;margin:8px 0}
 .ai-ask{display:flex;gap:6px;margin-top:10px}.ai-ask input{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--panel);color:var(--ink);font-size:13px}
-.ai-answer{margin-top:8px;font-size:13px;border-left:3px solid var(--accent);padding:4px 0 4px 10px}.ai-q{font-weight:600;margin:0 0 4px}.ai-tags{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
+.ai-answer{margin-top:8px;font-size:13px;border:1px solid var(--line);background:var(--surface-2);border-radius:var(--r-ctl);padding:8px 10px}.ai-q{font-weight:600;margin:0 0 4px}.ai-tags{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
 .cb-ai{display:flex;gap:6px;align-items:center}.cb-ai input{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:5px 8px;background:var(--panel);color:var(--ink);font-size:13px}
 .cb-note{font-size:12.5px;color:var(--muted);font-style:italic}
 .locs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
@@ -307,7 +308,7 @@ body.resizing{cursor:col-resize;user-select:none}
 .paper p.lp{margin:0 0 .55em;min-height:1.2em;border-radius:3px;padding:0 4px;margin-left:-4px;margin-right:-4px}
 .paper p.lp.body{cursor:pointer}
 .paper p.lp.body:hover{background-color:var(--line-2)}
-.paper p.lp.sel{background-color:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.paper p.lp.sel{background-color:var(--accent-soft);outline:1px solid var(--accent);outline-offset:2px}
 .paper .jc-center{text-align:center} .paper .jc-right{text-align:right} .paper .jc-both{text-align:justify}
 .paper .hd{font-weight:600;font-size:1.1em}
 .paper .li::before{content:"•";margin-right:.5em}
@@ -324,7 +325,9 @@ body.resizing{cursor:col-resize;user-select:none}
 .ph.s-off{text-decoration:line-through;text-decoration-color:var(--muted)}
 .ph.flash{outline:2px solid var(--accent)}
 .tg{font-family:var(--font-mono);font-size:.82em;background:var(--tag-bg);color:var(--tag);border:1px solid var(--tag-line);border-radius:3px;padding:0 3px;white-space:pre-wrap}
-.tg.blk{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.tg.blk{background:var(--cond-soft);color:var(--cond);border-color:var(--cond)}
+.tg.tg-error{background:var(--err-soft);color:var(--err);border-color:var(--err)}
+.tg.tg-warn{outline:1px solid var(--warn);outline-offset:1px}
 .b{font-weight:700} .i{font-style:italic} .u{text-decoration:underline}
 .hlr{background:var(--hl);color:var(--hl-ink)}
 /* tables */
@@ -372,7 +375,7 @@ body.resizing{cursor:col-resize;user-select:none}
 .combo-pop .co.co-k code{font-size:12px;color:var(--ink)}
 .combo-pop .co.on,.combo-pop .co:hover{background:var(--accent-soft)}
 .combo-pop .ce{padding:8px;color:var(--muted);font-size:var(--fs-sm)}
-.cell-ghost{font-family:var(--font-mono);font-size:.72em;color:var(--accent);border:1px dashed var(--accent);border-radius:3px;padding:0 4px;cursor:pointer;display:inline-block;max-width:100%;overflow-wrap:anywhere;vertical-align:middle}
+.cell-ghost{font-family:var(--font-mono);font-size:.72em;color:var(--tag);background:var(--tag-bg);border:1px dashed var(--tag-line);border-radius:3px;padding:0 4px;cursor:pointer;display:inline-block;max-width:100%;overflow-wrap:anywhere;vertical-align:middle}
 .cell-ghost.blank{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
 .tcard.flash{animation:flash 1.2s ease}
 /* logic tags */
@@ -1046,6 +1049,15 @@ label[data-pick]{cursor:pointer}
 body.no-letter .need-letter{display:grid}
 body.no-letter .tabpanel:not(#panel-doc)>:not(.need-letter){display:none!important}
 body.no-letter .viewer-bar{display:none}
+/* Before a letter is loaded the middle of the screen owns the upload; the Document step only points to it. */
+.doc-start{display:none}
+.doc-start p{margin:0 0 var(--s3);font-size:var(--fs-md)}
+.doc-start .hint{margin:var(--s2) 0 0}
+body.no-letter .doc-start{display:block}
+body.no-letter #dropDoc,body.no-letter #dropCsv,body.no-letter #teamBlock,body.no-letter #setupBlock,body.no-letter #filesBlock .block-head{display:none!important}
+body.no-letter #filesBlock:not(:has(#loadErr:not([hidden]))){display:none}
+.save-line{display:none;margin:0 0 var(--s3);font-size:var(--fs-sm);color:var(--muted)}
+@media (max-width:600px){.save-line:not(:empty){display:block}}
 .need-letter .btn{margin-top:6px}
 @media (max-width:600px){
   .firstrun{margin:20px auto 40px;gap:16px}
@@ -1182,6 +1194,12 @@ body.no-letter .viewer-bar{display:none}
     <aside class="side" id="side" aria-label="Current step">
       <div class="side-scroll">
       <div class="tabpanel" id="panel-doc" role="tabpanel" aria-labelledby="tab-doc">
+        <p class="save-line" id="saveLine"></p>
+        <div class="block doc-start" id="docStart">
+          <p>Start by choosing the client's letter in the middle of the screen.</p>
+          <label class="btn small ghost" for="inSetup" data-pick>Load setup file…</label>
+          <p class="hint">Continue work you saved earlier.</p>
+        </div>
         <div class="block" id="filesBlock">
           <div class="block-head"><h2>Files</h2><span class="stats" id="filesStats"></span></div>
           <div class="notice err" id="loadErr" role="alert" hidden></div>
@@ -2308,6 +2326,7 @@ function renderLogic(){
   updateTabBadges();
 }
 function showPid(pid){
+  ckSeeSide();   // on a phone the side panel covers the letter: close it so the place is visible
   if (state.view!=='source') setView('source');
   const el=[...document.querySelectorAll('#paper [data-pid]')].find(x=>x.dataset.pid===pid);
   if (el){ el.scrollIntoView({block:'center', inline:'nearest', behavior:'smooth'}); el.classList.remove('flash-p'); void el.offsetWidth; el.classList.add('flash-p'); }
@@ -3030,11 +3049,13 @@ function doAutosave(){
 // the status line in the header: only ever says what this browser did
 function renderSaveState(){
   const el=$('#saveState'); if (!el) return;
-  if (!state.an){ el.textContent=''; return; }
+  const line=$('#saveLine');   // the same text inside the Document step, shown on phones where the header hides it
+  if (!state.an){ el.textContent=''; if (line) line.textContent=''; return; }
   el.textContent = state.isSample ? 'Sample letter'
     : state.autosaveFailed ? 'Not saved: browser storage is full or blocked'
     : state.lastAutosave ? 'Saved in this browser · '+fmtWhen(state.lastAutosave)
     : HISTORY.undo.length ? 'Saves in this browser as you work' : 'Not changed yet';
+  if (line) line.textContent=el.textContent;
 }
 setInterval(()=>{ if (state.lastAutosave) renderSaveState(); }, 30000);
 function readAutosave(hash){ try{ const s=localStorage.getItem('lt.auto.'+hash); return s?JSON.parse(s):null; }catch(e){ return null; } }
@@ -3397,7 +3418,10 @@ function setTab(t, opts){
   if (t==='check'){ renderChecks(); renderBatch(); renderAi(); }
   if (t==='export') renderPvPanel();
   if (opts && opts.open && typeof setSide==='function' && !sideIsOpen()) setSide(true);
+  revealTab();
 }
+// On a phone the step bar scrolls sideways: keep the active step fully in view.
+function revealTab(){ const on=document.querySelector('#tabs .tab.on'); if (on && on.scrollIntoView) on.scrollIntoView({inline:'nearest', block:'nearest'}); }
 // A step is only marked done from what the page can see, never from clicks or navigation.
 function updateTabBadges(){
   const inDoc=state.rows.filter(r=>r.count);
@@ -3577,7 +3601,7 @@ function renderBatch(){
   box.innerHTML=`${B.stale?`<div class="notice warn" role="status">${icon('alert-triangle')}<span>The template changed after this test. Run it again for the current result.</span></div>`:''}
     <p class="bt-sum"><span class="ok">${icon('check-circle')}${ok} fine</span>${bad?`<span class="warn">${icon('alert-triangle')}${bad} to look at</span>`:''}</p>
     <p class="bt-meta">${B.done} employee${B.done>1?'s':''} tested in ${(B.ms/1000).toFixed(1)} s${B.cancelled?' (stopped early)':''}.${realLine?` ${realLine}`:''}</p>
-    ${bad?'':`<div class="ck-ok">${icon('check-circle')}<div><b>No problems found</b><p>Every employee's letter filled without a problem. Still preview one PDF in CompUp before generating the cycle.</p></div></div>`}
+    ${bad?'':`<div class="ck-ok">${icon('check-circle')}<div><b>No problems found</b><p>Every employee's letter filled without a problem. Before generating the cycle, preview one employee's PDF in CompUp.</p></div></div>`}
     <div id="batchTable">${batchTableHtml(B)}</div>
     ${groups.length?`<h3 class="bt-h">What went wrong</h3><ul class="checks">${groups.map(groupHtml).join('')}</ul>`:''}`;
   $('#btnBatchCsv').hidden=!groups.length;
@@ -3799,8 +3823,8 @@ async function aiSuggestTags(){
 function renderAiTagsBar(){
   const bar=$('#aiTagsBar'); if (!bar) return;
   if (!server.ok){ bar.hidden=true; return; }
+  if (!aiReady()){ bar.innerHTML=''; bar.hidden=true; return; }
   bar.hidden=false;
-  if (!aiReady()){ bar.innerHTML=`<span class="hint">Claude can suggest tags here once your API key is set up. See <b>Ask Claude</b> in the Validate step.</span>`; return; }
   const a=state.ai||{};
   bar.innerHTML=`<button class="btn small ai-btn" id="aiTags" type="button"${state.aiBusy?' disabled':''}${state.aiBusy==='tags'?' aria-busy="true"':''}>${state.aiBusy==='tags'?'Asking Claude…':`${icon('tag')}Suggest tags with Claude`}</button><span class="hint">Uses the letter's wording, table headings and your data's column names.</span>
     ${a.tagErr?`<p class="err-msg">${esc(a.tagErr)}</p>`:''}${a.tagNotes&&a.tagNotes.length?`<ul class="ai-notes">${a.tagNotes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}`;
@@ -3810,9 +3834,11 @@ function renderAi(){
   const box=$('#aiBody'); const a=state.ai||{}; const info=(server.info&&server.info.assistant)||{};
   $('#aiStats').textContent = aiReady() ? (info.model||'') : 'not set up';
   if (!aiReady()){
-    box.innerHTML=`<p class="hint">Claude can review this template, suggest tags, write conditions from a sentence and answer questions about the letter, using your own Anthropic API key.</p>
-      <ol class="ai-setup"><li>In the <code>letter-studio</code> folder, create a file named <code>.env</code> (PyCharm: right-click the folder → New → File).</li><li>Put this line in it, with your key from console.anthropic.com: <code>ANTHROPIC_API_KEY=sk-ant-…</code></li><li>Restart Letter Studio (stop it, then run it again) and refresh this page.</li></ol>
-      <p class="hint">The .env file stays on your computer; git ignores it, so the key never goes to GitHub.</p>`;
+    const wasOpen=!!box.querySelector('details.ai-setup-d[open]');
+    box.innerHTML=`<p class="hint">Claude can review this letter once it's set up.</p>
+      <details class="ai-setup-d"${wasOpen?' open':''}><summary>Set up Claude (for whoever runs this tool)</summary>
+      <ol class="ai-setup"><li>In the <code>letter-studio</code> folder, create a file named <code>.env</code> (PyCharm: right-click the folder, then New, then File).</li><li>Put this line in it, with your key from console.anthropic.com: <code>ANTHROPIC_API_KEY=sk-ant-…</code></li><li>Restart Letter Studio (stop it, then run it again) and refresh this page.</li></ol>
+      <p class="hint">The .env file stays on your computer; git ignores it, so the key never goes to GitHub.</p></details>`;
     return;
   }
   const lab={fix:'Fix', check:'Check', idea:'Idea'}, lvl={fix:'error', check:'warn', idea:'info'};
@@ -4510,7 +4536,7 @@ function runChecks(an, st){
   if (st.joined) add('fixed', `Joined ${st.joined} tag${st.joined>1?'s':''} typed over two or more lines (Enter or Shift+Enter inside the braces) into one line. The engine reads them the same way; this only makes them safe to check and preview.`);
   if (st.ampFixed) add('fixed', `Wrote &amp;, &lt; and &gt; inside quotes as <code>\\u0026</code>, <code>\\u003c</code> and <code>\\u003e</code> in ${st.ampFixed} tag${st.ampFixed>1?'s':''}, so a value like “R&amp;D” matches whichever way the engine reads the .docx. Jinja turns them back into the same characters.`);
   if (st.fixedQ) add('fixed', `Straightened curly quotes or dashes inside ${st.fixedQ} tag${st.fixedQ>1?'s':''}.`);
-  if (st.hiddenRows) add('info', `${st.hiddenRows} table row${st.hiddenRows>1?'s':''} will be left out when the value is empty or 0. The <code>{% if %}</code> sits at the end of the row above and <code>{% endif %}</code> at the end of the row. Preview the PDF for an employee with a missing component.`);
+  if (st.hiddenRows) add('info', `${st.hiddenRows} table row${st.hiddenRows>1?'s':''} will be left out when the value is empty or 0. The <code>{% if %}</code> sits at the end of the row above and <code>{% endif %}</code> at the end of the row. Check an employee with a missing component in Employee preview, then preview their PDF in CompUp.`);
   if (st.filled) add('fixed', `Filled ${st.filled} empty table cell${st.filled>1?'s':''} with tags.`);
   for (const t of state.tables){ if (!t.enabled) continue; const c=tableCounts(t); if (c.all>c.done) add('warn', `Table ${t.n}: ${c.all-c.done} empty cell${c.all-c.done>1?'s have':' has'} no tag and will stay blank.`); }
   if (st.fields) add('fixed', `Converted ${st.fields} Word merge field${st.fields>1?'s':''} to plain text so they can be tagged.`);
@@ -4522,7 +4548,7 @@ function runChecks(an, st){
   let ins=0, del=0;
   for (const part of state.parts){ const d=an.docs[part.path]; ins+=d.getElementsByTagNameNS(W,'ins').length; del+=d.getElementsByTagNameNS(W,'del').length; }
   if (ins+del) add('warn', 'The letter has tracked changes. Accept or reject them all and turn Track Changes off before uploading to CompUp.');
-  if (state.comments) add('info', 'The letter has Word comments. CompUp ignores them and they may be dropped from the PDF.');
+  if (state.comments) add('info', 'The letter has Word comments. CompUp ignores them and they may be dropped from the PDF it makes.');
 
   const localVars=new Set();
   const stacks={}; const unknown=new Set(); const upper=new Set();
@@ -4539,7 +4565,7 @@ function runChecks(an, st){
       const node=p.model.nodes.find(n=>m.index>=n.start && m.index<n.start+n.len);
       if (p.textbox) add('error', `<code>${esc(tag.slice(0,60))}</code> is inside a text box. CompUp can't fill tags there; move it to a normal paragraph or table.`, null, [tag]);
       else if (node && ancestor(node.node,['sdtContent'])) add('warn', `<code>${esc(tag.slice(0,60))}</code> is inside a content control. Remove the control and keep plain text.`, null, [tag]);
-      if (p.kind==='header' || p.kind==='footer') add('info', `There are tags in the ${p.kind}. They are filled like the rest of the letter; check the ${p.kind} once in a CompUp PDF.`, null, [tag]);
+      if (p.kind==='header' || p.kind==='footer') add('info', `There are tags in the ${p.kind}. They are filled like the rest of the letter; check the ${p.kind} once in Employee preview, then in a PDF previewed in CompUp.`, null, [tag]);
       if (p.kind==='notes') add('warn', 'Tags in footnotes or endnotes depend on the renderer. Test before going live.', null, [tag]);
       if (tag.startsWith('{#')) continue;
       { const why=tagSyntaxProblem(tag); if (why) add('error', `${esc(why)} <code>${esc(tag.slice(0,90))}</code>`, tagSyntaxFix(tag), [tag]); }
@@ -4597,12 +4623,12 @@ function runChecks(an, st){
   if (fixedAmt.size) add('info', `${fixedAmt.size} tag${fixedAmt.size>1?'s print':' prints'} a fixed amount typed into the tag rather than a field: ${[...fixedAmt].slice(0,3).map(x=>`<code>${esc(x.slice(0,90))}</code>`).join(', ')}. Fine if it's the same for everyone; otherwise use the field.`, null, [...fixedAmt]);
   if (ampLit.size) add('warn', `${ampLit.size} tag${ampLit.size>1?'s have':' has'} &amp;, &lt; or &gt; inside quotes: ${[...ampLit].slice(0,3).map(x=>`<code>${esc(x.slice(0,80))}</code>`).join(', ')}. The .docx stores them as &amp;amp;, &amp;lt; or &amp;gt;, and some engines compare against that text, so a value like “R&amp;D” may never match. Inside the quotes, write <code>\\u0026</code> for &amp;, <code>\\u003c</code> for &lt; and <code>\\u003e</code> for &gt;.`, null, [...ampLit]);
   if (floatPrint.size) add('info', `${floatPrint.size} tag${floatPrint.size>1?'s print':' prints'} a decimal number such as 1234567.0 in CompUp, because the result comes from <code>| float</code>, <code>| round</code> or <code>/</code>. End ${floatPrint.size>1?'them':'it'} with <code>| int</code> or a comma filter: ${[...floatPrint].slice(0,3).map(x=>`<code>${esc(x)}</code>`).join(', ')}`, null, [...floatPrint]);
-  if (trimless.size) add('info', `${trimless.size} logic tag${trimless.size>1?'s sit':' sits'} on a line of its own without the <code>-</code> trim marks, so that line stays blank in the PDF: ${[...trimless].slice(0,3).map(x=>`<code>${esc(x)}</code>`).join(', ')}`, {label:'Add trim marks', fn:()=>fixTrimless([...trimless])}, [...trimless]);
+  if (trimless.size) add('info', `${trimless.size} logic tag${trimless.size>1?'s sit':' sits'} on a line of its own without the <code>-</code> trim marks, so that line stays blank in the letter CompUp turns into a PDF: ${[...trimless].slice(0,3).map(x=>`<code>${esc(x)}</code>`).join(', ')}`, {label:'Add trim marks', fn:()=>fixTrimless([...trimless])}, [...trimless]);
   for (const id of upper) add('error', `<code>${esc(id)}</code> has capital letters. Tags are case sensitive; CompUp tags are lower case.`, null, tagsOf([id]));
   if (unknown.size) add('info', `Not in the standard tag list: ${[...unknown].slice(0,12).map(x=>`<code>${esc(x)}</code>`).join(', ')}${unknown.size>12?'…':''}. Fine for plan parameters or custom columns; otherwise check the spelling.`, null, tagsOf(unknown));
   const moneyPlain = state.rows.filter(r=>r.enabled && r.count && isMoney(r.key) && effFormat(r)==='none' && r.override==null).length;
   if (moneyPlain) add('info', `${moneyPlain} money value${moneyPlain>1?'s print':' prints'} without commas (e.g. 1200000). Choose a comma format if the letter should show 12,00,000.`);
-  if (!out.some(x=>x.level==='error')) add('info', `${total} tag${total===1?'':'s'} in the template. Preview the PDF on one edge-case employee in CompUp before generating the cycle.`);
+  if (!out.some(x=>x.level==='error')) add('info', `${total} tag${total===1?'':'s'} in the template. Check one edge-case employee in Employee preview, then preview their PDF in CompUp before generating the cycle.`);
   const rank={error:0,warn:1,fixed:2,info:3}; out.sort((a,b)=>rank[a.level]-rank[b.level]);
   for (const x of out) x.locs=locateTags(x.tags);
   return out;
@@ -4638,7 +4664,8 @@ function tagOptions(){
     .forEach(k=>opts.push(`<option value="${k}">Pattern · edit the name</option>`));
   dl.innerHTML=opts.join('');
 }
-const KIND_TITLE={'Brackets':'Bracket placeholder','Merge field':'Word merge field','Blank':'Blank to fill','Highlight':'Highlighted text','CSV':'Found from your CSV','Sample value':'Sample value from your CSV','Added':'Added by you'};
+const KIND_TITLE={'Brackets':'Bracket placeholder','Merge field':'Word merge field','Blank':'Blank to fill','Highlight':'Highlighted text','CSV':'Found from your CSV','Sample value':'Text that matches a value in your data file','Added':'Added by you'};
+const KIND_SHOW={"Sample value":"Matches your data"};   // shown text only; r.kind keeps its internal value
 function confText(r, noHow){
   const st=rowStatus(r);
   if (st==='off') return '<span class="lvl">Skipped</span> · left as typed';
@@ -4676,7 +4703,7 @@ function rowInner(r){
   return `<button class="row-main" type="button"${state.tagSel===r.id?' aria-current="true"':''}>
     ${statusMark(st)}
     <span class="row-body"><span class="find">${esc(r.find)}</span><span class="row-sum">${rowSumHtml(r)}</span></span>
-    <span class="row-side"><span class="kind" title="${esc(KIND_TITLE[r.kind]||r.kind)}">${esc(r.kind)}</span>${n?`<span class="count">${n}</span>`:''}</span>
+    <span class="row-side"><span class="kind" title="${esc(KIND_TITLE[r.kind]||r.kind)}">${esc(KIND_SHOW[r.kind]||r.kind)}</span>${n?`<span class="count">${n}</span>`:''}</span>
     <span class="twist" aria-hidden="true">${icon('chevron-right')}</span>
   </button>`;
 }
@@ -5428,7 +5455,7 @@ async function rowClick(e){
   if (t.closest('.row-main')){ const was=state.tagSel===id; if (openTagInspector(id, {key:e.detail===0})) locateRow(id, was); return; }
   if (t.closest('.add-key')){ const k=li.querySelector('.key'); k.value=k.value.replace(/[\s+]+$/,'')+' + '; k.focus(); k.setSelectionRange(k.value.length, k.value.length); comboOpen(k); return; }
   if (t.closest('button.ok')){ recordUndo(); edit(id,{reviewed:true}); refreshRow(id); renderPaper(); scheduleBuild(); nextReview(id); return; }
-  if (t.closest('.locate')){ locateRow(id, true); return; }
+  if (t.closest('.locate')){ ckSeeSide(); locateRow(id, true); return; }
   if (t.closest('.reset')){ recordUndo(); const ed=state.edits[id]; if (ed) delete ed.override; const r=state.rows.find(x=>x.id===id); r.override = r.csv && r.csv.override && !(ed&&'key' in ed) ? r.csv.override : null; refreshRow(id); renderPaper(); scheduleBuild(); return; }
   if (t.closest('.insp-prev') || t.closest('.insp-next')){ const nb=navNeighbors(id); const to=t.closest('.insp-prev') ? nb.prev : nb.next; if (to){ openTagInspector(to); locateRow(to, false); scrollListTo(to); } return; }
   if (t.closest('.insp-done')){ closeTagInspector(true); return; }
@@ -5819,7 +5846,7 @@ $('#mergeBody').addEventListener('input', e=>{ const mb=state.mergeB; if (!mb) r
 $('#mergeBody').addEventListener('click', e=>{ if (e.target.id==='mgApply') applyMerge(); if (e.target.id==='mgClear'){ state.mergeB=null; renderMerge(); } });
 // save & share
 $('#btnSetupSave').addEventListener('click', ()=>offer((state.fileName.replace(/\.docx$/i,'')||'letter')+'-tagger-setup.json', JSON.stringify(exportSetup())));
-$('#inSetup').addEventListener('change', async ()=>{ const f=$('#inSetup').files[0]; $('#inSetup').value=''; if (!f) return; if (!state.an){ $('#setupReport').textContent='Open the client letter first, then load its setup file.'; return; } try{ const r=importSetup(JSON.parse(await f.text())); $('#setupReport').textContent=setupReportText(r); toast('Setup loaded.'); }catch(err){ $('#setupReport').textContent=/JSON/.test(err.message)?"That file isn't a setup file.":err.message; } });
+$('#inSetup').addEventListener('change', async ()=>{ const f=$('#inSetup').files[0]; $('#inSetup').value=''; if (!f) return; if (!state.an){ $('#setupReport').textContent='Open the client letter first, then load its setup file.'; toast('Choose the client letter first, then load its setup file.'); return; } try{ const r=importSetup(JSON.parse(await f.text())); $('#setupReport').textContent=setupReportText(r); toast('Setup loaded.'); }catch(err){ $('#setupReport').textContent=/JSON/.test(err.message)?"That file isn't a setup file.":err.message; } });
 $('#teamBody').addEventListener('change', e=>{ if (e.target.id==='teamClient'){ setTeamClient(e.target.value); renderTeam(); } if (e.target.id==='teamUse' && state.team){ state.team.use=e.target.checked; lsSet('lt.team.use', e.target.checked); analyze(); fullRefresh(); } });
 $('#teamBody').addEventListener('click', async e=>{
   const id=e.target.id;
@@ -6750,6 +6777,7 @@ $('#btnSample').addEventListener('click', async ()=>{
 });
 initNeedLetter(); pickify(); renderDocRow(); renderCsvInfo(); syncEmptyState(); renderFirstRun();
 initTeam(); syncSettingsUI(); updateUndoButtons(); setTab('doc'); renderLegend(); renderSaveState(); updateTabBadges();
+window.addEventListener('load', revealTab);
 probeServer().then(renderFirstRun);
 </script>
 
