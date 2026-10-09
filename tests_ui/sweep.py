@@ -145,18 +145,22 @@ class Sweep:
 
     async def load_letter(self, name):
         self.doing = f"loading {name}"
+        was_sample = await self.pg.evaluate("()=>!!window.__lt.state.isSample")
         await self.pg.set_input_files("#inDoc", str(name if Path(name).is_absolute() else FIX / name))
-        await self.confirm_replace()
+        if await self.confirm_replace() and was_sample:
+            self.fail("opening a letter while the unchanged sample was open asked 'Replace the open letter?'")
         await self.settle(1500)
         rb = self.pg.locator("#rbDismiss")
         if await rb.count() and await rb.is_visible():
             await rb.click()
 
     async def confirm_replace(self):
-        """Opening a letter while one with changes is open asks first: say yes."""
+        """Opening a letter while one with changes is open asks first: say yes. Returns whether the window appeared."""
         await self.settle(300)
         if await self.pg.locator("#dlg[open]").count():
             await self.pg.locator("#dlgOk").click()
+            return True
+        return False
 
     async def replace_dialog(self):
         """With changes in the open letter, loading another asks first; Cancel and Esc must keep the open one."""
@@ -273,6 +277,8 @@ class Sweep:
         await self.settle(2500)
         if name.startswith("broken") and not await self.pg.locator("#checks li.ck.error").count():
             self.fail(f"{name}: the check found no problems in a template that has some")
+        if name.startswith("broken"):
+            await self.broken_template_checks(name)
         locs = self.pg.locator("#checks .loc")
         for k in range(min(3, await locs.count())):
             if await locs.nth(k).is_visible():
@@ -306,6 +312,90 @@ class Sweep:
                 await fixes.nth(0).click()
                 await self.settle(800)
                 await self.close_overlays()
+
+    async def broken_template_checks(self, name):
+        """Margin flags open their finding, its one-click fix removes it from the list, and the export checklist shows the errors."""
+        pg = self.pg
+        self.doing = f"margin flags and export checklist in {name}"
+        rows = await pg.evaluate("""()=>[...document.querySelectorAll('#exportSummary li.rd')].map(li=>({kind:li.className, label:(li.querySelector('.rd-label')||{}).textContent||''}))""")
+        if not any("rd-err" in r["kind"] and r["label"] == "Validate" for r in rows):
+            self.fail(f"{name}: Preview & export doesn't show Validate as a problem")
+        if any("rd-ok" in r["kind"] and r["label"] == "Validate" for r in rows):
+            self.fail(f"{name}: Preview & export says Validate is fine for a template with errors")
+        flags = pg.locator("#paper .mflag")
+        n = await flags.count()
+        if not n:
+            self.fail(f"{name}: no margin flags on the letter, though the check found problems")
+            return
+        fixed = False
+        for k in range(min(n, 8)):
+            await pg.locator("#paper .mflag").nth(k).click()
+            await self.settle(400)
+            if not await pg.locator("#issueInspector").is_visible():
+                self.fail(f"{name}: clicking margin flag {k + 1} didn't open the issue panel")
+                return
+            fix = pg.locator("#issueInspector [data-fix]")
+            if not await fix.count():
+                continue
+            key = await pg.evaluate("()=>window.__lt.state.insp && window.__lt.state.insp.key")
+            await fix.first.click()
+            await self.settle(1500)
+            still = await pg.evaluate("(k)=>[...document.querySelectorAll('#checks li.ck-i')].some(li=>li.dataset.ik===k)", key)
+            if still:
+                self.fail(f"{name}: the one-click fix in the issue panel left its finding in the Validate list")
+            fixed = True
+            break
+        if not fixed:
+            self.fail(f"{name}: none of the first margin flags offered a one-click fix")
+
+    async def tag_badges(self, letter):
+        """The Tags step badge follows what the page can see: not done while a placeholder needs a tag, and the count is right."""
+        info = await self.pg.evaluate("""()=>{
+          const rows=state.rows.filter(r=>r.count);
+          const need=rows.filter(r=>['need','check'].includes(rowStatus(r))).length + state.tables.reduce((s,t)=>{ if (!t.enabled) return s; const c=tableCounts(t); return s+c.all-c.done; },0);
+          return {need, hasNeed: rows.some(r=>rowStatus(r)==='need'), done: document.querySelector('#tab-tags').classList.contains('done'), n: document.querySelector('#nTags').textContent.trim()};
+        }""")
+        if info["hasNeed"] and info["done"]:
+            self.fail(f"{letter}: the Tags step is marked done while a placeholder still needs a tag")
+        if info["n"] != (str(info["need"]) if info["need"] else ""):
+            self.fail(f"{letter}: the Tags step badge says '{info['n']}' but {info['need']} placeholders need a tag or a check")
+
+    async def tag_inspector(self, letter):
+        """Open a placeholder, click through everything in its panel, then check the step badge."""
+        self.doing = f"placeholder panel in {letter}"
+        await self.tab("tags")
+        # earlier clicking may have collapsed a section (the choice is remembered): open them again
+        await self.pg.evaluate("()=>document.querySelectorAll('.block.collapsed').forEach(b=>setBlockCollapsed(b,false))")
+        row = self.pg.locator("#rows .row-main")
+        if await row.count():
+            await row.first.click()
+            await self.settle(400)
+            await self.click_all("#tagInspector", limit=12)
+        await self.tag_badges(letter)
+
+    async def condition_roundtrip(self):
+        """Every test the condition builder offers writes a condition that reads back unchanged and runs in the preview engine."""
+        self.doing = "condition builder round trip"
+        bad = await self.pg.evaluate("""async ()=>{
+          const L=window.__lt, out=[];
+          const texts=['yes','A+',"O'Neil",'say "hi"','R&D, Ops','  two  words  ','back'+String.fromCharCode(92)+'slash','é, ü'];
+          const nums=['3','12,00,000','-1.5'];
+          const one=async (cb,label)=>{
+            const e=L.cbExpr(cb); if (!e){ out.push(label+': wrote nothing'); return; }
+            const back=L.cbParse(e);
+            if (!back || L.cbExpr(back)!==e) out.push(label+': did not read back: '+e);
+            const r=await L.cbEmployee(e); if (r.error) out.push(label+': the preview engine failed: '+r.error+' in '+e);
+          };
+          for (const [op] of CB_OPS){
+            const vals = CB_NOVAL.has(op) ? [''] : CB_NUM[op] ? nums : texts;
+            for (const v of vals) await one({rules:[{field:'employee_schema.rating', op, value:v}], join:'and', raw:null}, op+' '+JSON.stringify(v));
+          }
+          for (const join of ['and','or'])
+            await one({rules:[{field:'employee_schema.rating', op:'is', value:"O'Neil"},{field:'custom_schema.pay', op:'gt', value:'3'}], join, raw:null}, 'two rules '+join);
+          return out;
+        }""")
+        for b in bad:
+            self.fail("condition builder: " + b)
 
     async def para_condition(self):
         """Click a paragraph, build a condition with the first value from the data, apply it."""
@@ -418,6 +508,8 @@ class Sweep:
         if len(data) > 1:
             await self.load_data(data[0], extra=True)
         await self.para_condition()
+        if Path(letter).name == "letterA.docx":
+            await self.tag_inspector(letter)
         for t in TABS:
             await self.tab(t)
             await self.click_all(f"#panel-{t}", limit=25 if self.quick else 60)
@@ -474,6 +566,7 @@ async def main():
             for letter in letters:
                 await sw.letter_round(letter, data)
             await sw.replace_dialog()
+            await sw.condition_roundtrip()
             await sw.mail_merge()
             for name in TAGGED:
                 await sw.check_tagged(name)
