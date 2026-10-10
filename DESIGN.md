@@ -16,9 +16,9 @@ colors:
   teal-deep: "#095C50"
   teal-wash: "#E0F0EB"
   on-teal: "#FFFFFF"
-  tag-ink: "#2E3B36"
-  tag-wash: "#EEF2F0"
-  tag-line: "#D3DBD7"
+  tag-ink: "#7A4300"
+  tag-wash: "#FFF2D9"
+  tag-line: "#EDCB8A"
   highlighter: "#FFF0A3"
   highlighter-ink: "#3A3200"
   flag-red: "#B42318"
@@ -265,7 +265,7 @@ A desaturated green-grey desk with one teal accent and five signal colours; ever
 - **Filing Grey** (#58665F): secondary text, icons, placeholder text, unselected step labels.
 - **Hairline** (#DCE2DE) and **Hairline Soft** (#E9EEEB): every border and divider; soft is for rows inside a list, hairline for control and panel edges. Soft also serves as the hover wash on rows and quiet buttons.
 - **Paper** (#FFFFFF) with **Paper Ink** (#1B1B1B) and **Paper Line** (#E1E4E2): the letter's own page, table borders and part outlines. Kept separate from the panel so the letter can be recoloured on its own.
-- **Tag Ink** (#2E3B36) on **Tag Wash** (#EEF2F0) with **Tag Line** (#D3DBD7): the neutral pill that holds a Jinja tag.
+- **Tag Ink** (#7A4300) on **Tag Wash** (#FFF2D9) with **Tag Line** (#EDCB8A); dark #FFC873 on #3A2A0E with #6B4B17: the yellow pill that holds a Jinja tag, so tags stand apart from the letter's own text at a glance.
 - **Highlighter** (#FFF0A3) with ink #3A3200: the yellow marker that shows text still needing a tag, as in the client's own Word highlighting.
 
 ### Signal flags
