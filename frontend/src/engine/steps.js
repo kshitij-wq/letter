@@ -1,8 +1,8 @@
 // Moved from frontend_src/letter-tagger.html — see tests_ui/legacy for the reference page. No DOM rendering in this module.
 import { build } from './build.js'
 import { csvRows } from './data.js'
-import { emit, notify } from './events.js'
-import { refreshPreview } from './pipeline.js'
+import { emit, notify, on, toast } from './events.js'
+import { PV_MAX, previewPicker, refreshPreview, templateIdentifiers } from './pipeline.js'
 import { rowStatus } from './rows.js'
 import { server } from './server.js'
 import { state } from './state.js'
@@ -118,3 +118,31 @@ export function setView(v){
   if (v==='filled'){ state.pv=state.pv||{}; refreshPreview(); }
   notify();
 }
+
+/* ---- the Document step's letter row and the employee preview bar, as plain data ---- */
+// what the Client letter row says about the open letter (was renderDocRow)
+export function letterSummary(){
+  if (!state.an) return null;
+  const paras=state.an.paras.filter(p=>!p.fallback && p.model.text.trim()).length;
+  const hf=state.parts.filter(x=>x.kind==='header'||x.kind==='footer').length;
+  const tags=state.an.existingTags||0;
+  return {name:state.fileName, isSample:!!state.isSample, paras, headerFooter:hf, tags, empty:!paras,
+    text: !paras ? 'No text found in this letter' : [`${paras} paragraph${paras===1?'':'s'}`, hf?`${hf} header/footer part${hf>1?'s':''}`:'', tags?`${tags} tag${tags>1?'s':''} already in it`:'no tags yet'].filter(Boolean).join(' · ')};
+}
+// a letter with no text in it says so once, when it is opened
+on('loaded', ()=>{ const s=letterSummary(); if (s && s.empty) toast("There is no text in that letter. Check it's the right file."); });
+
+// the bar above the Employee preview: where the values come from, who is shown, how the filled letter looks (was renderPvBar)
+export function previewBarInfo(){
+  const rows=csvRows(); const pv=state.pv||{}; const iss=pv.issues||[];
+  const errs=iss.filter(x=>x.level==='error').length, warns=iss.filter(x=>x.level==='warn').length;
+  const pk=previewPicker();
+  const hasIssues=!!(iss.length || pv.error);
+  const used = rows.length ? [...templateIdentifiers().keys()].filter(id=>(pv.sampled||new Set()).has(id)).length : 0;
+  const status = pv.loading ? 'loading' : pv.error ? 'error' : errs ? 'bad' : warns ? 'meh' : 'good';
+  const count = !rows.length ? '' : pk.matches!=null ? `${pk.matches} of ${rows.length} match${pk.matches&&pk.pos>=0?` · Employee ${pk.pos+1} of ${pk.matches}`:''}` : `Employee ${state.pvIdx+1} of ${rows.length}${pk.list.length>PV_MAX?` · listing the first ${PV_MAX.toLocaleString('en-US')}, search to find the rest`:''}`;
+  return {real:rows.length>0, csvName:state.csv?state.csv.name:'', csvNoRows:!!state.csv && !rows.length, rows:rows.length, query:rows.length?(state.pvQuery||''):'',
+    index:state.pvIdx||0, picker:pk, count, canStep:pk.canStep, status, errs, warns, hasIssues, open: hasIssues && (!!state.pvIssuesOpen || !!pv.error),
+    error: pv.error||null, issues: iss.slice(0,6), moreIssues: Math.max(0, iss.length-6), usedSample:used};
+}
+export function togglePvIssues(){ state.pvIssuesOpen=!state.pvIssuesOpen; notify(); }

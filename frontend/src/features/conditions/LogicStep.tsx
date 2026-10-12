@@ -59,8 +59,8 @@ export function LogicStep() {
     if (p) { showPid(p.dataset.pid as string); p.focus({ preventScroll: true }) }
   }
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-3">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         {pr.total > 0 && (
           <div className="flex items-center gap-2">
             <Badge tone={pr.probs ? 'err' : 'ok'}>{pr.label}</Badge>

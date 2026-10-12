@@ -71,8 +71,8 @@ export function ConfirmHost() {
       onOpenAutoFocus={(e) => { e.preventDefault(); (p?.danger ? cancel : ok).current?.focus() }}
       footer={p && (
         <>
-          <Button ref={cancel} onClick={() => settle(false)}>{p.cancelLabel ?? 'Cancel'}</Button>
-          <Button ref={ok} variant={p.danger ? 'danger' : 'primary'} onClick={() => settle(true)}>{p.confirmLabel ?? 'Continue'}</Button>
+          <Button ref={cancel} data-testid="confirm-cancel" onClick={() => settle(false)}>{p.cancelLabel ?? 'Cancel'}</Button>
+          <Button ref={ok} data-testid="confirm-ok" variant={p.danger ? 'danger' : 'primary'} onClick={() => settle(true)}>{p.confirmLabel ?? 'Continue'}</Button>
         </>
       )} />
   )

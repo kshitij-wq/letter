@@ -3,7 +3,7 @@ import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { Button, DropZone, Notice } from '@/ui'
 import { csvMetaText, loadSample } from '../../engine'
-import { DATA_ACCEPT, LETTER_ACCEPT, openData, openLetter } from '../shell/openFile'
+import { DATA_ACCEPT, LETTER_ACCEPT, openData, openLetter, openTagged, pickFile } from '../shell/openFile'
 
 const FLOW = [
   { icon: Tag, label: 'Map placeholders' },
@@ -53,6 +53,8 @@ export function FirstRun() {
       <div className="flex flex-wrap items-center justify-center gap-x-3 text-muted">
         <span>No file to hand?</span>
         <Button variant="ghost" onClick={() => loadSample()}>Open the sample letter</Button>
+        <span aria-hidden>·</span>
+        <Button variant="ghost" onClick={() => pickFile(LETTER_ACCEPT, openTagged)}>Check a tagged template…</Button>
       </div>
 
       <div className="grid gap-4 text-center">

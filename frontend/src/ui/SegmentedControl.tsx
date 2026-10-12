@@ -10,7 +10,7 @@ export function SegmentedControl<T extends string>({ value, onValueChange, items
     <ToggleGroup.Root type="single" value={value} onValueChange={(v) => { if (v) onValueChange(v as T) }} aria-label={label} loop
       className={cn('inline-flex rounded-control bg-hairline-soft p-0.5', className)}>
       {items.map((it) => (
-        <ToggleGroup.Item key={it.value} value={it.value} aria-label={it.ariaLabel}
+        <ToggleGroup.Item key={it.value} value={it.value} aria-label={it.ariaLabel} data-testid={`seg-${it.value}`}
           className={cn('inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[4px] font-medium text-muted transition-colors duration-150 hover:text-ink data-[state=on]:bg-panel data-[state=on]:text-ink data-[state=on]:shadow-key',
             size === 'sm' ? 'h-6 px-2.5 text-sm' : 'h-7 px-3 text-base')}>
           {it.icon}{it.label}

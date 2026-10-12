@@ -164,6 +164,31 @@ export function csvMetaText(c){
   const n=csvRows().length, all=c.rows.length;
   return `${n===all?all:`${n} of ${all}`} employee${all===1?'':'s'} · ${c.headers.length} columns`;
 }
+// The Document step's employee-data card as plain data (was drawn by renderCsvInfo): what the file is, how the letter uses it,
+// and the choices under it (which employees, which row, which sheet, the extra files). null when no data is loaded.
+export function dataSummary(){
+  const c=state.csv; if (!c) return null;
+  const u=state.csvUse||{used:0,alias:0,missing:[]};
+  const sheetsOf=f=>f.sheets && f.sheets.length>1 ? {names:f.sheets.slice(), current:f.sheet, book:f.book, canSwitch:wbCaches.has(f.book)} : null;
+  const kind = c.mode==='mapping' ? 'mapping' : c.mode==='keys' ? 'keys' : c.params ? 'params' : 'sample';
+  const rows=csvRows();
+  const out={name:c.name, meta:csvMetaText(c), kind, used:u.used, alias:u.alias, employees:rows.length, total:c.mode==='sample'?c.rows.length:0, sheets:sheetsOf(c), filter:null, sampleRows:null, extras:[], canAddExtra:c.mode!=='mapping', keys:c.mode==='keys'?c.keys.length:0};
+  if (kind==='sample'){
+    const fc=filterColumns(); const df=state.dataFilter;
+    if (fc.length){
+      const cur=df && fc.find(x=>x.col===df.col);
+      out.filter={columns:fc.map(x=>({col:x.col, values:x.values.map(([v,n])=>({value:v, count:n}))})), col:cur?df.col:'', value:cur?String(df.value):'', auto:!!(cur && df.auto), shown:rows.length, total:c.rows.length};
+    }
+    if (u.used) out.sampleRows={used:u.used, current:c.sampleIdx||0, options:c.rows.slice(0,200).map((r,i)=>({index:i, label:`Row ${i+2}${r[0]?' · '+String(r[0]).slice(0,24):''}`}))};
+  }
+  const mc=idCol(c);
+  for (const f of state.csvExtra||[]){
+    const isRows=f.mode==='sample'; const nRows=isRows?f.rows.length:0; const matched=isRows?extraMatchCount(f):0;
+    const ec=isRows?idCol(f):-1;
+    out.extras.push({name:f.name, kind:!isRows?'names':(nRows===1 && !matched)?'one-row':'rows', names:fileHeaders(f).length, columns:isRows?f.headers.length:0, rows:nRows, params:!!f.params, matched, employees:rows.length, matchBy: mc>=0 && ec>=0 ? String(f.headers[ec]) : '', sheets:sheetsOf(f)});
+  }
+  return out;
+}
 export const wbCaches=new Map();
 export function xlCell(v){
   if (v==null) return '';

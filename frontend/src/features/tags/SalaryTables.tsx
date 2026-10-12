@@ -156,7 +156,7 @@ export function SalaryTables() {
   if (!tables.length) return null
   const ov = tablesOverview()
   return (
-    <Section title="Salary tables" count={`${ov.done} of ${ov.all} cells tagged`} open={open} onOpenChange={setOpen}>
+    <Section id="tablesBlock" title="Salary tables" count={`${ov.done} of ${ov.all} cells tagged`} open={open} onOpenChange={setOpen}>
       <div className="flex flex-col gap-3">
         <p className="text-sm text-muted">Tables with empty amount cells. Click a cell here or in the letter, then pick a field, or type your own tag.</p>
         {tables.map((t) => <TableCard key={t.id} t={t} groups={groups} />)}

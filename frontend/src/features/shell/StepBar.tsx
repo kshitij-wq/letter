@@ -45,7 +45,7 @@ export function StepBar() {
           const on = es.tab === id
           return (
             <Tooltip key={id} content={it.title} side="bottom">
-              <Tabs.Trigger value={id} aria-label={it.label} onClick={() => revealSide(narrow)}
+              <Tabs.Trigger value={id} aria-label={it.label} data-testid={`step-${id}`} data-done={done[id] || undefined} onClick={() => revealSide(narrow)}
                 className={cn('group relative flex h-11 shrink-0 items-center gap-2 px-2.5 text-base font-semibold transition-colors duration-150 focus-visible:-outline-offset-2',
                   on ? 'text-ink' : 'text-muted hover:text-ink')}>
                 <span aria-hidden className={cn('tnum grid size-5 place-items-center rounded-full text-xs font-semibold transition-colors duration-150',
@@ -54,7 +54,7 @@ export function StepBar() {
                 </span>
                 <span className="whitespace-nowrap">{STEP_NAMES[id]}</span>
                 {it.n !== '' && it.n !== 0 && (
-                  <span aria-hidden className={cn('tnum grid h-[18px] min-w-[18px] place-items-center rounded-full px-1.5 text-xs font-semibold',
+                  <span aria-hidden data-testid="step-count" className={cn('tnum grid h-[18px] min-w-[18px] place-items-center rounded-full px-1.5 text-xs font-semibold',
                     it.err ? 'bg-err text-panel' : 'bg-warn-wash text-warn')}>{it.n}</span>
                 )}
                 <span aria-hidden className={cn('absolute inset-x-2.5 bottom-0 h-0.5 rounded-full bg-accent transition-opacity duration-150', on ? 'opacity-100' : 'opacity-0')} />

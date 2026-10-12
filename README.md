@@ -119,7 +119,7 @@ python tests_ui/sweep.py --letters my.docx --data my.xlsx   # the same with your
 ```
 
 The sweep fails on any error in the page (a crash, a failed request), so run it after
-changing `frontend_src/letter-tagger.html`. GitHub runs both on every push
+changing anything in `frontend/`. GitHub runs both on every push
 (`.github/workflows/ci.yml`), on Python 3.9 and 3.12.
 
 The test letters in `tests_ui/fixtures/` are made up. **Don't commit real client letters or
@@ -153,8 +153,8 @@ be read or filled, `500` with the details in the terminal).
 ## How it fits together
 
 ```
-frontend_src/letter-tagger.html   the page (same source as the claude.ai artifact)
-tools/build_frontend.py           wraps it into renderer/frontend/index.html with local libraries
+frontend/                         the page: a React app (Vite); src/engine = the logic, src/features = the screens
+tools/build_frontend.py           builds it into one file, renderer/frontend/index.html (also usable as a claude.ai artifact)
 renderer/engine.py                Jinja environment + CompUp filters, validate_docx, render_docx, plain-language errors
 renderer/views.py                 /, /api/health, /api/validate, /api/assist, /api/render
 renderer/assistant.py             Claude: prompts, JSON answers, plain-language API errors
@@ -164,7 +164,7 @@ tests_ui/sweep.py                 click-through test of the page
 
 The page notices it is running here (it can reach `/api/health`) and turns on the real-Jinja
 check; on claude.ai it doesn't, so one source works in both places.
-After changing `frontend_src/letter-tagger.html`, run `python tools/build_frontend.py`.
+After changing anything in `frontend/`, run `python tools/build_frontend.py` (needs Node 22).
 
 `renderer/engine.py` holds the filters `indian_comma`, `int_comma`, `format_date` and
 `currentDatetime()` as the preview assumes CompUp has them. If CompUp's differ, change
