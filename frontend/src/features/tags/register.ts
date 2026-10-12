@@ -9,7 +9,7 @@ import { TagsStep } from './TagsStep'
 import { focusCell } from './SalaryTables'
 import { showRow } from './locate'
 
-registerStep('tags', { Panel: TagsStep, hint: 'Every placeholder found in the letter, and its tag.' })
+registerStep('tags', { Panel: TagsStep, hint: 'Every placeholder in the letter and its tag. Click a word in the letter to tag it, or drag across several words.' })
 registerInspector('tag', { title: 'Placeholder', Panel: TagInspector })
 
 // a click on a placeholder in the letter: go to Tags & fields, show every placeholder, open this one

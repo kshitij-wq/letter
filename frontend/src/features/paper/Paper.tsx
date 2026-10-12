@@ -43,7 +43,30 @@ export function Paper() {
     if (ph) { firePaper('placeholder', { id: ph.dataset.row as string, el: ph }); return }
     const lg = closestIn(e.target, '[data-key]')
     if (lg) { firePaper('logic', { key: lg.dataset.key as string, el: lg }); return }
-    if (p) clickParagraph(p.dataset.pid as string, e.shiftKey)
+    if (!p) return
+    // outside the Conditions step a click picks the word under the pointer (to tag it); in Conditions it picks the paragraph
+    if (es.tab !== 'logic' && !e.shiftKey && selectWordAt(e.clientX, e.clientY, p)) return
+    clickParagraph(p.dataset.pid as string, e.shiftKey)
+  }
+
+  // select the whole word at a point and hand it to the engine, as if the user had dragged over it
+  const selectWordAt = (x: number, y: number, p: HTMLElement) => {
+    const r = document.caretRangeFromPoint?.(x, y)
+    const node = r?.startContainer
+    if (!r || !node || node.nodeType !== 3 || !p.contains(node)) return false
+    const t = node.textContent || ''
+    const isW = (c: string) => /[\p{L}\p{N}_'’&.-]/u.test(c)
+    let s = r.startOffset, en = r.startOffset
+    while (s > 0 && isW(t[s - 1])) s--
+    while (en < t.length && isW(t[en])) en++
+    while (en > s && /[.'’-]/.test(t[en - 1])) en--
+    if (en <= s) return false
+    const sel = window.getSelection(); if (!sel) return false
+    const range = document.createRange(); range.setStart(node, s); range.setEnd(node, en)
+    sel.removeAllRanges(); sel.addRange(range)
+    const txt = sel.toString().trim(); if (!txt) return false
+    selectWords(txt, selRange(sel, p))
+    return true
   }
 
   // condition lines are buttons in the markup: Enter and Space open them

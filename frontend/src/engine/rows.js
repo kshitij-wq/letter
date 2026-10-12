@@ -218,3 +218,13 @@ export function tagOpParts(op){
   if (op.type==='map') return [{t:'Rewrote '},{c:op.from.slice(0,70)},{t:' as '},{c:op.to.slice(0,70)}];
   return [{t:'Replaced '},{c:op.find},{t:' with '},{c:op.repl},{t:op.regex?' (pattern)':''}];
 }
+
+// "Custom tag" switch in the tag editor: custom cycle columns live under custom_schema. in CompUp.
+const CUSTOM = 'custom_schema.';
+function plainKey(k){ return /^[A-Za-z_][\w]*$/.test(k); }   // a bare field name (not fx:, not already in a schema, not an expression)
+export function isCustomKey(key){ const parts=keyParts(key); return parts.length>0 && parts.some(k=>k.startsWith(CUSTOM)) && parts.every(k=>k.startsWith(CUSTOM) || !plainKey(k)); }
+export function canBeCustom(key){ return keyParts(key).some(k=>k.startsWith(CUSTOM) || plainKey(k)); }
+export function setCustomKey(key, on){
+  if (!key || /\{\{|\{%/.test(key)) return key;
+  return keyParts(key).map(k=> on ? (plainKey(k) ? CUSTOM+k : k) : (k.startsWith(CUSTOM) ? k.slice(CUSTOM.length) : k)).join(' + ');
+}
