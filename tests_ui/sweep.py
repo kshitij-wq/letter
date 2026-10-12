@@ -254,6 +254,7 @@ class Sweep:
     async def replace_dialog(self):
         """With changes in the open letter, loading another asks first; Cancel and Esc must keep the open one."""
         self.doing = "replace-letter window"
+        await self.load_letter("letterA.docx")   # the unchanged sample never asks
         await self.ev("()=>window.__lt.recordUndo()")
         before = await self.ev("()=>window.__lt.state.fileName")
         for how in ("cancel", "esc"):
@@ -721,9 +722,11 @@ class Sweep:
         await self.pg.keyboard.press("Enter")
         await self.settle(200)
 
-    async def para(self, n):
+    async def para(self, n, clamp=False):
         """Click the nth paragraph that has some text (so the list of paragraphs doesn't move when tags are added)."""
         idx = await self.ev("()=>[...document.querySelectorAll('#paper p.lp.body')].map((p,i)=>[i,p.textContent.replace(/\\u00a0/g,' ').trim().length]).filter(x=>x[1]>25).map(x=>x[0])")
+        if clamp and idx:
+            n = min(n, len(idx) - 1)
         if len(idx) <= n:
             self.fail(f"the letter has only {len(idx)} paragraphs with text, wanted number {n + 1}")
             return
@@ -936,7 +939,7 @@ class Sweep:
         await self.load_letter("northwind.docx")
         await self.tab("logic")
         await self.view("source")
-        await self.para(2)
+        await self.para(2, clamp=True)
         await self.pick_field("cbf-0", "dept")
         await pg.locator("#cbv-0").fill("Finance")
         await self.add_condition_btn()
@@ -961,7 +964,7 @@ class Sweep:
             await pg.get_by_role("button", name="Place it").first.click()
             await self.settle(300)
             self.expect(await pg.locator("#placeCancel").count() == 1, "'Place it' didn't ask for a paragraph")
-            await self.para(3)
+            await self.para(3, clamp=True)
             self.expect(await self.ev("()=>window.__lt.state.unplaced.length") == n - 1, "clicking a paragraph didn't place the tag")
             if n > 1:
                 await pg.get_by_role("button", name="Discard this tag").first.click()
@@ -1235,7 +1238,7 @@ class Sweep:
             self.expect(await pg.get_by_text("fake answer").count() > 0, "Claude's answer didn't show")
         await self.view("source")
         await self.tab("logic")
-        await self.para(4)
+        await self.para(4, clamp=True)
         ask_in = pg.get_by_label("Describe the condition")
         if await ask_in.count():
             self.doing = "Claude: condition from words"
