@@ -5,6 +5,7 @@ import TOOLDEFS from '../../../renderer/agent_tools.json'
 import { ToolError, READ, applyWrite, applied, planWrite, undoApplied } from './agentTools.js'
 import { columnsForClaude, postAssist } from './claude.js'
 import { ckPlain } from './checks.js'
+import { flushEditor } from './editor.js'
 import { notify } from './events.js'
 import { lsGet, lsSet } from './helpers.js'
 import { pageLabel, computeLogic, logicRows } from './logic.js'
@@ -131,7 +132,7 @@ async function runCall(call, signal) {
   if (bad.length) { push({ kind: 'work', text: `${WORK[call.name] || 'Tried a change'} (the request was not valid)`, failed: true }); return errResult(call, `Invalid arguments: ${bad.join('; ')}.`) }
   if (!state.an) return errResult(call, 'No letter is open.')
   if (def.kind === 'read') {
-    try { const out = await READ[call.name](args); push({ kind: 'work', text: WORK[call.name] }); return okResult(call, out) }
+    try { await flushEditor(); const out = await READ[call.name](args); push({ kind: 'work', text: WORK[call.name] }); return okResult(call, out) }
     catch (e) { return toolFailure(call, e) }
   }
   // a write: show what it would do first (it is run and put back), then wait for the person unless it is narrow and auto-apply is on
@@ -161,6 +162,7 @@ async function loop() {
   try {
     for (let round = 0; round < MAX_ROUNDS; round++) {
       agentState.round = round + 1; notify()
+      await flushEditor()
       const resp = await postAssist('agent', { messages: trimHistory(agentState.messages), context: buildAgentContext() }, { signal: ac.signal })
       const content = Array.isArray(resp.content) ? resp.content : []
       if (!content.length) { agentState.error = 'Claude sent back an empty answer. Try again.'; return }

@@ -1,20 +1,22 @@
+import JSZip from 'jszip'
 import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   HISTORY, TOOLS, TOOL_BY_NAME, ToolError, WRITE, agentState, applied, applyWrite, buildAgentContext, clearConversation, decide, finalTag, ingestCsv, loadDocx, planWrite,
-  READ, rowStatus, sampleDocx, sendMessage, setAutoApply, snapState, state, stopAgent, trimHistory, validateArgs, build, computeLogic, setTab,
+  READ, rowStatus, sampleDocx, sendMessage, setAutoApply, setRowKey, snapState, state, stopAgent, trimHistory, validateArgs, build, computeLogic, setTab,
 } from './index.js'
 
 const para = (text) => state.an.paras.find((p) => !p.fallback && p.model.text.includes(text))
 const rowFor = (find) => state.rows.find((r) => r.find === find)
 const same = (a, b) => a.rest === b.rest && Object.keys(a.xml).every((k) => a.xml[k] === b.xml[k])
-const fixture = (name) => { const b = readFileSync(new URL(`../../../tests_ui/fixtures/${name}`, import.meta.url)); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) }
+const fixture = (name) => { const b = readFileSync(`${process.cwd()}/../tests_ui/fixtures/${name}`); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) }
 
 beforeEach(async () => {
   localStorage.clear(); state.learned = {}; state.learnedCells = {}
   state.csv = null; state.csvExtra = []; state.dataFilter = null
   clearConversation(); agentState.autoApply = false; applied.length = 0
   await loadDocx(await sampleDocx(), 'sample-appraisal-letter.docx', true)
+  setRowKey(rowFor('[Employee Code]').id, '')   // the sample tags itself on load: leave one placeholder without a tag
 })
 afterEach(() => { vi.restoreAllMocks(); delete globalThis.fetch })
 
@@ -209,7 +211,7 @@ describe('write tools are one undo step each', () => {
     await applyWrite('wrap_paragraphs_in_condition', { pids: [p.pid], rules: [{ field: 'employee_schema.level', op: 'is', value: 'L4' }] })
     computeLogic(); const key = state.lg.find((e) => e.kw === 'if').key
     const out = await applyWrite('update_condition', { key, rules: [{ field: 'employee_schema.level', op: 'in', value: 'L4, L5' }] })
-    expect(out.info.was).toMatch(/L4/)
+    expect(out.info.was).toMatch(/l4/i)
     expect(state.logic.some((l) => /"l4", "l5"/.test(l.text))).toBe(true)
   })
 
@@ -236,6 +238,11 @@ describe('reword keeps the tags', () => {
     expect(state.an.byPid.get(p.pid).model.text).toBe(fresh)
     for (const t of tags) expect(state.an.byPid.get(p.pid).model.text).toContain(t)
     expect(HISTORY.undo.length).toBe(depth + 1)
+    // the editor opens the letter from state.srcBuf: it has the reworded text, and gets the old one back on undo
+    const inSource = async () => (await JSZip.loadAsync(state.srcBuf)).file(state.mainPath).async('string')
+    expect(await inSource()).toContain('Greetings, ')
+    await applyWrite('undo', {})
+    expect(await inSource()).not.toContain('Greetings, ')
   })
 
   it('refuses when a tag is changed, dropped or invented, and when the paragraph moved on', async () => {
@@ -355,10 +362,10 @@ describe('the loop', () => {
     await sendMessage('tag')
     expect(rowFor('[Employee Code]').key).toBe('emp_code')
     expect(agentState.items.find((i) => i.kind === 'proposal').auto).toBe(true)
-    // on but the model did not set auto_apply, or the tool is a broad one: waits
+    // on, but a broad tool (it has no auto_apply argument): waits
     clearConversation()
     const p = para('Dear') || state.an.paras.find((x) => x.model.text.trim())
-    scripted([turn(call('wrap_paragraphs_in_condition', { pids: [p.pid], rules: [{ field: 'employee_schema.level', op: 'is', value: 'L4' }], auto_apply: true }, 'toolu_3')), turn({ type: 'text', text: 'x' })])
+    scripted([turn(call('wrap_paragraphs_in_condition', { pids: [p.pid], rules: [{ field: 'employee_schema.level', op: 'is', value: 'L4' }] }, 'toolu_3')), turn({ type: 'text', text: 'x' })])
     run = sendMessage('wrap'); expect(await waitPending()).toBeTruthy(); stopAgent(); await run
     setAutoApply(false)
   })

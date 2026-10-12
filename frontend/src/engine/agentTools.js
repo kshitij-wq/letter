@@ -10,6 +10,7 @@ import { buildCtx } from './data.js'
 import { RX_TAG, analyze, countInDoc } from './detect.js'
 import { buildModel, insertAt, paraModel, replaceRange } from './docx.js'
 import { applySwitch, sourceEdit } from './edits.js'
+import { flushEditor, syncEditorSource } from './editor.js'
 import { on, notify } from './events.js'
 import { cleanCondExpr, straighten } from './helpers.js'
 import { columnsForClaude, tableSpot } from './claude.js'
@@ -424,8 +425,9 @@ function delta(before, after) {
 /** Run a write tool. dry: show what it would do and put everything back. Otherwise it is applied as ONE undo step. */
 async function transact(name, args, dry) {
   const tool = WRITE[name]
+  await flushEditor()   // words typed in the editor go into the letter first
   const before = snapState(); const n0 = HISTORY.undo.length; const redo0 = HISTORY.redo; const group0 = HISTORY.group; const sel0 = state.sel
-  const lines0 = builtLines(); const iss0 = issueMap()
+  build(); const lines0 = builtLines(); const iss0 = issueMap()
   const rollback = () => { restoreSnap(before); HISTORY.undo.length = n0; HISTORY.redo = redo0; HISTORY.group = group0; state.sel = sel0; state.cb = null; state.condEdit = null; state.switchUi = null; notify() }
   tool.check(args)
   const msgs = []; const off = on('toast', (m) => msgs.push(String(m)))
@@ -446,7 +448,7 @@ async function transact(name, args, dry) {
   // one undo step for everything the action did
   HISTORY.undo.length = n0; HISTORY.undo.push(before); HISTORY.redo = []; HISTORY.group = ''
   applied.push({ depth: HISTORY.undo.length, summary, tool: name })
-  notify(); scheduleAutosave()
+  notify(); scheduleAutosave(); await syncEditorSource()
   let real = ''
   if (server.ok) {
     try { await Promise.race([realCheck(), new Promise((r) => setTimeout(r, 8000))]) } catch { /* the page's own checks still count */ }
@@ -465,7 +467,7 @@ const UNDO = {
     return top
   },
 }
-export async function undoApplied() { const top = UNDO.check(); undo(); applied.pop(); return { summary: `Undone: ${top.summary}` } }
+export async function undoApplied() { await flushEditor(); const top = UNDO.check(); undo(); applied.pop(); await syncEditorSource(); return { summary: `Undone: ${top.summary}` } }
 
 export async function planWrite(name, args) {
   if (name === 'undo') { const top = UNDO.check(); return { summary: `Undo: ${top.summary}`, narrow: false, diff: { removed: [], added: [], more: 0 }, new_problems: [], resolved_problems: 0 } }
