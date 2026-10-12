@@ -21,7 +21,18 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - name: Lint
         run: python -m pyflakes renderer letterstudio tools tests_ui run_local.py manage.py
-      - name: Page is built from frontend_src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Front end · types, lint, unit tests
+        run: |
+          npm --prefix frontend ci
+          npm --prefix frontend run typecheck
+          npm --prefix frontend run lint
+          npm --prefix frontend run test
+      - name: Page is built from frontend/
         run: |
           python tools/build_frontend.py
           git diff --exit-code renderer/frontend/index.html || (echo "Run python tools/build_frontend.py and commit renderer/frontend/index.html" && exit 1)
@@ -30,7 +41,7 @@ jobs:
         run: python manage.py test renderer -v 2
 
   page:
-    name: Page · click every button
+    name: Page · parity with the old page
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -40,5 +51,6 @@ jobs:
           cache: pip
       - run: pip install -r requirements-dev.txt
       - run: python -m playwright install --with-deps chromium
-      - name: Sweep
-        run: python tests_ui/sweep.py
+      # The click-through sweep is being ported to the React page; until then the new engine is held to the old page by parity.
+      - name: Parity with the old page
+        run: python tests_ui/parity.py

@@ -86,7 +86,7 @@ ignores `.env`. Each click is one API request on your account. To use another mo
    Your browser opens http://127.0.0.1:8000. Stop it with the red ■.
 
 Other run configurations: **Run tests**, **Click-through test (sweep)** and
-**Rebuild page from frontend_src**. Works in PyCharm Community and Professional.
+**Rebuild page from frontend**. Works in PyCharm Community and Professional.
 
 Without PyCharm: double-click `start_windows.bat` (Windows) or run `./start_mac_linux.sh`.
 
