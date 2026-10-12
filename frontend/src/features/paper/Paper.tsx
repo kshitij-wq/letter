@@ -24,6 +24,12 @@ export function Paper() {
   const flags = view === 'source' ? getFlags() : []
   useParagraphAccess(body, html)   // body paragraphs get tabindex + keyboard (features/conditions)
 
+  // Conditions: shift-click picks the paragraphs between two clicks. Without this the browser extends its own text selection
+  // across the paragraphs on shift-click, and that selection would be read as "words" and ignored.
+  const onMouseDown = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.shiftKey && es.view === 'source' && es.tab === 'logic' && closestIn(e.target, 'p.lp.body')) e.preventDefault()
+  }
+
   const onMouseUp = (e: MouseEvent<HTMLDivElement>) => {
     if (es.view !== 'source') return
     const sel = window.getSelection()
@@ -80,7 +86,7 @@ export function Paper() {
 
   return (
     <article id="paper" ref={sheet} tabIndex={-1} aria-label="Letter" className="paper" data-view={view} data-picking={es.closing || es.placing ? '' : undefined}>
-      <div ref={body} className="paper-body" onMouseUp={onMouseUp} onKeyDown={onKeyDown} dangerouslySetInnerHTML={{ __html: html }} />
+      <div ref={body} className="paper-body" onMouseDown={onMouseDown} onMouseUp={onMouseUp} onKeyDown={onKeyDown} dangerouslySetInnerHTML={{ __html: html }} />
       {flags.length > 0 && (
         <MarginFlags paper={sheet} flags={flags} dep={html.length}
           onSelect={(f, el) => firePaper('flag', { index: f.index, el })} />

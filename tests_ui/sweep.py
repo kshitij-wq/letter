@@ -1071,6 +1071,72 @@ class Sweep:
         await pg.get_by_role("button", name="Repeat for", exact=False).click() if await pg.get_by_role("button", name="Repeat for", exact=False).count() else None
         await self.close_overlays()
 
+        # several paragraphs at once (shift-click), one condition around all of them
+        self.doing = "condition: several paragraphs"
+        await self.close_overlays()
+        before = len(await self.logic_tags())
+        await self.para(0)
+        idx = await self.ev("()=>[...document.querySelectorAll('#paper p.lp.body')].map((p,i)=>[i,p.textContent.replace(/\\u00a0/g,' ').trim().length]).filter(x=>x[1]>25).map(x=>x[0])")
+        second = pg.locator("#paper p.lp.body").nth(idx[1])
+        await second.evaluate("e=>e.scrollIntoView({block:'center'})")
+        bb = await second.bounding_box()
+        await pg.keyboard.down("Shift")
+        await pg.mouse.click(bb["x"] + bb["width"] - 8, bb["y"] + 6)
+        await pg.keyboard.up("Shift")
+        await self.settle(400)
+        k = await self.ev("()=>window.__lt.state.sel.pids.length")
+        self.expect(k >= 2, f"shift-click should select the paragraphs between two clicks, {k} selected")
+        self.expect(await pg.get_by_text(f"{k} paragraphs", exact=False).count() >= 1, f"the panel doesn't say it is about {k} paragraphs")
+        await self.pick_field("cbf-0", "dept")
+        await pg.locator("#cbv-0").fill("Finance")
+        await self.add_condition_btn()
+        tags = await self.logic_tags()
+        self.expect(len(tags) == before + 2, f"a condition around two paragraphs should add an if and an end if, got {tags[before:]}")
+        # a click on the selected paragraph again unselects it
+        await self.close_overlays()
+
+        # the list: edit a tag by hand, move it, a click on its line in the letter, delete it
+        self.doing = "condition: edit a tag in the list"
+        lid = await self.ev("()=>{const l=window.__lt.state.logic.find(x=>x.place==='before' && /^\\{%-? *if/.test(x.text) && !x.sw); return l && l.id}")
+        if self.expect(bool(lid), "no hand-added if tag to edit in the list"):
+            li = pg.locator("[data-lg-key]").filter(has=pg.locator(f"#lgt-{lid}"))
+            await li.locator("summary").click()
+            box = pg.locator(f"#lgt-{lid}")
+            await box.fill('{% if employee_schema.rating == "Z" %}')
+            await box.press("Tab")
+            await self.settle(500)
+            self.expect(any('"Z"' in t for t in await self.logic_tags()), "editing a tag's text in the list didn't change the letter's tag")
+            pos = pg.locator(f"#lgp-{lid}")
+            if await pos.count():
+                await pos.click()
+                opts = pg.get_by_role("option")
+                n = await opts.count()
+                self.expect(n >= 2, "the position list of a tag has no choices")
+                if n >= 2:
+                    await opts.nth(1).click()
+                    await self.settle(400)
+                    self.expect(await self.ev("(id)=>window.__lt.state.logic.find(x=>x.id===id).place", lid) != "before", "choosing another position didn't move the tag")
+            before_n = len(await self.logic_tags())
+            await li.get_by_role("button", name="Delete this tag").click()
+            await self.settle(500)
+            self.expect(len(await self.logic_tags()) == before_n - 1, "Delete this tag didn't delete the tag")
+            await pg.get_by_role("button", name="Undo").click()
+            await self.settle(400)
+            self.expect(len(await self.logic_tags()) == before_n, "Undo didn't bring the deleted tag back")
+        self.doing = "condition: a click on a condition line in the letter"
+        await self.view("source")
+        await self.tab("tags")
+        line = pg.locator("#paper .lg-line", has_text="Only when").first
+        if self.expect(await line.count() >= 1, "the letter shows no line for its condition"):
+            await line.evaluate("e=>e.scrollIntoView({block:'center'})")
+            await self.settle(300)
+            await line.click()
+            await self.settle(500)
+            self.expect(await self.ev("()=>window.__lt.state.tab") == "logic", "a click on a condition line didn't open the Conditions step")
+            self.expect(await self.ev("()=>!!window.__lt.state.condEdit"), "a click on an if line didn't open Change condition")
+            await pg.get_by_role("button", name="Cancel").last.click()
+            await self.settle(300)
+
         # the list shows them all, and undo takes them back
         n = await pg.locator("[data-lg-key]").count()
         self.expect(n >= 6, f"the Conditions list shows {n} items after adding many conditions")
@@ -1430,6 +1496,7 @@ class Sweep:
             if await box.count():
                 await box.click()
                 await box.press_sequentially("Zed")
+                await box.press("Enter")
                 await self.settle(500)
                 self.expect("Zed" in await box.input_value(), "typing in a preview value lost the text")
                 self.expect(await box.evaluate("e=>document.activeElement===e"), "typing in a preview value lost the cursor")
