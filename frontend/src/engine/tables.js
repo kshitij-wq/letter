@@ -154,3 +154,26 @@ export function tableAction(t, act){
   }
   return n;
 }
+
+/* ======================= data for the salary tables screen (new: pure helpers, no DOM) ======================= */
+// all tables' cell counts: {all, done}
+export function tablesOverview(){ return state.tables.reduce((s,t)=>{ const c=tableCounts(t); return {all:s.all+c.all, done:s.done+c.done}; },{all:0,done:0}); }
+// the one-line summaries of a table's options: the formats ("Indian commas ÷ 12") and the row hiding ("hides empty rows (checks Annual)")
+export function tableSummary(t){
+  const fmt=[...new Set(t.cols.map(c=>(COL_FMTS.find(f=>f[0]===c.fmt)||COL_FMTS[0])[1].replace(/ \(tag settings\)/,'')+(c.div12?' ÷ 12':'')))].join(', ');
+  const hide=t.hide.on ? `hides empty rows (checks ${(t.cols.find(c=>c.ci===t.hide.ci)||t.cols[0]).header})` : 'shows every row';
+  return {fmt, hide};
+}
+// an example of the condition the row hiding writes: {label, expr}, or null
+export function tableHideExample(t){ const ex=t.rows.find(r=>r.hide && rowCondExpr(t,r)); return ex ? {label:ex.label, expr:rowCondExpr(t,ex)} : null; }
+// the row's "Hide if 0 / Always show" switch: {on, text, title}
+export function tableRowHide(t,r){
+  const expr=r.hide ? rowCondExpr(t,r) : '';
+  return {on:!!r.hide, text: r.hide ? (rowCondKey(t,r) ? 'Hide if 0' : 'Hide if 0 (no tag yet)') : 'Always show', title: expr ? `{% if ${expr} %}` : 'Always shown'};
+}
+// one cell of a table row as the screen shows it: {na:true} (the cell has text) or its key, tag and where the key came from
+export function tableCellView(t,row,col){
+  if (!row.empties.includes(col.ci)) return {na:true};
+  const cell=row.cells[col.ci]||{}; const tag=tCellTag(t,row,col);
+  return {na:false, key:cell.key||'', tag, edited: cell.override!=null && cell.override!=='', needs:!tag, src:SRC_LABEL[cell.src]||''};
+}

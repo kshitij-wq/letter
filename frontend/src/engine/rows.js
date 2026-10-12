@@ -1,6 +1,6 @@
 // Moved from frontend_src/letter-tagger.html — see tests_ui/legacy for the reference page. No DOM rendering in this module.
 import { noteFor } from './alias.js'
-import { CAT, CATALOG, FORMULAS, FX, isMoney } from './catalog.js'
+import { CAT, CATALOG, FORMATS, FORMULAS, FX, isMoney } from './catalog.js'
 import { tagSyntaxProblem } from './checks.js'
 import { cbFieldLabel } from './conditions.js'
 import { RX_TAG, overlaps } from './detect.js'
@@ -153,4 +153,68 @@ export function tagProblem(tag){
   if (open!==close) return "A tag has a typing mistake: it isn't closed. Every {{ needs a }} and every {% needs a %}.";
   for (const m of t.matchAll(RX_TAG)){ const why=tagSyntaxProblem(m[0]); if (why) return why; }
   return '';
+}
+
+/* ======================= data for the Tags & fields screen (new: pure helpers, no DOM) ======================= */
+// the filter chips, in order
+export const FILTERS=[['all','All'],['need','Needs a tag'],['check','To check'],['tagged','Tagged'],['cond','In a condition'],['unused','Not in letter']];
+// the numbers behind the chips and the headline ("12 of 20 tagged"); inDoc = placeholders that are in the letter
+export function inventoryStats(){
+  const inDoc=state.rows.filter(r=>r.count);
+  const by=s=>inDoc.filter(r=>rowStatus(r)===s).length;
+  const cond=condRowIds();
+  return {all:state.rows.length, inDoc:inDoc.length, need:by('need'), check:by('check'), tagged:by('tagged'), off:by('off'),
+    cond:inDoc.filter(r=>cond.has(r.id)).length, unused:state.rows.length-inDoc.length};
+}
+// one placeholder as the list shows it
+export function rowItem(r){
+  const f=rowField(r);
+  return {id:r.id, find:r.find, status:rowStatus(r), field:f, custom:!f && !!r.override, kind:r.kind, kindShown:KIND_SHOW[r.kind]||r.kind, kindTitle:KIND_TITLE[r.kind]||r.kind,
+    count: r.count && r.scope==='all' && r.count>1 ? r.count : 0, inLetter:r.count>0};
+}
+// the list the filters and the search leave
+export function inventoryItems(){ return listRows().map(rowItem); }
+// the choices for a field picker, grouped (CSV columns, team library, CompUp tags, patterns). formulas=false leaves the "fx:" formulas out.
+export function fieldPickerGroups(formulas=true){
+  const groups=[]; const byName=new Map();
+  for (const o of comboOptions()){
+    if (!formulas && o.v.startsWith('fx:')) continue;
+    let g=byName.get(o.g); if (!g){ g={heading:o.g, options:[]}; byName.set(o.g,g); groups.push(g); }
+    g.options.push({value:o.v, label:o.l||o.v, hint:o.l?o.v:undefined, keywords:[o.v, o.l||'']});
+  }
+  return groups;
+}
+// "first_name + last_name" as the list of fields it prints side by side; a single field or a typed tag is one part
+export function keySlots(key){ const k=String(key||'').trim(); if (!k) return []; return isMultiKey(k) ? keyParts(k) : [k]; }
+export function joinKey(parts){ return parts.map(x=>String(x||'').trim()).filter(Boolean).join(' + '); }
+// the key after part i is changed to value ('' removes it)
+export function setKeyPart(key, i, value){ const p=keySlots(key); if (i>=p.length) p.push(value); else p[i]=value; return joinKey(p); }
+// the pattern fields (custom_schema.column_heading ...) have a word in them that is meant to be edited
+export const PATTERN_RX=/column_heading|parameter_name|component_|factor_name/;
+export const isPatternKey=k=>PATTERN_RX.test(String(k||''));
+// the same list as the old format select, with "Auto" saying what it comes to
+export function formatOptions(r){
+  const eff=FORMATS.find(f=>f[0]===effFormat({...r,format:'auto'}));
+  return FORMATS.map(([value,label])=>({value, label: value==='auto' ? `Auto (${eff?eff[1]:'as is'})` : label}));
+}
+// a typed tag the person edited (there is a Reset for it)
+export function rowEdited(r){ return r.override!=null && !!state.edits[r.id] && 'override' in state.edits[r.id]; }
+// can the person confirm this mapping? (suggested, not yet touched)
+export function canConfirm(r){ return !userSet(r) && !!r.key && rowStatus(r)!=='off'; }
+// the old inspector note as plain text: what the status is based on
+export function rowNote(r){
+  const st=rowStatus(r);
+  if (st==='off') return 'Left as typed';
+  if (!finalTag(r)) return 'Pick one from the list or type a tag';
+  const ed=state.edits[r.id]; const us=userSet(r);
+  const lvl = us ? (ed && ed.reviewed && !('key' in ed) && !('override' in ed) ? 'Reviewed' : 'Set by you') : r.conf>=0.9 ? 'Matched' : r.conf>=0.7 ? 'Suggested' : '';
+  const bits=[]; if (lvl) bits.push(lvl); if (!us && r.how) bits.push(String(r.how));
+  const n=noteFor(r.key, us?'':r.extra); if (n) bits.push(n);
+  const t=bits.join(' · '); return t.charAt(0).toUpperCase()+t.slice(1);
+}
+// one line for a clean-up change in "Tags already in the letter": a list of {t: text} and {c: code} parts
+export function tagOpParts(op){
+  if (op.type==='rename') return [{t:'Renamed '},{c:op.from},{t:' to '},{c:op.to}];
+  if (op.type==='map') return [{t:'Rewrote '},{c:op.from.slice(0,70)},{t:' as '},{c:op.to.slice(0,70)}];
+  return [{t:'Replaced '},{c:op.find},{t:' with '},{c:op.repl},{t:op.regex?' (pattern)':''}];
 }
