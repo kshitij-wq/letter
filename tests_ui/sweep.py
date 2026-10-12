@@ -737,13 +737,16 @@ class Sweep:
         # theme
         await pg.locator("header button[aria-label^='Theme']").click()
         await pg.get_by_role("menuitemradio", name="Dark").click()
+        await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         await self.settle(200)
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") == "dark", "choosing Dark didn't set the dark theme")
         await pg.locator("header button[aria-label^='Theme']").click()
         await pg.get_by_role("menuitemradio", name="Light").click()
+        await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") == "light", "choosing Light didn't set the light theme")
         await pg.locator("header button[aria-label^='Theme']").click()
         await pg.get_by_role("menuitemradio", name="System").click()
+        await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") is None, "choosing System left a theme set")
         # the key to the marks, and back to top
         key = pg.get_by_role("button", name=re.compile(r"^Key"))
