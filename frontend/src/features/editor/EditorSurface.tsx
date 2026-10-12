@@ -4,8 +4,9 @@ import 'superdoc/style.css'
 import { Tag } from 'lucide-react'
 import { Button, toast } from '@/ui'
 import { setView } from '../../engine'
-import { editorChanged, flushEditor, registerEditor, selectEditorWords, state, unregisterEditor } from '../../engine'
-import { installTagChips } from './tagChips'
+import { editorChanged, finalTag, flushEditor, registerEditor, selectEditorWords, squash, state, subscribe, tagSyntaxProblem, unregisterEditor } from '../../engine'
+import { firePaper } from '../paper/paperEvents'
+import { installTagChips, type ChipHooks } from './tagChips'
 import './editor.css'
 
 type Sel = { text: string; para: string; before: number } | null
@@ -23,7 +24,7 @@ export default function EditorSurface() {
 
   useEffect(() => {
     if (!host.current || !bar.current || !state.srcBuf) return
-    let base: any = null, dirty = false, live = true, sd: any = null, stopChips = () => {}
+    let base: any = null, dirty = false, live = true, sd: any = null, stopChips = () => {}, chips: ReturnType<typeof installTagChips> | null = null, unsub = () => {}
     const file = new File([state.srcBuf], state.fileName || 'letter.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
     const handle = {
       exportDocx: async () => {
@@ -42,6 +43,25 @@ export default function EditorSurface() {
       if (!text || text.length > 300 || !$from.sameParent(ed.state.selection.$to)) { setSel(null); return }
       setSel({ text, para: $from.parent.textContent, before: $from.parentOffset })
     }
+    const hooks: ChipHooks = {
+      classify: (tag) => {
+        const marks = (state as any).tagMarks as Map<string, { level: string; msg: string }> | undefined
+        const bad = tagSyntaxProblem(tag) || (marks?.get(squash(tag))?.level === 'error' ? marks.get(squash(tag))!.msg : '')
+        if (bad) return { kind: 'bad', title: bad }
+        if (tag.startsWith('{%')) return { kind: 'block', title: 'Condition' }
+        if (/custom_schema\./.test(tag)) return { kind: 'custom', title: 'Custom field' }
+        return { kind: 'var', title: 'Field' }
+      },
+      onChip: (tag, el) => {
+        if (tag.startsWith('{%')) {
+          const e = (state.lg as any[]).find((x) => squash(x.text) === squash(tag))
+          if (e) firePaper('logic', { key: e.key, el })
+          return
+        }
+        const r = (state.rows as any[]).find((x) => squash(finalTag(x) || '') === squash(tag))
+        if (r) firePaper('placeholder', { id: r.id, el })
+      },
+    }
     try {
       sd = new SuperDoc({
         selector: host.current,
@@ -57,7 +77,9 @@ export default function EditorSurface() {
           // the editor settles its own document after opening: what it shows a moment later is the starting point
           setTimeout(() => { if (live) base = sd?.activeEditor?.state?.doc ?? null }, 700)
           ;(window as any).__sd = sd
-          stopChips = installTagChips(host.current!)
+          chips = installTagChips(host.current!, hooks)
+          stopChips = chips.stop
+          unsub = subscribe(() => chips?.refresh())
         },
         onEditorUpdate: ({ editor }: any) => {
           const doc = editor?.state?.doc ?? sd?.activeEditor?.state?.doc
@@ -73,7 +95,7 @@ export default function EditorSurface() {
 
     return () => {
       live = false
-      stopChips()
+      stopChips(); unsub()
       // a save in progress has to finish before the editor goes away
       flushEditor().catch(() => {}).finally(() => { unregisterEditor(handle); try { sd?.destroy() } catch { /* already gone */ } if ((window as any).__sd === sd) (window as any).__sd = null })
     }
