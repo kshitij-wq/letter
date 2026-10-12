@@ -689,6 +689,157 @@ class Sweep:
             await self.click_all(PANEL, limit=15)
         await self.close_overlays()
 
+    async def shell_flows(self):
+        """The frame: step panel width and folding, theme, Key, Back to top, palette, undo / redo buttons, Esc."""
+        pg = self.pg
+        self.doing = "the frame: panel, theme, key, palette"
+        await self.tab("tags")
+        await self.view("source")
+        sep = pg.get_by_role("separator", name="Resize panel")
+        w0 = int(await sep.get_attribute("aria-valuenow"))
+        await sep.focus()
+        await pg.keyboard.press("ArrowRight")
+        await pg.keyboard.press("ArrowRight")
+        w1 = int(await sep.get_attribute("aria-valuenow"))
+        self.expect(w1 == w0 + 40, f"ArrowRight on the panel edge should widen it by 40px ({w0} -> {w1})")
+        await pg.keyboard.press("Home")
+        self.expect(int(await sep.get_attribute("aria-valuenow")) == int(await sep.get_attribute("aria-valuemin")), "Home on the panel edge didn't give the narrowest width")
+        # a drag on the edge
+        bb = await sep.bounding_box()
+        await pg.mouse.move(bb["x"] + bb["width"] / 2, bb["y"] + 200)
+        await pg.mouse.down()
+        await pg.mouse.move(bb["x"] + 120, bb["y"] + 200, steps=6)
+        await pg.mouse.up()
+        w2 = int(await sep.get_attribute("aria-valuenow"))
+        self.expect(w2 > int(await sep.get_attribute("aria-valuemin")), f"dragging the panel edge didn't widen it ({w2})")
+        await pg.keyboard.press("End")
+        await pg.keyboard.press("Home")
+        # fold and unfold
+        await pg.get_by_role("button", name="Hide panel").click()
+        await self.settle(300)
+        self.expect(not await self.visible(PANEL), "Hide panel left the step panel showing")
+        await pg.get_by_role("button", name="Show panel").click()
+        await self.settle(300)
+        self.expect(await self.visible(PANEL), "Show panel didn't bring the step panel back")
+        # theme
+        await pg.locator("header button[aria-label^='Theme']").click()
+        await pg.get_by_role("menuitemradio", name="Dark").click()
+        await self.settle(200)
+        self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") == "dark", "choosing Dark didn't set the dark theme")
+        await pg.locator("header button[aria-label^='Theme']").click()
+        await pg.get_by_role("menuitemradio", name="Light").click()
+        self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") == "light", "choosing Light didn't set the light theme")
+        await pg.locator("header button[aria-label^='Theme']").click()
+        await pg.get_by_role("menuitemradio", name="System").click()
+        self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") is None, "choosing System left a theme set")
+        # the key to the marks, and back to top
+        key = pg.get_by_role("button", name=re.compile(r"^Key"))
+        if await key.count():
+            await key.first.click()
+            await self.settle(250)
+            self.expect(await pg.locator("[role=dialog], [data-radix-popper-content-wrapper]").count() >= 1, "the Key button opened nothing")
+            await pg.keyboard.press("Escape")
+            await self.settle(200)
+        await pg.locator("#paper-scroll").evaluate("e=>{e.scrollTop=600}")
+        await self.settle(200)
+        await pg.get_by_role("button", name="Back to top of letter").click()
+        await self.settle(900)
+        self.expect(await pg.locator("#paper-scroll").evaluate("e=>e.scrollTop") < 5, "Back to top didn't scroll the letter to the top")
+        # the palette: type a step name, Enter
+        await pg.keyboard.press("Control+k")
+        await self.settle(250)
+        await pg.keyboard.type("conditions")
+        await self.settle(250)
+        await pg.keyboard.press("Enter")
+        await self.settle(400)
+        self.expect(await self.ev("()=>window.__lt.state.tab") == "logic", "choosing 'Conditions' in the palette didn't open the step")
+        # Esc closes the inspector
+        await self.click_word(0)
+        self.expect(await self.visible("#inspector"), "selecting something opened no inspector")
+        await pg.keyboard.press("Escape")
+        await self.settle(250)
+        self.expect(not await self.visible("#inspector"), "Esc didn't close the inspector")
+        # undo and redo buttons follow the history
+        await pg.get_by_role("button", name="Undo").click() if await pg.get_by_role("button", name="Undo").is_enabled() else None
+        await pg.get_by_role("button", name="Redo").click() if await pg.get_by_role("button", name="Redo").is_enabled() else None
+
+    async def drop_and_restore(self):
+        """Files dropped on the page, and the work this browser kept for a letter that was open before."""
+        pg = self.pg
+        self.doing = "files dropped on the page"
+        await self.load_letter("letterA.docx")
+        await self.tab("doc")
+        await self.ev("()=>{const dt=new DataTransfer(); dt.items.add(new File(['x'],'x.docx')); document.querySelector('header').dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}))}")
+        await self.settle(400)
+        self.expect(await pg.locator("[data-sonner-toast]", has_text="use the Document step").count() >= 1, "a file dropped outside a drop zone didn't say where to drop it")
+        import base64
+        b64 = base64.b64encode((FIX / "letterB.docx").read_bytes()).decode()
+        await self.ev("""(b64)=>{const bin=atob(b64); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+          const dt=new DataTransfer(); dt.items.add(new File([u],'letterB.docx'));
+          const z=document.querySelector('[data-testid=step-panel] [data-dropzone]');
+          z.dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:dt}));
+          z.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}));}""", b64)
+        await self.settle(1500)
+        self.expect(await self.ev("()=>window.__lt.state.fileName") == "letterB.docx", "a letter dropped on the Document step wasn't opened")
+        # work kept in this browser comes back
+        self.doing = "restore the work kept in this browser"
+        await self.load_letter("letterA.docx")
+        await self.tab("tags")
+        box = pg.get_by_label("Other text to tag")
+        await box.fill("Annexure 1")
+        await box.press("Enter")
+        await self.settle(600)
+        await self.load_letter("northwind.docx")    # asks first: the work is flushed to the autosave
+        await self.settle(600)
+        await self.choose((await self.letter_button()).click, "letterA.docx")
+        await self.confirm_replace()
+        await self.settle(1500)
+        restore = pg.get_by_role("button", name="Restore my work")
+        self.expect(await restore.count() == 1, "opening a letter again didn't offer to restore its work")
+        if await restore.count():
+            await restore.click()
+            await self.settle(800)
+            self.expect(await self.ev("()=>window.__lt.state.rows.some(r=>r.find==='Annexure 1')"), "Restore my work didn't bring the added text back")
+
+    async def old_tags_flow(self):
+        """An older template's own tags: rename, prefix, rewrite amount tags, find and replace, undo a change."""
+        pg = self.pg
+        self.doing = "Tags: tags already in the letter"
+        await self.load_letter("oldtemplate.docx")
+        await self.tab("tags")
+        head = pg.get_by_role("button", name=re.compile("^Tags already in the letter"))
+        if not self.expect(await head.count() == 1, "an older template with tags in it shows no 'Tags already in the letter' section"):
+            return
+        if await pg.locator("input#old-prefix").count() == 0:
+            await head.first.click()
+            await self.settle(300)
+        await pg.locator("input#old-prefix").evaluate("e=>e.scrollIntoView({block:'center'})")
+        await pg.get_by_role("button", name="Add prefix").click()
+        await self.settle(500)
+        await pg.locator("input#old-prefix").evaluate("e=>e.scrollIntoView({block:'center'})")
+        self.expect(await pg.get_by_role("heading", name="Changes made").count() == 1, "Add prefix left no entry in 'Changes made'")
+        await pg.get_by_role("button", name="Rewrite").click()
+        await self.settle(500)
+        await pg.get_by_label("Find", exact=True).fill("ctc")
+        await pg.get_by_label("Replace with").fill("ctc")
+        await pg.get_by_role("button", name="Replace", exact=True).click()
+        await self.settle(500)
+        undo = pg.get_by_role("button", name="Undo this change")
+        n = await undo.count()
+        self.expect(n >= 1, "no change to undo in 'Changes made'")
+        if n:
+            await undo.first.click()
+            await self.settle(500)
+            self.expect(await pg.get_by_role("button", name="Undo this change").count() < n, "Undo this change didn't remove the change")
+        rename = pg.get_by_role("button", name=re.compile("^Rename "))
+        if await rename.count():
+            await rename.first.click()
+            await self.settle(200)
+            await pg.get_by_label(re.compile("^New name for")).first.fill("renamed_tag")
+            await pg.get_by_role("button", name="Rename", exact=True).click()
+            await self.settle(500)
+        await self.close_overlays()
+
     async def condition_roundtrip(self):
         """Every test the condition builder offers writes a condition that reads back unchanged and runs in the preview engine."""
         self.doing = "condition builder round trip"
@@ -1458,7 +1609,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab and 3 letters")
     ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables conditions export validate downloads letters replace roundtrip merge mailmerge tagged bad narrow team nobackend")
+    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables shell conditions export validate downloads letters replace drop oldtags roundtrip merge mailmerge tagged bad narrow team nobackend")
     ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
@@ -1516,8 +1667,8 @@ async def main():
                     for letter in letters[:3]:
                         await sw.load_letter(letter)
 
-            stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
-                      ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("roundtrip", sw.condition_roundtrip),
+            stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("shell", sw.shell_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
+                      ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("drop", sw.drop_and_restore), ("oldtags", sw.old_tags_flow), ("roundtrip", sw.condition_roundtrip),
                       ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
                       ("team", lambda: team_library(browser, url, sw)), ("nobackend", lambda: no_backend(browser, url, sw))]
             for name, run in stages:
