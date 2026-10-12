@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
-  addLogic, blockCountInfo, cbAddRule, cbExpr, cbFacts, cbNew, cbParse, cbPickValue, cbRemoveRule, cbRestart, cbSetField, cbToBuilder, cbToJinja,
+  addLogic, blockCountInfo, cbAddRule, cbExpr, cbFacts, cbNew, cbParse, cbPickValue, cbRemoveRule, cbSetField, cbToBuilder, cbToJinja,
   clickParagraph, closeBlockAt, computeLogic, insertIntoText, lgInsertAtCursor, lgTextForKw, lgTextWithExpr, loadDocx, logicProblems, logicRows,
   logicSay, logicTpl, logicWhere, paraSelection, pickingInfo, sampleDocx, startClosing, startPlacing, state, cancelPicking, afterLogicChange, recordUndo,
 } from './index.js'

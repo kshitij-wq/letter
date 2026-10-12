@@ -7,7 +7,7 @@ import { RX_TAG } from './detect.js'
 import { notify, toast } from './events.js'
 import { parseXml, W } from './helpers.js'
 import { loadDocx } from './load.js'
-import { exportSetup, importSetup, setupReportText } from './setup.js'
+import { exportSetup, importSetup } from './setup.js'
 import { state } from './state.js'
 
 /** What the editor view shows: status is none | unsaved | saving | saved | blocked | error. */
@@ -18,7 +18,6 @@ let running = null         // the save in progress, so a second caller waits for
 
 export const registerEditor = (h) => { handle = h; if (!h) clearTimeout(saveTimer) }
 export const unregisterEditor = (h) => { if (handle === h) handle = null }
-export const editorActive =() => !!handle
 
 /** The id the editor view reloads on: it changes only when the engine's docx changed from outside the editor. */
 export function editorSourceId() {
@@ -177,7 +176,6 @@ export async function selectEditorWords(words, paraText, before) {
   return true
 }
 
-export const editorReportText =() => (ed.lastReport ? setupReportText(ed.lastReport) : '')
 
 export function editorStatusText() {
   switch (ed.status) {

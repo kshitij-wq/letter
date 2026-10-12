@@ -79,17 +79,11 @@ export function planVersions(lists, opts={}){
     if (r.content.every(c=>c.every(b=>!b.text))) continue;   // only blank lines differ
     regions.push({...r, groups:groupRegion(r, al.order)});
   }
-  return {regions, sameCount:al.sameCount, merged:al.merged, order:al.order, base:opts.base||0};
+  return {regions, sameCount:al.sameCount, merged:al.merged, order:al.order};
 }
 
 /* ---- conditions ---- */
 export function cleanField(f){ return cleanCondExpr(f||'').replace(/^\{\{\s*|\s*\}\}$/g,'').trim(); }
-export function versionCondition(cfg, v){
-  const c=v.cond||{}; if (c.mode==='else') return '';
-  if (c.mode==='raw') return cleanCondExpr(c.raw||'');
-  const f=cleanField(cfg.field); if (!f) return '';
-  return caseCond(f, cfg.match||'text', c.value||'');
-}
 // the condition of a group of versions: all "one field decides" values in one list, typed conditions joined with "or"
 export function groupCondition(cfg, versions){
   const vs=versions.map(i=>cfg.versions[i]).filter(v=>v.cond.mode!=='else');
@@ -163,7 +157,6 @@ export function markerText(kind, cond, before=true, after=true){
   return `{% if ${cond} ${r}`;
 }
 export const branchLine=b=>markerText(b.kind, b.cond);
-export const ENDIF_LINE=markerText('endif');
 
 /* ======================= reading the files ======================= */
 const stripExt=n=>String(n).replace(/\.docx$/i,'');
@@ -201,7 +194,6 @@ export async function loadVersions(files){
   notify();
   return {added:added.length, errors};
 }
-export function combineOpen(){ if (!state.combine) state.combine={versions:[], base:0, field:'', match:'text', loose:true}; notify(); }
 export function combineCancel(){ state.combine=null; notify(); }
 export function combineRemove(id){
   const c=state.combine; if (!c) return; const i=c.versions.findIndex(v=>v.id===id); if (i<0) return;
@@ -258,7 +250,7 @@ export function combineView(){
       branches:branches&&branches.map(b=>branchLine(b)),
     };
   });
-  return {plan, problems, regions, sameCount:plan.sameCount, differ:regions.length, ready:n>=2 && !problems.length};
+  return {problems, regions, sameCount:plan.sameCount, differ:regions.length, ready:n>=2 && !problems.length};
 }
 
 /* ======================= build the combined template ======================= */
@@ -269,7 +261,7 @@ export function combineView(){
 export async function applyCombine(){
   const c=state.combine; if (!c) return false;
   const problems=validateCombine(c); if (problems.length){ toast(problems[0].text); return false; }
-  const plan=planOf(c); const base=c.versions[c.base]; const others=c.versions;
+  const plan=planOf(c); const base=c.versions[c.base];
   if (!plan.regions.length){ toast('These versions have the same text, so there is nothing to combine.'); return false; }
   try { await loadDocx(base.buf, base.name, false); } catch(e){ console.warn(e); toast(e.message); return false; }
   const st={images:0, lists:0}; let added=0, done=0;
@@ -289,7 +281,7 @@ export async function applyCombine(){
         const nodes=[marker(b.kind, b.cond)];
         if (b.group && !b.group.versions.includes(c.base)){
           const src=b.group.versions[0];
-          for (const blk of b.group.blocks){ for (const n of importBlocks(docA, others[src].blocks[blk.bi].el, st)){ nodes.push(n); added++; } }
+          for (const blk of b.group.blocks){ for (const n of importBlocks(docA, c.versions[src].blocks[blk.bi].el, st)){ nodes.push(n); added++; } }
         }
         return nodes;
       });
@@ -317,7 +309,7 @@ export async function applyCombine(){
   });
   if (res.cancel){ toast('Could not combine these versions.'); return false; }
   const report={regions:done, added, images:st.images, lists:st.lists, versions:c.versions.length, base:base.label};
-  state.combine=null; state.combineDone=report; setView('source'); setTab('logic', {open:true}); notify();
+  state.combine=null; setView('source'); setTab('logic', {open:true}); notify();
   toast(combineToast(report));
   return report;
 }
