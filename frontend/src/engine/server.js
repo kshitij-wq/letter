@@ -2,6 +2,7 @@
 import { computeChecks, identifiersIn, locateTags } from './checks.js'
 import { RX_TAG } from './detect.js'
 import { buildBlob } from './downloads.js'
+import { flushEditor } from './editor.js'
 import { notify } from './events.js'
 import { csrfToken } from './platform.js'
 import { state } from './state.js'
@@ -30,6 +31,7 @@ export async function realCheck(){
   if (!server.ok || !state.srcBuf) return;
   const seq=++server.seq; server.checking=true; computeChecks();
   try{
+    await flushEditor();
     const target=realCheckTarget();
     const blob = target==='built' ? await buildBlob() : new Blob([state.srcBuf]);
     const j=await postValidate(blob);

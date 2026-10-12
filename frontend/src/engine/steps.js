@@ -1,6 +1,7 @@
 // Moved from frontend_src/letter-tagger.html — see tests_ui/legacy for the reference page. No DOM rendering in this module.
 import { build } from './build.js'
 import { csvRows } from './data.js'
+import { saveEditor } from './editor.js'
 import { emit, notify, on, toast } from './events.js'
 import { PV_MAX, previewPicker, refreshPreview, templateIdentifiers } from './pipeline.js'
 import { rowStatus } from './rows.js'
@@ -39,6 +40,7 @@ export function setTab(t, opts){
   if (!STEPS.includes(t)) t='doc';
   const changed=state.tab!==t;
   state.tab=t;
+  if (t!=='doc' && state.view==='edit') setView('source');   // the other steps work on the letter itself, not the editor
   notify();
   emit('tab', {tab:t, changed, open:!!(opts && opts.open)});
 }
@@ -113,6 +115,7 @@ export function exportChecklist(){
 
 // the three views of the letter: source (what you tag), tagged (the template that gets downloaded), filled (one employee's letter)
 export function setView(v){
+  if (state.view==='edit' && v!=='edit') saveEditor().catch(()=>{});   // leaving the editor saves what was typed
   state.view=v;
   if (v==='tagged') build();
   if (v==='filled'){ state.pv=state.pv||{}; refreshPreview(); }

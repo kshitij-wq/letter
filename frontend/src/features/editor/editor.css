@@ -1,0 +1,15 @@
+.editor-wrap { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.editor-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 0 0 8px; }
+.editor-toolbar { flex: 1; min-width: 0; overflow-x: auto; }
+.editor-host { flex: 1; min-height: 0; overflow: auto; }
+.editor-fail { color: var(--err, #b42318); padding: 12px; }
+.editor-loading { color: var(--muted); padding: 12px; }
+
+/* The page SuperDoc draws is white in light and dark theme, so the chips use the light token values on purpose. */
+.editor-host .presentation-editor__viewport { position: relative; }
+.tag-chips { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.tag-chip { position: absolute; box-sizing: border-box; border-radius: 3px; }
+.tag-chip-var, .tag-chip-custom { background: rgba(255,200,90,.32); border: 1px solid #EDCB8A; }
+.tag-chip-block { background: rgba(100,105,210,.16); border: 1px solid #9FA2D6; }
+.tag-chip-bad { background: rgba(180,35,24,.14); border: 1px solid #B42318; }
+.tag-chip-label { position: absolute; right: 0; top: -10px; font: 600 9px/1 var(--f-ui, sans-serif); color: #7A4300; background: #FFF2D9; border: 1px solid #EDCB8A; border-radius: 3px; padding: 1px 3px; }

@@ -50,7 +50,7 @@ TAGGED = ["broken_tagged.docx", "tagged_missing_field.docx", "conditions_tagged.
 DATA = ["emps.csv", "emps.xlsx"]
 BAD_LETTERS = ["bad_not_a_docx.docx", "bad_no_body.docx", "zero_bytes.docx"]
 BAD_DATA = ["bad_empty.csv", "bad_header_only.csv", "bad.xlsx"]
-VIEWS = ["source", "tagged", "filled"]
+VIEWS = ["edit", "source", "tagged", "filled"]
 TABS = ["doc", "tags", "logic", "check", "export"]
 PANEL = "[data-testid=step-panel]"
 INSPECTOR = "#inspector"
@@ -227,7 +227,7 @@ class Sweep:
         await self.tab("doc")
         return pg.locator(PANEL).get_by_role("button", name=re.compile(r"^(Replace letter|Choose a letter)"))
 
-    async def load_letter(self, name):
+    async def load_letter(self, name, keep_edit=False):
         self.doing = f"loading {name}"
         was_sample = await self.ev("()=>!!window.__lt.state.isSample")
         btn = await self.letter_button()
@@ -236,6 +236,9 @@ class Sweep:
             self.fail("opening a letter while the unchanged sample was open asked 'Replace the open letter?'")
         await self.settle(1500)
         await self.dismiss_restore()
+        if not keep_edit:   # a letter opens in the editor; the other stages work on the client letter view
+            await self.ev("()=>window.__lt.setView('source')")
+            await self.settle(200)
 
     async def dismiss_restore(self):
         b = self.pg.get_by_role("button", name="Start fresh")
@@ -1389,7 +1392,8 @@ class Sweep:
         await self.close_overlays()
 
     async def letter_round(self, letter, data):
-        await self.load_letter(letter)
+        await self.load_letter(letter, keep_edit=True)
+        self.expect(await self.ev("()=>window.__lt.state.view") == "edit", f"{letter} did not open in the editor")
         for v in VIEWS:
             await self.view(v)
             if v == "source":
@@ -1417,6 +1421,31 @@ class Sweep:
         await self.click_all("header", limit=15)
         await self.click_all("nav[aria-label=Workflow]", limit=15)
         await self.close_overlays()
+
+    async def editor_flows(self):
+        """The Edit letter view: types, the save status, the engine's letter, undo of the editor change, Tag this text."""
+        pg = self.pg
+        await self.load_letter("northwind.docx", keep_edit=True)
+        await self.view("edit")
+        await pg.wait_for_function("()=>!!window.__sd", timeout=20000)
+        await self.settle(1200)
+        run = pg.locator(".superdoc-text-run", has_text="Please find the revised").first
+        await run.click()
+        await pg.keyboard.press("End")
+        await pg.keyboard.type(" EDITED")
+        await pg.wait_for_function("()=>window.__lt.ed.status==='saved'", timeout=15000)
+        self.expect(await self.ev("()=>window.__lt.state.an.paras.some(p=>p.model.text.includes('EDITED'))"), "the editor's text did not reach the letter")
+        undo = pg.get_by_test_id("editor-undo")
+        self.expect(await undo.count() == 1, "no 'Undo editor change' after a save")
+        await undo.click()
+        await self.settle(800)
+        self.expect(not await self.ev("()=>window.__lt.state.an.paras.some(p=>p.model.text.includes('EDITED'))"), "'Undo editor change' did not restore the letter")
+        await self.view("tagged")
+        await self.view("edit")
+        await self.settle(800)
+        await self.tab("tags")      # another step leaves the editor
+        self.expect(await self.ev("()=>window.__lt.state.view") == "source", "the Tags step stayed in the editor view")
+        await self.view("source")
 
     async def mail_merge(self):
         """A Word mail-merge letter with an employee export: the group filter, merge-field checks, and Claude."""
@@ -1689,7 +1718,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab and 3 letters")
     ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables shell conditions export validate downloads letters replace drop oldtags roundtrip merge mailmerge tagged bad narrow team nobackend")
+    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables shell conditions export validate downloads letters replace drop oldtags roundtrip editor merge mailmerge tagged bad narrow team nobackend")
     ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
@@ -1719,6 +1748,7 @@ async def main():
             await page.get_by_role("button", name="Open the sample letter").click()
             await page.wait_for_function("window.__lt.state.built", timeout=30000)
             await sw.settle(800)
+            await sw.ev("()=>window.__lt.setView('source')")
 
             async def sample_stage():
                 await sw.palette_all(limit=40)
@@ -1745,11 +1775,11 @@ async def main():
                 for v in VIEWS:
                     await sw.view(v)
                     for letter in letters[:3]:
-                        await sw.load_letter(letter)
+                        await sw.load_letter(letter, keep_edit=True)
 
             stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("shell", sw.shell_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
                       ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("drop", sw.drop_and_restore), ("oldtags", sw.old_tags_flow), ("roundtrip", sw.condition_roundtrip),
-                      ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
+                      ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
                       ("team", lambda: team_library(browser, url, sw)), ("nobackend", lambda: no_backend(browser, url, sw))]
             for name, run in stages:
                 if args.only and name not in args.only:
