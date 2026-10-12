@@ -1,0 +1,126 @@
+/*
+ * The letter on its desk. The markup inside .paper-body comes from engine/paper.js (class names and data-attributes are the
+ * engine's contract: .lp, .ph, .tg, .lg-line, .page-div ...). Only the look lives here.
+ * Sans is the tool, mono is a tag, serif is the letter.
+ */
+.paper-scroll { container: canvas / inline-size; overflow: auto; overscroll-behavior: contain; padding: 0 24px; scroll-padding-top: 24px; }
+@container canvas (max-width: 520px) { .paper-scroll { padding: 0 12px; } }
+
+.paper {
+  --pad-x: 80px; --pad-y: 72px;
+  position: relative; max-width: 816px; margin: 24px auto 72px; padding: var(--pad-y) var(--pad-x);
+  background: var(--paper); color: var(--paper-ink);
+  font-family: var(--f-letter); font-size: 15px; line-height: 1.55; font-weight: 400;
+  border-radius: 2px; box-shadow: var(--sh-paper);
+  text-wrap: pretty; overflow-wrap: anywhere;
+}
+@container canvas (max-width: 940px) { .paper { --pad-x: 56px; --pad-y: 56px; } }
+@container canvas (max-width: 560px) { .paper { --pad-x: 20px; --pad-y: 28px; margin: 12px auto 48px; font-size: 14.5px; } }
+.paper:focus { outline: none; }
+.paper-body { min-height: 8rem; }
+
+/* paragraphs */
+.paper p.lp { margin: 0 0 .55em; min-height: 1.2em; border-radius: 3px; padding: 0 4px; margin-left: -4px; margin-right: -4px; transition: background-color 150ms; }
+.paper p.lp.body { cursor: pointer; }
+.paper p.lp.body:hover { background-color: var(--hairline-soft); }
+.paper p.lp.sel { background-color: var(--accent-wash); outline: 1px solid var(--accent); outline-offset: 2px; }
+.paper p.lp.flash-p { outline: 2px solid var(--accent); outline-offset: 2px; }
+.paper[data-picking] p.lp.body { cursor: crosshair; }
+.paper .jc-center { text-align: center; } .paper .jc-right { text-align: right; } .paper .jc-both { text-align: justify; }
+.paper .hd { font-weight: 600; font-size: 1.1em; }
+.paper .li::before { content: "•"; margin-right: .5em; }
+.paper .b { font-weight: 700; } .paper .i { font-style: italic; } .paper .u { text-decoration: underline; }
+.paper .hlr { background: var(--hl); color: var(--hl-ink); }
+
+/* tables keep the letter's own thin borders */
+.paper table.lt { border-collapse: collapse; width: 100%; margin: .4em 0 .9em; font-size: .93em; }
+.paper table.lt td { border: 1px solid var(--paper-line); padding: 4px 8px; vertical-align: top; }
+.paper table.lt td p.lp { margin: 0; }
+
+/* header, footer and text boxes: quiet tinted areas, labelled */
+.paper .part { position: relative; margin: 0 0 18px; padding: 8px 10px 2px; border-radius: 4px; background: color-mix(in srgb, var(--paper-ink) 4%, transparent); }
+.paper .part-label, .paper .tbx-label { display: block; margin-bottom: 4px; font-family: var(--f-ui); font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.paper .tbx { margin: .3em 0 .8em; padding: 6px 8px; border-radius: 4px; background: color-mix(in srgb, var(--paper-ink) 4%, transparent); }
+
+/* a page break is a real gap between two sheets */
+.paper .page-div {
+  display: flex; align-items: center; justify-content: center; height: 28px; margin: 48px calc(var(--pad-x) * -1);
+  background: var(--ground); color: var(--muted); font-family: var(--f-ui); font-size: 11.5px; font-weight: 500;
+  box-shadow: inset 0 7px 7px -7px rgb(0 0 0 / .14), inset 0 -7px 7px -7px rgb(0 0 0 / .14);
+}
+
+/* placeholders: needs a tag = highlighter, to check = amber underline, tagged = green underline */
+.ph { border-radius: 2px; cursor: pointer; padding: 0 1px; transition: background-color 150ms, text-decoration-color 150ms; }
+.ph.s-need { background: var(--hl); color: var(--hl-ink); }
+.ph.s-tagged { text-decoration: underline solid var(--ok) 2px; text-underline-offset: 3px; }
+.ph.s-check { background: var(--warn-wash); text-decoration: underline solid var(--warn) 2px; text-underline-offset: 3px; }
+.ph.s-off { text-decoration: line-through; text-decoration-color: var(--muted); }
+.ph:hover { background-color: var(--accent-wash); }
+.ph.flash { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* a Jinja tag: yellow chip in mono; conditions are indigo */
+.tg { font-family: var(--f-mono); font-size: .82em; font-weight: 400; background: var(--tag-bg); color: var(--tag); border: 1px solid var(--tag-line); border-radius: 3px; padding: 0 3px; white-space: pre-wrap; }
+.tg.blk { background: var(--cond-wash); color: var(--cond); border-color: color-mix(in srgb, var(--cond) 45%, transparent); }
+.tg.tg-error { background: var(--err-wash); color: var(--err); border-color: var(--err); }
+.tg.tg-warn { outline: 1px solid var(--warn); outline-offset: 1px; }
+.paper .lg-chip { cursor: pointer; }
+.paper .lg-chip.st-open, .paper .lg-chip.st-stray { border-color: var(--err); background: var(--err-wash); color: var(--err); }
+
+/* a salary-table cell that still needs a tag */
+.cell-ghost { display: inline-block; max-width: 100%; vertical-align: middle; font-family: var(--f-mono); font-size: .72em; color: var(--tag); background: var(--tag-bg); border: 1px dashed var(--tag-line); border-radius: 3px; padding: 0 4px; cursor: pointer; overflow-wrap: anywhere; }
+.cell-ghost.blank { color: var(--warn); border-color: var(--warn); background: var(--warn-wash); }
+
+/* conditions: lines between paragraphs, and a bracket in the margin */
+.paper .lg-line { display: flex; align-items: center; gap: 8px; margin: .35em 0; padding: 2px 4px 2px calc(var(--d, 0) * 10px); font-family: var(--f-ui); font-size: 12px; line-height: 1.35; color: var(--paper-ink); cursor: pointer; border-radius: 3px; transition: background-color 150ms; }
+.paper .lg-line:hover { background: var(--cond-wash); }
+.paper .lg-line:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.paper .lg-line::after { content: ""; flex: 1; min-width: 12px; border-top: 1px solid var(--paper-line); }
+.paper .lg-line .badge { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.5; background: var(--cond-wash); color: var(--cond); }
+.paper .lg-line .lg-en-t { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.paper .lg-line code { flex: 0 1 auto; min-width: 0; padding: 0 5px; border-radius: 3px; background: var(--cond-wash); color: var(--cond); font-family: var(--f-mono); font-size: 11.5px; white-space: pre-wrap; word-break: break-word; }
+.paper .lg-line .lg-meta { display: inline-flex; align-items: center; gap: 4px; flex: none; padding: 0 6px; border-radius: 4px; background: var(--err-wash); color: var(--err); font-size: 11px; font-weight: 600; }
+.paper .lg-line .lg-meta:empty { display: none; }
+.paper .lg-line .ic { width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.paper .lg-line.st-open code, .paper .lg-line.st-stray code, .paper .lg-line.st-cells code { background: var(--err-wash); color: var(--err); }
+.paper p.lp.in-block { position: relative; }
+.paper p.lp.in-block::after { content: ""; position: absolute; left: calc(-16px - var(--d, 1) * 6px); top: 1px; bottom: -.4em; width: 2px; background: var(--cond); pointer-events: none; }
+.paper p.lp.in-block.in-else::after { width: 0; background: none; border-left: 2px dashed var(--cond); }
+.paper p.lp.in-block.open-block::after { width: 0; background: none; border-left: 2px dashed var(--err); }
+.paper td p.lp.in-block::after { left: -3px; }
+@container canvas (max-width: 640px) { .paper p.lp.in-block::after { left: calc(-8px - var(--d, 1) * 4px); } }
+
+/* employee preview: values from the data, made-up samples, empties */
+.fv { background: none; border-radius: 2px; text-decoration: underline solid var(--ok) 1px; text-underline-offset: 3px; }
+.fv.smp { text-decoration: underline dotted var(--muted) 2px; }
+.fv.empty { font-family: var(--f-mono); font-size: .72em; color: var(--err); border: 1px dashed var(--err); border-radius: 3px; padding: 0 4px; background: var(--err-wash); text-decoration: none; white-space: nowrap; }
+.pv-empty { font-family: var(--f-ui); color: var(--muted); padding: 24px 0; display: grid; gap: 6px; }
+.pv-empty b { color: var(--err); }
+.pv-empty code { font-family: var(--f-mono); }
+
+/* margin flags: a lettered pennant level with its paragraph */
+.flag-layer { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.mflag { position: absolute; pointer-events: auto; width: 20px; height: 18px; margin: 0; padding: 0; border: 0; background: none; color: var(--panel); cursor: pointer; user-select: none; -webkit-user-select: none; font-family: var(--f-ui); }
+.mflag::before { content: ""; position: absolute; inset: -2px; }
+.mflag .fl { display: block; width: 100%; height: 100%; padding-right: 4px; text-align: center; font: 700 11px/18px var(--f-ui); clip-path: polygon(0 0, 76% 0, 100% 50%, 76% 100%, 0 100%); transition: filter 150ms; }
+.mflag.lvl-error .fl { background: var(--err); }
+.mflag.lvl-warn .fl { background: var(--warn); }
+.mflag.lvl-quiet .fl { background: var(--muted); }
+.mflag:hover .fl { filter: brightness(.9); }
+.mflag:active { transform: translateY(.5px); }
+.mflag:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+.mflag.on { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 2px; }
+.flag-outline { position: absolute; pointer-events: none; border: 2px solid var(--muted); border-radius: 3px; opacity: 0; transition: opacity 150ms; }
+.flag-outline.show { opacity: 1; }
+.flag-outline.lvl-error { border-color: var(--err); } .flag-outline.lvl-warn { border-color: var(--warn); }
+@container canvas (max-width: 640px) { .mflag { width: 16px; height: 16px; } .mflag .fl { line-height: 16px; padding-right: 3px; } }
+
+/* legend swatches (the key above the letter) */
+.sw { display: inline-block; flex: none; width: 12px; height: 12px; border-radius: 2px; box-shadow: inset 0 0 0 1px var(--hairline); }
+.sw-need { background: var(--hl); box-shadow: none; }
+.sw-tagged { background: var(--panel); box-shadow: inset 0 -2px 0 var(--ok), inset 0 0 0 1px var(--hairline); }
+.sw-check { background: var(--warn-wash); box-shadow: inset 0 -2px 0 var(--warn); }
+.sw-problem { background: var(--err-wash); box-shadow: inset 0 0 0 1px var(--err); }
+.sw-fv { background: var(--panel); box-shadow: inset 0 -1px 0 var(--ok), inset 0 0 0 1px var(--hairline); }
+.sw-smp { background: var(--panel); box-shadow: inset 0 -2px 0 var(--muted), inset 0 0 0 1px var(--hairline); }
+.sw-empty { background: var(--err-wash); box-shadow: inset 0 0 0 1px var(--err); }
+.sw-cond { width: 6px; background: none; box-shadow: none; border-radius: 0; border: 2px solid var(--cond); border-right: 0; }

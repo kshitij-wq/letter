@@ -311,7 +311,7 @@ Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0
 
 An app frame that does not scroll as a page on wide screens: each column scrolls on its own. A 52px header and a 44px step bar sit on top; below them three columns: the current step (380px, resizable and collapsible, on the notesheet layer), the letter (fluid, on the desk ground, with a 48px view toolbar), and the inspector (380px, only present when a tag, condition or issue is selected). The paper is centred, max 816px wide (a Letter page), with 80px side padding and 72px top and bottom padding, narrowing to 56px under 1500px and 20px by 28px on phones. Gutters around the paper are 24px (16px on phones). Spacing rhythm is a 4px base: 4, 8, 12, 16, 24, 32. Panel blocks pad 16px and separate with a soft hairline rather than cards; list rows are 48px tall with 6px 8px padding.
 
-The step bar is a numbered sequence (Document, Tags & fields, Conditions, Validate, Preview & export) connected by 20px hairlines, each with a count or a check mark. Responsive behaviour: at 1280px and below the inspector floats over the right edge as a drawer; at 980px and below the page scrolls normally, the current step becomes a 88vw drawer on the left with a scrim, and the view toolbar sticks under the step bar; at 600px the header drops the company name, file name and save state; at 440px the mapping CSV button gives way; at 380px Download becomes icon-only. Touch targets stay 28-32px minimum.
+The step bar is a numbered sequence (Document, Tags & fields, Conditions, Validate, Preview & export), each with a count or a check mark; it appears once a letter is open, and before that the page is only the first-run screen. Responsive behaviour: at 1280px and below the inspector floats over the right edge as a drawer; at 980px and below the page scrolls normally, the current step becomes a 88vw drawer on the left with a scrim, and the view toolbar sticks under the step bar; at 600px the header drops the company name, file name and save state; at 440px the mapping CSV button gives way; at 380px Download becomes icon-only. Touch targets stay 28-32px minimum.
 
 ## Elevation & Depth
 
@@ -362,8 +362,8 @@ Quiet and legible: buttons and chips are outlined, status is carried by tint and
 - **Combobox:** a field list in an 8px-radius popover with sticky group heads, 30px options, and a mono code on the right in muted type.
 
 ### Navigation (step bar)
-- **Style:** 44px notesheet strip under the header. Each step is a 20px round mark (number, or a green check when done), a 13.5px semibold label and an optional count pill (amber for to-do, solid red for errors).
-- **States:** Unselected is Filing Grey; hover and selected go to ink; selected also gets a 2px teal bar under the label. Steps are joined by 20px hairlines. On phones the list scrolls sideways and the joins disappear.
+- **Style:** a 44px strip on the header's white surface, with one hairline under it. Each step is a 20px round mark (number, or a green check when done), a 13.5px semibold label and an optional count pill (amber for to-do, solid red for errors). No connecting rules: the marks carry the sequence.
+- **States:** Unselected is Filing Grey; hover and selected go to ink; the selected mark turns ink and the label gets a 2px teal bar under it. Arrow keys move between steps. On phones the list scrolls sideways.
 
 ### Placeholder rows (list)
 - **Style:** 48px grid of a 24px status mark, the found text and field summary, a right-aligned count, and a chevron. Status is a mark tint only (green tagged, amber to check, yellow needs a tag, grey otherwise) so the row never changes size.
