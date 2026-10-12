@@ -10,7 +10,7 @@ import { notify, toast } from './events.js'
 import { addDefaultTo, closingFixFor, fixTags, floatUsesWithoutDefault, tagSyntaxFix } from './fixes.js'
 import { W, ancestor, esc, isW, snake, straighten } from './helpers.js'
 import { fullRefresh } from './load.js'
-import { normalizeLogicText, parseLogic } from './logic.js'
+import { normalizeLogicText, pageLabel, parseLogic, snippet } from './logic.js'
 import { decodeXmlText, pyResultType } from './pipeline.js'
 import { isKw } from './preview.js'
 import { effFormat, finalTag, rowStatus } from './rows.js'
@@ -399,3 +399,60 @@ export function checkSummaryText(){
   const hf=state.parts.filter(x=>x.kind==='header'||x.kind==='footer').length;
   return `${state.fileName}: ${tags} tag${tags===1?'':'s'} in the letter as loaded, ${logic} of them condition${logic===1?'':'s'}${hf?`, body and ${hf} header/footer part${hf>1?'s':''}`:''}.`;
 }
+
+/* ---- what the Validate step shows (new: the data half of the old renderChecks / realCheckHtml / ckRender / ckRowHtml) ----
+   Plain data, no HTML, so a screen can lay it out any way it likes. Everything comes from state.issues and the server probe. */
+// where a finding is in the letter: one chip per paragraph (page label + the start of its text)
+export function placeChips(pids, n=38){
+  const out=[]; for (const pid of (pids||[])){ const p=state.an && state.an.byPid.get(pid); if (!p) continue; out.push({pid, page:pageLabel(p), text:snippet(p,n)}); } return out;
+}
+// one line about the real Jinja check: what it did, in words (was realCheckHtml). kind: none | unavailable | error | checking | notrun | failed | passed
+export function engineStatus(){
+  if (!server.ok){
+    if (!window.claude && !server.probed) return {kind:'none', title:'', detail:''};
+    return {kind:'unavailable', title:"Real Jinja check isn't available here; these are the page's own checks.", detail:''};
+  }
+  const what = server.check && server.check.target==='built' ? 'the template with your changes' : 'your file as uploaded';
+  if (server.err) return {kind:'error', title:`Real Jinja check didn't run: ${server.err}`, detail:''};
+  if (server.checking) return {kind:'checking', title:`${server.check?'Checking again':'Checking'} with real Jinja…`, detail:''};
+  const c=server.check; if (!c) return {kind:'notrun', title:"Real Jinja check hasn't run yet.", detail:''};
+  const v=(server.info&&server.info.versions)||{};
+  const eng = v.docxtpl ? `docxtpl ${v.docxtpl}, the engine CompUp uses` : 'the engine CompUp uses';
+  const n=c.syntax.length;
+  return n ? {kind:'failed', title:`Real Jinja check failed: ${n} typing mistake${n>1?'s':''}, listed first below.`, detail:`Checked ${what} with ${eng}. Jinja stops at the first mistake in each part (body, header, footer), so check again after fixing.`}
+    : {kind:'passed', title:`Real Jinja check passed: ${eng}. ${c.variables.length} field${c.variables.length===1?'':'s'} used.`, detail:`Checked ${what}.`};
+}
+// one finding as plain data (the Validate list and the issue panel both draw this)
+export function issueItem(x){
+  const cat=CK_CATS[x.cat]||CK_CATS.other;
+  return {key:x.key, idx:x.idx, level:x.level, label:CK_LAB[x.level], cat:x.cat, catName:cat.name, real:!!x.real, html:x.html, text:ckPlain(x.html),
+    letter:x.letter||'', chips:placeChips(x.locs), moreTags:!!(x.tags && x.tags.length>8), hasLocs:!!(x.locs && x.locs.length), locs:x.locs||[],
+    fix:x.fix?{idx:x.fix.idx, label:x.fix.label}:null, act:ckCatAction(x.cat), why:cat.why, how:cat.fix};
+}
+// the whole step: counts, engine line, whether it is truly clean, the findings grouped by category, the resolved ones
+export function checkView(){
+  const iss=state.issues||[]; const e=iss.filter(x=>x.level==='error').length, w=iss.filter(x=>x.level==='warn').length;
+  const notes=iss.filter(x=>x.level==='info').length; const fixed=state.ckFixed||[];
+  const confirmed=ckEngineConfirmed();
+  const clean=!e && !w && !!state.an && confirmed;
+  const v=(server.info&&server.info.versions)||{};
+  const groups=(state.issueGroups||[]).filter(g=>g.items.length).map(g=>({cat:g.cat, name:CK_CATS[g.cat].name,
+    errors:g.items.filter(x=>x.level==='error').length, warnings:g.items.filter(x=>x.level==='warn').length, items:g.items.map(issueItem)}));
+  const stats = e ? `${e} to fix${w?` · ${w} to check`:''}` : w ? `${w} to check` : clean ? 'No problems found' : server.ok && server.checking ? 'Checking…' : '';
+  return {
+    hasLetter:!!state.an, counts:{errors:e, warnings:w, resolved:fixed.length, notes}, stats, clean, confirmed, engine:engineStatus(), realAvailable:!!server.ok,
+    cleanText: server.ok ? `Real Jinja${v.docxtpl?` (docxtpl ${v.docxtpl})`:''} and the page's own checks found nothing wrong with the tags, fields, conditions and table cells.`
+      : "The page's own checks found nothing wrong with the tags, fields, conditions and table cells. The real Jinja check isn't available here, so this is the page checks only.",
+    groups, resolved:fixed.map(x=>({key:x.key, text:ckPlain(x.html), letter:x.letter||''})), summary:checkSummaryText(),
+  };
+}
+// one finding by its stable key (the issue panel keeps the key, not the index: indexes move when findings come and go)
+export function issueByKey(key){ const x=(state.issues||[]).find(i=>i.key===key); return x ? issueItem(x) : null; }
+// the flags for the margin: one per place a finding points at (level error / warn only; notes have no flag)
+export function flagList(){
+  const out=[]; for (const s of ckFlagSpecs()){ const x=s.x; const plain=ckPlain(x.html);
+    out.push({key:s.fk, pid:s.pid, letter:x.letter, level:x.level==='error'?'error':'warn', label:`${(CK_CATS[x.cat]||CK_CATS.other).name}. ${plain.slice(0,90)}${plain.length>90?'…':''}`, index:x.idx, issueKey:x.key}); }
+  return out;
+}
+// the one-click fix of a finding
+export function runIssueFix(idx){ const fn=state.fixes[idx]; if (typeof fn!=='function') return false; fn(); return true; }
