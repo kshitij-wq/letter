@@ -1,0 +1,99 @@
+import { useEffect, useRef, useState } from 'react'
+import { SuperDoc } from 'superdoc'
+import 'superdoc/style.css'
+import { Tag } from 'lucide-react'
+import { Button, toast } from '@/ui'
+import { setView } from '../../engine'
+import { editorChanged, flushEditor, registerEditor, selectEditorWords, state, unregisterEditor } from '../../engine'
+import { installTagChips } from './tagChips'
+import './editor.css'
+
+type Sel = { text: string; para: string; before: number } | null
+
+/**
+ * SuperDoc on the engine's letter. It is made once per letter (the parent remounts it when the engine's docx changes
+ * from outside); typing marks the engine's editor state "unsaved", and the engine saves it back (engine/editor.js).
+ */
+export default function EditorSurface() {
+  const host = useRef<HTMLDivElement>(null)
+  const bar = useRef<HTMLDivElement>(null)
+  const [ready, setReady] = useState(false)
+  const [failed, setFailed] = useState('')
+  const [sel, setSel] = useState<Sel>(null)
+
+  useEffect(() => {
+    if (!host.current || !bar.current || !state.srcBuf) return
+    let base: any = null, dirty = false, live = true, sd: any = null, stopChips = () => {}
+    const file = new File([state.srcBuf], state.fileName || 'letter.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+    const handle = {
+      exportDocx: async () => {
+        const blob: Blob = await sd.export({ exportType: ['docx'], triggerDownload: false, commentsType: 'clean' })
+        return blob.arrayBuffer()
+      },
+      isDirty: () => dirty,
+      markClean: () => { dirty = false; base = sd?.activeEditor?.state?.doc ?? base },
+    }
+    const readSel = () => {
+      const ed = sd?.activeEditor
+      if (!ed?.state) return
+      const { from, to, $from } = ed.state.selection
+      if (from === to) { setSel(null); return }
+      const text = ed.state.doc.textBetween(from, to, ' ').replace(/\s+/g, ' ').trim()
+      if (!text || text.length > 300 || !$from.sameParent(ed.state.selection.$to)) { setSel(null); return }
+      setSel({ text, para: $from.parent.textContent, before: $from.parentOffset })
+    }
+    try {
+      sd = new SuperDoc({
+        selector: host.current,
+        toolbar: '#editor-toolbar',
+        document: file,
+        documentMode: 'editing',
+        modules: { comments: false },
+        rulers: false,
+        onReady: () => {
+          if (!live) return
+          registerEditor(handle)
+          setReady(true)
+          // the editor settles its own document after opening: what it shows a moment later is the starting point
+          setTimeout(() => { if (live) base = sd?.activeEditor?.state?.doc ?? null }, 700)
+          ;(window as any).__sd = sd
+          stopChips = installTagChips(host.current!)
+        },
+        onEditorUpdate: ({ editor }: any) => {
+          const doc = editor?.state?.doc ?? sd?.activeEditor?.state?.doc
+          if (!live || !base || !doc) return
+          if (doc.eq(base)) { dirty = false; return }
+          dirty = true; editorChanged()
+        },
+        onEditorCreate: ({ editor }: any) => { try { editor.on('selectionUpdate', readSel) } catch { /* the toolbar still works */ } },
+        onException: (e: any) => { console.warn('SuperDoc', e); if (live && !ready) setFailed('The editor could not open this letter. The other views still work.') },
+        onContentError: () => { if (live) setFailed('The editor could not open this letter. The other views still work.') },
+      } as any)
+    } catch (e) { console.warn(e); setFailed('The editor could not start in this browser.') }
+
+    return () => {
+      live = false
+      stopChips()
+      // a save in progress has to finish before the editor goes away
+      flushEditor().catch(() => {}).finally(() => { unregisterEditor(handle); try { sd?.destroy() } catch { /* already gone */ } if ((window as any).__sd === sd) (window as any).__sd = null })
+    }
+  }, [])
+
+  const tagSelection = async () => {
+    if (!sel) return
+    if (await selectEditorWords(sel.text, sel.para, sel.before)) setView('source')
+    else toast("Couldn't match that selection to one place in the letter. Select a few words inside one paragraph.")
+  }
+
+  return (
+    <div className="editor-wrap" data-testid="editor">
+      <div className="editor-tools">
+        <div id="editor-toolbar" ref={bar} className="editor-toolbar" />
+        {sel && <Button size="sm" onClick={tagSelection} data-testid="editor-tag-text"><Tag aria-hidden />Tag this text</Button>}
+      </div>
+      {failed && <p role="alert" className="editor-fail">{failed}</p>}
+      {!ready && !failed && <p className="editor-loading" role="status">Opening the editor…</p>}
+      <div ref={host} id="editor-host" className="editor-host" />
+    </div>
+  )
+}

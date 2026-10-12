@@ -1,0 +1,6 @@
+.editor-wrap { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.editor-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 0 0 8px; }
+.editor-toolbar { flex: 1; min-width: 0; overflow-x: auto; }
+.editor-host { flex: 1; min-height: 0; overflow: auto; }
+.editor-fail { color: var(--err, #b42318); padding: 12px; }
+.editor-loading { color: var(--muted); padding: 12px; }

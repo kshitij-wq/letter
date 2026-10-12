@@ -17,7 +17,8 @@ let saveTimer = null
 let running = null         // the save in progress, so a second caller waits for it instead of starting another
 
 export const registerEditor = (h) => { handle = h; if (!h) clearTimeout(saveTimer) }
-export const editorActive = () => !!handle
+export const unregisterEditor = (h) => { if (handle === h) handle = null }
+export const editorActive =() => !!handle
 
 /** The id the editor view reloads on: it changes only when the engine's docx changed from outside the editor. */
 export function editorSourceId() {
@@ -125,7 +126,28 @@ export async function undoEditorChange() {
   return true
 }
 
-export const editorReportText = () => (ed.lastReport ? setupReportText(ed.lastReport) : '')
+/**
+ * Words selected in the editor, handed to the engine: saves first, finds the paragraph by its text, and selects those words
+ * there ({pid, s, e}) so the same "Selected text" actions as the letter apply. `paraText` is the whole paragraph the words
+ * were in; `before` is how many characters of it came before them. Resolves false when the place is not unique enough.
+ */
+export async function selectEditorWords(words, paraText, before) {
+  if (!(await saveEditor())) return false
+  const want = squash(paraText || words), w = words.trim()
+  const paras = state.an.paras.filter((p) => !p.fallback && !p.textbox && ['body', 'header', 'footer'].includes(p.kind))
+  const exact = paras.filter((p) => squash(p.model.text) === want)
+  const cands = exact.length ? exact : paras.filter((p) => p.model.text.includes(w))
+  if (!cands.length) return false
+  const p = cands[0], t = p.model.text
+  let s = -1
+  for (let i = t.indexOf(w); i >= 0; i = t.indexOf(w, i + 1)) { if (s < 0 || Math.abs(i - (before || 0)) < Math.abs(s - (before || 0))) s = i }
+  if (s < 0) return false
+  state.sel = { pids: [], anchor: null, text: w, range: { pid: p.pid, s, e: s + w.length, text: w } }
+  state.inlineUi = null; state.switchUi = null; notify()
+  return true
+}
+
+export const editorReportText =() => (ed.lastReport ? setupReportText(ed.lastReport) : '')
 
 export function editorStatusText() {
   switch (ed.status) {
