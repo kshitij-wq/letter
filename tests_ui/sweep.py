@@ -763,7 +763,7 @@ class Sweep:
         await self.settle(250)
         self.expect(not await self.visible("#inspector"), "Esc didn't close the inspector")
         # undo and redo buttons follow the history
-        await pg.get_by_role("button", name="Undo").click() if await pg.get_by_role("button", name="Undo").is_enabled() else None
+        await pg.get_by_role("button", name="Undo", exact=True).click() if await pg.get_by_role("button", name="Undo", exact=True).is_enabled() else None
         await pg.get_by_role("button", name="Redo").click() if await pg.get_by_role("button", name="Redo").is_enabled() else None
 
     async def drop_and_restore(self):
@@ -1123,7 +1123,7 @@ class Sweep:
             await li.get_by_role("button", name="Delete this tag").click()
             await self.settle(500)
             self.expect(len(await self.logic_tags()) == before_n - 1, "Delete this tag didn't delete the tag")
-            await pg.get_by_role("button", name="Undo").click()
+            await pg.get_by_role("button", name="Undo", exact=True).click()
             await self.settle(400)
             self.expect(len(await self.logic_tags()) == before_n, "Undo didn't bring the deleted tag back")
         self.doing = "condition: a click on a condition line in the letter"
@@ -1144,7 +1144,7 @@ class Sweep:
         n = await pg.locator("[data-lg-key]").count()
         self.expect(n >= 6, f"the Conditions list shows {n} items after adding many conditions")
         for _ in range(3):
-            await pg.get_by_role("button", name="Undo").click()
+            await pg.get_by_role("button", name="Undo", exact=True).click()
             await self.settle(200)
         for _ in range(3):
             await pg.get_by_role("button", name="Redo").click()
@@ -1439,7 +1439,7 @@ class Sweep:
         for key in ["Control+z", "Control+z", "Control+Shift+z", "Control+y"]:
             await self.pg.keyboard.press(key)
             await self.settle(150)
-        await self.pg.get_by_role("button", name="Undo").click() if await self.pg.get_by_role("button", name="Undo").is_enabled() else None
+        await self.pg.get_by_role("button", name="Undo", exact=True).click() if await self.pg.get_by_role("button", name="Undo", exact=True).is_enabled() else None
         await self.pg.get_by_role("button", name="Redo").click() if await self.pg.get_by_role("button", name="Redo").is_enabled() else None
 
     async def tags_step(self):
