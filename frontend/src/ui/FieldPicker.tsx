@@ -33,7 +33,7 @@ export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a f
     <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setQuery(''); onOpenChange?.(o) }}>
       <PopoverTrigger asChild>
         <button type="button" id={id} role="combobox" aria-expanded={open} aria-controls={listId} aria-label={ariaLabel} disabled={disabled}
-          className={cn('inline-flex h-8 w-full items-center justify-between gap-2 rounded-control border border-hairline bg-panel px-2.5 text-left text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-55', className)}>
+          className={cn('inline-flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-control border border-hairline bg-panel px-2.5 text-left text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-55', className)}>
           <span className={cn('min-w-0 flex-1 truncate', !value && 'text-muted')}>{current ? current.label : value || placeholder}</span>
           {current?.hint && <span className="max-w-[40%] shrink-0 truncate font-mono text-xs text-muted">{current.hint}</span>}
           <ChevronDown aria-hidden className="text-muted" />
