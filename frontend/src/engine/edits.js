@@ -103,9 +103,13 @@ export function topBlocksOf(doc){
 }
 export function blockText(el){ if (isW(el,'p')) return normAnchor(paraModel(el).text); const ps=[...el.getElementsByTagNameNS(W,'p')].filter(p=>closestP(p)===null || true); return (isW(el,'tbl')?'[table] ':'')+normAnchor(ps.map(p=>paraModel(p).text).join(' | ')); }
 export function looseText(t){ return norm(String(t).replace(/\d[\d,.\s]*/g,' # ')); }
-export function computeHunks(A, B, loose){
+// the one rule for "these two blocks are the same block" (kind, exact text, or with `loose` the same apart from numbers / spacing)
+export function blockMatcher(A, B, loose){
   const tA=A.map(x=>({lt:looseText(x.text), ts:tokSet(looseText(x.text))})), tB=B.map(x=>({lt:looseText(x.text), ts:tokSet(looseText(x.text))}));
-  const eq=(i,j)=>{ const a=A[i], b=B[j]; if (a.kind!==b.kind) return false; if (a.text===b.text) return true; if (!loose || !a.text || !b.text) return false; if (tA[i].lt===tB[j].lt) return true; return dice(tA[i].ts, tB[j].ts)>=0.85; };
+  return (i,j)=>{ const a=A[i], b=B[j]; if (a.kind!==b.kind) return false; if (a.text===b.text) return true; if (!loose || !a.text || !b.text) return false; if (tA[i].lt===tB[j].lt) return true; return dice(tA[i].ts, tB[j].ts)>=0.85; };
+}
+export function computeHunks(A, B, loose){
+  const eq=blockMatcher(A, B, loose);
   const n=A.length, m=B.length; const L=Array.from({length:n+1},()=>new Int32Array(m+1));
   for (let i=n-1;i>=0;i--) for (let j=m-1;j>=0;j--) L[i][j]=eq(i,j)?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
   const hunks=[], similar=[]; let i=0, j=0, cur=null;

@@ -15,6 +15,8 @@ import * as m_checks from './checks.js'
 export * from './checks.js'
 import * as m_claude from './claude.js'
 export * from './claude.js'
+import * as m_combine from './combine.js'
+export * from './combine.js'
 import * as m_conditions from './conditions.js'
 export * from './conditions.js'
 import * as m_data from './data.js'
@@ -66,6 +68,6 @@ export * from './team.js'
 import * as m_undo from './undo.js'
 export * from './undo.js'
 
-const api = Object.assign({ JSZip }, m_actions,m_alias,m_blocks,m_build,m_catalog,m_checks,m_claude,m_conditions,m_data,m_detect,m_docx,m_downloads,m_edits,m_editor,m_events,m_fixes,m_helpers,m_load,m_logic,m_paper,m_pipeline,m_platform,m_preview,m_rows,m_sample,m_server,m_setup,m_state,m_steps,m_tables,m_team,m_undo);
+const api = Object.assign({ JSZip }, m_actions,m_alias,m_blocks,m_build,m_catalog,m_checks,m_claude,m_combine,m_conditions,m_data,m_detect,m_docx,m_downloads,m_edits,m_editor,m_events,m_fixes,m_helpers,m_load,m_logic,m_paper,m_pipeline,m_platform,m_preview,m_rows,m_sample,m_server,m_setup,m_state,m_steps,m_tables,m_team,m_undo);
 if (typeof window !== 'undefined') window.__lt = api;
 export default api;
