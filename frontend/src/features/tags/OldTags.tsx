@@ -28,7 +28,7 @@ function NameRow({ n, picked, onPick }: { n: any; picked: boolean; onPick: (on: 
   return (
     <li className="py-1.5">
       <div className="flex items-center gap-2">
-        <Checkbox checked={picked} onCheckedChange={onPick} className="[&_label]:sr-only">{`Select ${n.id}`}</Checkbox>
+        <Checkbox checked={picked} onCheckedChange={onPick} className="relative [&_label]:sr-only">{`Select ${n.id}`}</Checkbox>
         <code className="min-w-0 truncate font-mono text-sm" title={n.id}>{n.id}</code>
         <span className="tnum shrink-0 text-xs text-muted">{n.count}×</span>
         <IconButton label={`Rename ${n.id}`} size="sm" className="ml-auto" onClick={() => setEditing((e) => !e)}><Pencil aria-hidden /></IconButton>

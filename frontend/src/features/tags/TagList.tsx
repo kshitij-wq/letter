@@ -19,7 +19,7 @@ function Summary({ it }: { it: Item }) {
   if (!f) return <span className={it.custom ? '' : 'text-warn'}>{it.custom ? 'Custom tag' : 'Not mapped'}</span>
   return f.same
     ? <code className="truncate font-mono text-xs">{f.key}</code>
-    : <><span className="truncate">{f.label}</span><code className="min-w-0 truncate font-mono text-xs opacity-80">{f.key}</code></>
+    : <><span className="max-w-[55%] shrink-0 truncate">{f.label}</span><code className="min-w-0 truncate font-mono text-xs opacity-80">{f.key}</code></>
 }
 
 function Row({ it, selected, tabbable, onFocus }: { it: Item; selected: boolean; tabbable: boolean; onFocus: () => void }) {
@@ -28,7 +28,7 @@ function Row({ it, selected, tabbable, onFocus }: { it: Item; selected: boolean;
   return (
     <button type="button" data-row-id={it.id} aria-current={selected || undefined} tabIndex={tabbable ? 0 : -1} onFocus={onFocus}
       onClick={(e) => pickRow(it.id, e.detail === 0)}
-      className={cn('flex w-full items-start gap-2.5 rounded-control px-2 py-2 text-left transition-colors duration-150 hover:bg-hairline-soft focus-visible:-outline-offset-2', selected && 'bg-accent-wash hover:bg-accent-wash')}>
+      className={cn('relative flex w-full items-start gap-2.5 rounded-control px-2 py-2 text-left transition-colors duration-150 hover:bg-hairline-soft focus-visible:-outline-offset-2', selected && 'bg-accent-wash hover:bg-accent-wash')}>
       <span title={ST_INFO[st].label} className={cn('mt-[3px] shrink-0', MARK_TONE[st])}><Mark aria-hidden /><span className="sr-only">{ST_INFO[st].label}. </span></span>
       <span className="min-w-0 flex-1">
         <span className="block truncate font-serif text-lg leading-snug">{it.find}</span>
