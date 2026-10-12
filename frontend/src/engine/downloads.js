@@ -1,6 +1,7 @@
 // Moved from frontend_src/letter-tagger.html — see tests_ui/legacy for the reference page. No DOM rendering in this module.
 import JSZip from 'jszip'
 import { build } from './build.js'
+import { flushEditor } from './editor.js'
 import { toast } from './events.js'
 import { browserDownload } from './platform.js'
 import { finalTag } from './rows.js'
@@ -10,6 +11,7 @@ import { state } from './state.js'
 let dlApi=null;
 try { (window.claude && window.claude.use ? window.claude.use('downloads') : Promise.resolve(null)).then(d=>{ dlApi=d; }).catch(()=>{}); } catch(e){}
 export async function buildBlob(){
+  await flushEditor();   // changes made in the editor go into the letter first
   build();
   const z = await JSZip.loadAsync(state.srcBuf);
   for (const [p,x] of Object.entries(state.built.xml)) z.file(p, x);

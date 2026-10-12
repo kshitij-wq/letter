@@ -20,7 +20,7 @@ export type EngineState = {
   logic: any[]
   issues?: any[]
   tab: 'doc' | 'tags' | 'logic' | 'check' | 'export'
-  view: 'source' | 'tagged' | 'filled'
+  view: 'edit' | 'source' | 'tagged' | 'filled'
   filter: string
   q?: string
   sel: { pids: string[]; anchor: string | null; text: string; range?: any }

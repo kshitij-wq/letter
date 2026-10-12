@@ -1,6 +1,6 @@
 import { confirm } from '@/ui'
 import { useUi } from '@/store'
-import { letterFileProblem, loadDataFile, openLetterFile, openTaggedTemplate, replaceWarning, reportError } from '../../engine'
+import { letterFileProblem, loadDataFile, loadSample, openLetterFile, openTaggedTemplate, replaceWarning, reportError, setView } from '../../engine'
 
 /**
  * Opening files, with the same rules as the old page: a real letter with changes open asks before it is replaced
@@ -23,7 +23,16 @@ export async function openLetter(file: File): Promise<boolean> {
   const bad = letterFileProblem(file.name)
   if (bad) { reportError(bad, 'letter'); return false }
   if (!(await okToReplace())) return false
-  return openLetterFile(file)
+  const ok = await openLetterFile(file)
+  if (ok) setView('edit')   // a letter that was just opened starts in the editor
+  return ok
+}
+
+/** The built-in sample letter, opened the same way. */
+export async function openSample(): Promise<boolean> {
+  const ok = await loadSample()
+  if (ok) setView('edit')
+  return ok
 }
 
 /** A template that is already tagged: opened straight into Validate. */

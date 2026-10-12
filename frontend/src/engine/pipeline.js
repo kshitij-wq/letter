@@ -4,6 +4,7 @@ import { KEYWORDS, csvKeyUniverse, identifiersIn, keyStatus, locateTags, placeCh
 import { buildCtx, csvRows, empLabel, getPath } from './data.js'
 import { RX_TAG } from './detect.js'
 import { buildModel, paraModel } from './docx.js'
+import { flushEditor } from './editor.js'
 import { buildBlob, csvCell } from './downloads.js'
 import { notify, toast } from './events.js'
 import { W, childW, closestP, esc, isW, parseXml, serialize, straighten } from './helpers.js'
@@ -247,6 +248,7 @@ export function pvStep(dir){
   state.pvIdx=list[k]; refreshPreview(); if (state.tab==='export') notify();
 }
 export async function runBatch(){
+  await flushEditor();
   const rows=csvRows(); if (!rows.length){ toast('Load a CSV with one row per employee first.'); return; }
   let comp; try{ comp=await getCompiled(); }catch(e){ toast(e.message); return; }
   if (comp.error){ state.batch={error:comp.error}; notify(); return; }
