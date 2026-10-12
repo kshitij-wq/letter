@@ -7,7 +7,7 @@ import { condEnglish } from './conditions.js'
 import { unwrapMergeFields } from './docx.js'
 import { blockMatcher, caseCond, importBlocks, sourceEdit, topBlocksOf } from './edits.js'
 import { notify, toast } from './events.js'
-import { W, cleanCondExpr, isW, parseXml } from './helpers.js'
+import { W, childW, cleanCondExpr, isW, parseXml } from './helpers.js'
 import { loadDocx } from './load.js'
 import { setTab, setView } from './steps.js'
 import { state } from './state.js'
@@ -16,7 +16,8 @@ import { state } from './state.js'
 
 // pairs [i, j] of equal blocks, in order (the same longest-common-subsequence walk as computeHunks)
 export function matchPairs(A, B, loose){
-  const eq=blockMatcher(A, B, loose); const n=A.length, m=B.length;
+  // "ignore small differences" = numbers and spacing only, never a merely similar sentence
+  const eq=blockMatcher(A, B, loose, true); const n=A.length, m=B.length;
   const L=Array.from({length:n+1},()=>new Int32Array(m+1));
   for (let i=n-1;i>=0;i--) for (let j=m-1;j>=0;j--) L[i][j]=eq(i,j)?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
   const pairs=[]; let i=0, j=0;
@@ -152,8 +153,17 @@ export function regionBranches(region, cfg){
   out.forEach((b,k)=>{ b.kind=b.isElse?(k?'else':'if'):(k?'elif':'if'); if (b.kind==='if' && b.isElse) b.cond='true'; });
   return out;
 }
-export const branchLine=b=>b.kind==='else'?'{%- else -%}':b.kind==='elif'?`{%- elif ${b.cond} -%}`:`{% if ${b.cond} -%}`;
-export const ENDIF_LINE='{%- endif %}';
+// The line for a branch. docxtpl joins a {%- … -%} line with the paragraph before / after it (so no empty paragraph is left),
+// but it breaks the file when that neighbour is a table: dashes are used only next to paragraphs.
+export function markerText(kind, cond, before=true, after=true){
+  const l=before?'{%-':'{%', r=after?'-%}':'%}';
+  if (kind==='endif') return `${l} endif %}`;
+  if (kind==='else') return `${l} else ${r}`;
+  if (kind==='elif') return `${l} elif ${cond} ${r}`;
+  return `{% if ${cond} ${r}`;
+}
+export const branchLine=b=>markerText(b.kind, b.cond);
+export const ENDIF_LINE=markerText('endif');
 
 /* ======================= reading the files ======================= */
 const stripExt=n=>String(n).replace(/\.docx$/i,'');
@@ -186,7 +196,7 @@ export async function loadVersions(files){
   }
   if (added.length || c){
     const cur=state.combine||{versions:[], base:0, field:'', match:'text', loose:true};
-    cur.versions.push(...added); state.combine=cur;
+    cur.versions.push(...added); cur.errors=errors; state.combine=cur;
   }
   notify();
   return {added:added.length, errors};
@@ -267,8 +277,8 @@ export async function applyCombine(){
     const docA=docs[state.mainPath]; const A=topBlocksOf(docA);
     if (A.length!==base.blocks.length) return {cancel:true};
     const body=docA.getElementsByTagNameNS(W,'body')[0]; const sect=[...body.childNodes].find(x=>isW(x,'sectPr'))||null;
-    const mkP=()=>docA.createElementNS(W,'w:p'); const newLogic=[];
-    const marker=text=>{ const p=mkP(); newLogic.push({el:p, text, place:'end', extra:{mg:1}}); return p; };
+    const mkP=()=>docA.createElementNS(W,'w:p'); const marks=[];
+    const marker=(kind, cond)=>{ const p=mkP(); marks.push({el:p, kind, cond}); return p; };
     for (const r of plan.regions){
       const branches=regionBranches(r, c); if (!branches.length) continue;
       const baseIdx=r.content[c.base].map(b=>b.bi);
@@ -276,14 +286,14 @@ export async function applyCombine(){
       const baseBranch=baseEls.length?branches.findIndex(b=>b.group && b.group.versions.includes(c.base)):-1;
       const nextRef=r.next>=0 && plan.merged[r.next].refs[c.base]!=null ? A[plan.merged[r.next].refs[c.base]].el : sect;
       const parts=branches.map(b=>{
-        const nodes=[marker(branchLine(b))];
+        const nodes=[marker(b.kind, b.cond)];
         if (b.group && !b.group.versions.includes(c.base)){
           const src=b.group.versions[0];
           for (const blk of b.group.blocks){ for (const n of importBlocks(docA, others[src].blocks[blk.bi].el, st)){ nodes.push(n); added++; } }
         }
         return nodes;
       });
-      const end=marker(ENDIF_LINE);
+      const end=marker('endif');
       if (baseBranch<0){ for (const nodes of parts) for (const n of nodes) body.insertBefore(n, nextRef); body.insertBefore(end, nextRef); }
       else {
         const first=baseEls[0], last=baseEls[baseEls.length-1];
@@ -294,6 +304,15 @@ export async function applyCombine(){
       }
       done++;
     }
+    // now that everything is in place: which neighbours are paragraphs decides where the dashes go
+    const sib=(el,dir)=>{ for (let n=dir<0?el.previousSibling:el.nextSibling; n; n=dir<0?n.previousSibling:n.nextSibling) if (n.nodeType===1) return n; return null; };
+    const newLogic=marks.map(m=>{
+      const prev=sib(m.el,-1), next=sib(m.el,1);
+      const before=isW(prev,'p'), after=isW(next,'p');
+      // a line that joins the next paragraph keeps that paragraph's formatting
+      if (m.kind==='if' && after){ const pp=childW(next,'pPr'); if (pp){ const cp=pp.cloneNode(true); for (const x of [...cp.getElementsByTagNameNS(W,'sectPr')]) x.parentNode.removeChild(x); m.el.appendChild(cp); } }
+      return {el:m.el, text:markerText(m.kind, m.cond, before, after), place:'end', extra:{mg:1}};
+    });
     return {newLogic};
   });
   if (res.cancel){ toast('Could not combine these versions.'); return false; }

@@ -1,6 +1,7 @@
 import { confirm } from '@/ui'
+import { es } from '@/hooks/useEngine'
 import { useUi } from '@/store'
-import { letterFileProblem, loadDataFile, loadSample, openLetterFile, openTaggedTemplate, replaceWarning, reportError, setView } from '../../engine'
+import { applyCombine, letterFileProblem, loadVersions, loadDataFile, loadSample, openLetterFile, openTaggedTemplate, replaceWarning, reportError, setView } from '../../engine'
 
 /**
  * Opening files, with the same rules as the old page: a real letter with changes open asks before it is replaced
@@ -46,11 +47,33 @@ export async function openTagged(file: File): Promise<boolean> {
 /** Employee data (.csv, .xlsx, .xls). `extra` adds a further file next to the first. */
 export function openData(file: File, extra = false) { useUi.getState().setError(null); return loadDataFile(file, extra) }
 
+/** Several client versions of one letter: opens the Combine screen. Resolves true when at least one file could be read. */
+export async function openVersions(files: File[]): Promise<boolean> {
+  useUi.getState().setError(null)
+  const r = (await loadVersions(files)) as { added: number; errors: string[] }
+  if (!r.added && !es.combine) { reportError(r.errors.join(' ') || 'Choose the versions as Word .docx files.', 'letter'); return false }
+  return true
+}
+
+/** "Combine into one template": asks first when a letter with changes is open, then builds it. */
+export async function combineNow(): Promise<boolean> {
+  if (!(await okToReplace())) return false
+  return !!(await applyCombine())
+}
+
 /** Opens the system file picker. Call it straight from a click or key handler (browsers only allow it then). */
 export function pickFile(accept: string, onFile: (f: File) => void) {
   const input = document.createElement('input')
   input.type = 'file'; input.accept = accept
   input.onchange = () => { const f = input.files?.[0]; if (f) onFile(f) }
+  input.click()
+}
+
+/** The same with several files allowed. */
+export function pickFiles(accept: string, onFiles: (f: File[]) => void) {
+  const input = document.createElement('input')
+  input.type = 'file'; input.accept = accept; input.multiple = true
+  input.onchange = () => { const f = [...(input.files || [])]; if (f.length) onFiles(f) }
   input.click()
 }
 

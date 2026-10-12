@@ -123,6 +123,7 @@ describe('branches', () => {
 })
 
 // ---- the real fixtures through the engine ----
+// eslint-disable-next-line no-undef
 const FIX = resolve(process.cwd(), '../tests_ui/fixtures/versions')
 const file = (name) => {
   const b = readFileSync(resolve(FIX, name))
