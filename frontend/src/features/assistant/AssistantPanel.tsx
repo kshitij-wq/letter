@@ -87,7 +87,7 @@ export function AssistantPanel() {
       <div className="flex h-12 shrink-0 items-center gap-2 pl-4 pr-2">
         <h2 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-semibold"><Sparkles aria-hidden className="text-accent" />Assistant</h2>
         <IconButton label="Clear the conversation" size="sm" disabled={!items.length || a.busy} onClick={clearConversation}><Trash2 aria-hidden /></IconButton>
-        <IconButton label="Close" size="sm" onClick={() => close(false)}><X aria-hidden /></IconButton>
+        <IconButton label="Close the assistant" size="sm" onClick={() => close(false)}><X aria-hidden /></IconButton>
       </div>
       {!aiReady() ? (
         <div className="px-4"><Notice tone="warn">Claude isn't set up yet. Add ANTHROPIC_API_KEY to the .env file in the letter-studio folder and restart.</Notice></div>
