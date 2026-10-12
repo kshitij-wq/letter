@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Rebuild page from frontend_src" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="Rebuild page from frontend" type="PythonConfigurationType" factoryName="Python">
     <module name="letter-studio" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
