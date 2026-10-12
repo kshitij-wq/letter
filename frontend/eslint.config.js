@@ -19,4 +19,6 @@ export default [
       'no-redeclare': 'error',
     },
   },
+  // the only module that may touch the browser page: saving a file, reading the CSRF cookie, compiling SheetJS
+  { files: ['src/engine/platform.js'], rules: { 'no-restricted-globals': 'off' } },
 ]

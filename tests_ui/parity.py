@@ -19,7 +19,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import base64
-import functools
 import http.server
 import json
 import os
