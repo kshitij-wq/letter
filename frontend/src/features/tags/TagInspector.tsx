@@ -8,7 +8,6 @@ import {
   rowStatus, setRowEnabled, setRowFormat, setRowTag, tagProblem,
 } from '../../engine'
 import { InspectorBody, InspectorFoot } from '../shell/Inspector'
-import { closeInspector } from '../shell/inspector'
 import type { InspectorPanelProps } from '../shell/registry'
 import { FieldSlots } from './FieldSlots'
 import { TagInput } from './TagInput'

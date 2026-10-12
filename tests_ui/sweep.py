@@ -15,7 +15,7 @@ What it does, in order:
     undo / redo, and checks that no panel scrolls sideways
   * the Conditions step end to end (paragraph condition with Builder and Jinja, otherwise text, change a condition, close an
     open block, text by value, a condition inside a sentence, insert a tag here, advanced single tags, place unplaced tags,
-    combine two versions) and the click-selects-a-word rules of every step
+    combine two versions, combine several versions) and the click-selects-a-word rules of every step
   * downloads (the .docx, mapping CSV, setup file, CSV template), the setup file round trip, the replace-letter window
   * tagged templates (Check a tagged template), margin flags, one-click fixes, the export checklist
   * a Word mail-merge letter with an employee export, with the Claude helpers (a faked /api/assist)
@@ -50,7 +50,7 @@ TAGGED = ["broken_tagged.docx", "tagged_missing_field.docx", "conditions_tagged.
 DATA = ["emps.csv", "emps.xlsx"]
 BAD_LETTERS = ["bad_not_a_docx.docx", "bad_no_body.docx", "zero_bytes.docx"]
 BAD_DATA = ["bad_empty.csv", "bad_header_only.csv", "bad.xlsx"]
-VIEWS = ["source", "tagged", "filled"]
+VIEWS = ["edit", "source", "tagged", "filled"]
 TABS = ["doc", "tags", "logic", "check", "export"]
 PANEL = "[data-testid=step-panel]"
 INSPECTOR = "#inspector"
@@ -227,7 +227,7 @@ class Sweep:
         await self.tab("doc")
         return pg.locator(PANEL).get_by_role("button", name=re.compile(r"^(Replace letter|Choose a letter)"))
 
-    async def load_letter(self, name):
+    async def load_letter(self, name, keep_edit=False):
         self.doing = f"loading {name}"
         was_sample = await self.ev("()=>!!window.__lt.state.isSample")
         btn = await self.letter_button()
@@ -236,6 +236,9 @@ class Sweep:
             self.fail("opening a letter while the unchanged sample was open asked 'Replace the open letter?'")
         await self.settle(1500)
         await self.dismiss_restore()
+        if not keep_edit:   # a letter opens in the editor; the other stages work on the client letter view
+            await self.ev("()=>window.__lt.setView('source')")
+            await self.settle(200)
 
     async def dismiss_restore(self):
         b = self.pg.get_by_role("button", name="Start fresh")
@@ -760,7 +763,7 @@ class Sweep:
         await self.settle(250)
         self.expect(not await self.visible("#inspector"), "Esc didn't close the inspector")
         # undo and redo buttons follow the history
-        await pg.get_by_role("button", name="Undo").click() if await pg.get_by_role("button", name="Undo").is_enabled() else None
+        await pg.get_by_role("button", name="Undo", exact=True).click() if await pg.get_by_role("button", name="Undo", exact=True).is_enabled() else None
         await pg.get_by_role("button", name="Redo").click() if await pg.get_by_role("button", name="Redo").is_enabled() else None
 
     async def drop_and_restore(self):
@@ -1120,7 +1123,7 @@ class Sweep:
             await li.get_by_role("button", name="Delete this tag").click()
             await self.settle(500)
             self.expect(len(await self.logic_tags()) == before_n - 1, "Delete this tag didn't delete the tag")
-            await pg.get_by_role("button", name="Undo").click()
+            await pg.get_by_role("button", name="Undo", exact=True).click()
             await self.settle(400)
             self.expect(len(await self.logic_tags()) == before_n, "Undo didn't bring the deleted tag back")
         self.doing = "condition: a click on a condition line in the letter"
@@ -1141,7 +1144,7 @@ class Sweep:
         n = await pg.locator("[data-lg-key]").count()
         self.expect(n >= 6, f"the Conditions list shows {n} items after adding many conditions")
         for _ in range(3):
-            await pg.get_by_role("button", name="Undo").click()
+            await pg.get_by_role("button", name="Undo", exact=True).click()
             await self.settle(200)
         for _ in range(3):
             await pg.get_by_role("button", name="Redo").click()
@@ -1210,6 +1213,81 @@ class Sweep:
             if await pg.locator("#mgClear").count():
                 await pg.locator("#mgClear").first.click()
                 await self.settle(300)
+        await self.close_overlays()
+
+    # ------------------------------------------------------------------------------------------------ combine several versions
+    async def combine_flows(self):
+        """Combine several versions: the home page entry, the screen (also on a phone and in dark mode), the result on the Conditions step."""
+        self.doing = "combine several versions"
+        pg = self.pg
+        names = ["promotion", "variable-pay", "no-increase", "bonus-only"]
+        files = [str(FIX / "versions" / f"{n}.docx") for n in names]
+        await self.load_letter("letterA.docx")
+        await self.tab("doc")
+        async with pg.expect_file_chooser() as fc:
+            await pg.get_by_role("button", name="Combine versions…").click()
+        await (await fc.value).set_files(files)
+        await self.settle(1200)
+        self.expect(await self.visible("[data-testid=combine-screen]"), "choosing the versions didn't open the Combine screen")
+        self.expect(await pg.get_by_test_id("combine-go").is_disabled(), "Combine is enabled before any version has a condition")
+        # a field and a value per version, through the page
+        await pg.get_by_role("combobox", name="Field that decides the version").click()
+        await pg.get_by_placeholder("Search fields").fill("employee_schema.case")
+        await pg.get_by_text("Use “employee_schema.case” as the field").click()
+        for i, v in enumerate(["promotion", "variable", "none", "bonus"]):
+            await pg.get_by_test_id(f"combine-value-{i}").fill(v)
+        await self.settle(300)
+        self.expect(await pg.get_by_test_id("combine-go").is_enabled(), "Combine stays off with every version set")
+        # the typed-condition and everything-else choices, the reorder arrows, the Show buttons, the checkbox
+        await pg.get_by_role("combobox", name="When does bonus-only apply").click()
+        await pg.get_by_role("option", name="Everything else").click()
+        await pg.get_by_role("combobox", name="When does no-increase apply").click()
+        await pg.get_by_role("option", name="Typed condition").click()
+        await pg.get_by_test_id("combine-raw-2").fill('employee_schema.case == "none"')
+        await pg.get_by_role("button", name="Move no-increase up").click()
+        await pg.get_by_role("button", name="Move no-increase down").click()
+        for b in await pg.get_by_role("button", name="Show").all():
+            await b.click()
+        await pg.get_by_label("Ignore small differences in numbers and spacing").click()
+        await pg.get_by_label("Ignore small differences in numbers and spacing").click()
+        await self.settle(200)
+        self.expect(await pg.get_by_test_id("combine-go").is_enabled(), "Combine turned off after valid edits")
+        await self.no_sideways_scroll("combine screen")
+        # a phone, and dark mode
+        await pg.set_viewport_size({"width": 390, "height": 844})
+        await self.settle(300)
+        await self.no_sideways_scroll("combine screen on a phone")
+        await pg.evaluate("()=>document.documentElement.setAttribute('data-theme','dark')")
+        await self.settle(200)
+        await self.no_sideways_scroll("combine screen in dark mode")
+        await pg.evaluate("()=>document.documentElement.removeAttribute('data-theme')")
+        await pg.set_viewport_size({"width": 1400, "height": 950})
+        await self.settle(200)
+        # combine: the Conditions step lists the new blocks, undo puts the letter back
+        await pg.get_by_test_id("combine-go").click()
+        await self.confirm_replace()
+        await self.settle(1500)
+        self.expect(not await self.visible("[data-testid=combine-screen]"), "the Combine screen stayed after Combine")
+        self.expect(await self.ev("()=>window.__lt.state.tab") == "logic", "after combining the page isn't on the Conditions step")
+        n = await self.ev("()=>window.__lt.state.logic.filter(l=>l.mg).length")
+        self.expect(n >= 6, f"combining added only {n} if / else lines")
+        self.expect(await self.ev("()=>window.__lt.state.logic.some(l=>/-?%}$/.test(l.text) && /else/.test(l.text))"), "no else line for the Everything else version")
+        await self.ev("()=>window.__lt.undo()")
+        await self.settle(500)
+        self.expect(await self.ev("()=>window.__lt.state.logic.length") == 0, "undo after combining left logic lines behind")
+        await self.ev("()=>window.__lt.redo()")
+        await self.settle(500)
+        await self.click_all(PANEL, limit=12)
+        # Cancel returns to the letter (or the home page)
+        await self.tab("doc")
+        async with pg.expect_file_chooser() as fc:
+            await pg.get_by_role("button", name="Combine versions…").click()
+        await (await fc.value).set_files(files[:1])
+        await self.settle(800)
+        self.expect(await self.visible("[data-testid=combine-hint]"), "one version gave no hint")
+        await pg.get_by_test_id("combine-cancel").click()
+        await self.settle(300)
+        self.expect(not await self.visible("[data-testid=combine-screen]"), "Back to the letter didn't close the Combine screen")
         await self.close_overlays()
 
     # ------------------------------------------------------------------------------------------------ downloads
@@ -1361,7 +1439,7 @@ class Sweep:
         for key in ["Control+z", "Control+z", "Control+Shift+z", "Control+y"]:
             await self.pg.keyboard.press(key)
             await self.settle(150)
-        await self.pg.get_by_role("button", name="Undo").click() if await self.pg.get_by_role("button", name="Undo").is_enabled() else None
+        await self.pg.get_by_role("button", name="Undo", exact=True).click() if await self.pg.get_by_role("button", name="Undo", exact=True).is_enabled() else None
         await self.pg.get_by_role("button", name="Redo").click() if await self.pg.get_by_role("button", name="Redo").is_enabled() else None
 
     async def tags_step(self):
@@ -1389,7 +1467,8 @@ class Sweep:
         await self.close_overlays()
 
     async def letter_round(self, letter, data):
-        await self.load_letter(letter)
+        await self.load_letter(letter, keep_edit=True)
+        self.expect(await self.ev("()=>window.__lt.state.view") == "edit", f"{letter} did not open in the editor")
         for v in VIEWS:
             await self.view(v)
             if v == "source":
@@ -1417,6 +1496,31 @@ class Sweep:
         await self.click_all("header", limit=15)
         await self.click_all("nav[aria-label=Workflow]", limit=15)
         await self.close_overlays()
+
+    async def editor_flows(self):
+        """The Edit letter view: types, the save status, the engine's letter, undo of the editor change, Tag this text."""
+        pg = self.pg
+        await self.load_letter("northwind.docx", keep_edit=True)
+        await self.view("edit")
+        await pg.wait_for_function("()=>!!window.__sd", timeout=20000)
+        await self.settle(1200)
+        run = pg.locator(".superdoc-text-run", has_text="Please find the revised").first
+        await run.click()
+        await pg.keyboard.press("End")
+        await pg.keyboard.type(" EDITED")
+        await pg.wait_for_function("()=>window.__lt.ed.status==='saved'", timeout=15000)
+        self.expect(await self.ev("()=>window.__lt.state.an.paras.some(p=>p.model.text.includes('EDITED'))"), "the editor's text did not reach the letter")
+        undo = pg.get_by_test_id("editor-undo")
+        self.expect(await undo.count() == 1, "no 'Undo editor change' after a save")
+        await undo.click()
+        await self.settle(800)
+        self.expect(not await self.ev("()=>window.__lt.state.an.paras.some(p=>p.model.text.includes('EDITED'))"), "'Undo editor change' did not restore the letter")
+        await self.view("tagged")
+        await self.view("edit")
+        await self.settle(800)
+        await self.tab("tags")      # another step leaves the editor
+        self.expect(await self.ev("()=>window.__lt.state.view") == "source", "the Tags step stayed in the editor view")
+        await self.view("source")
 
     async def mail_merge(self):
         """A Word mail-merge letter with an employee export: the group filter, merge-field checks, and Claude."""
@@ -1689,7 +1793,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab and 3 letters")
     ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables shell conditions export validate downloads letters replace drop oldtags roundtrip merge mailmerge tagged bad narrow team nobackend")
+    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables shell conditions export validate downloads letters replace drop oldtags roundtrip editor merge combine mailmerge tagged bad narrow team nobackend")
     ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
@@ -1719,6 +1823,7 @@ async def main():
             await page.get_by_role("button", name="Open the sample letter").click()
             await page.wait_for_function("window.__lt.state.built", timeout=30000)
             await sw.settle(800)
+            await sw.ev("()=>window.__lt.setView('source')")
 
             async def sample_stage():
                 await sw.palette_all(limit=40)
@@ -1745,11 +1850,11 @@ async def main():
                 for v in VIEWS:
                     await sw.view(v)
                     for letter in letters[:3]:
-                        await sw.load_letter(letter)
+                        await sw.load_letter(letter, keep_edit=True)
 
             stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("shell", sw.shell_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
                       ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("drop", sw.drop_and_restore), ("oldtags", sw.old_tags_flow), ("roundtrip", sw.condition_roundtrip),
-                      ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
+                      ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("combine", sw.combine_flows), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
                       ("team", lambda: team_library(browser, url, sw)), ("nobackend", lambda: no_backend(browser, url, sw))]
             for name, run in stages:
                 if args.only and name not in args.only:

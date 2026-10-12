@@ -1,4 +1,3 @@
-import { CircleAlert, CircleCheck, Info, TriangleAlert } from 'lucide-react'
 import { Badge, cn } from '@/ui'
 import { showPid } from '../paper/navigate'
 import type { Chip } from './types'
@@ -26,8 +25,6 @@ export function FlagLetter({ letter, level, quiet, className }: { letter: string
   )
 }
 
-export const LEVEL_ICON = { error: CircleAlert, warn: TriangleAlert, info: Info, fixed: CircleCheck } as const
-export const LEVEL_TEXT = { error: 'text-err', warn: 'text-warn', info: 'text-info', fixed: 'text-ok' } as const
 
 /** Where a finding is: one button per paragraph (page, then the start of its text). Click to scroll the letter there. */
 export function Places({ chips, more, onShow }: { chips: Chip[]; more?: boolean; onShow?: (pid: string) => void }) {

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Badge, Button, FieldPicker, FilterChip, IconButton, Input, Notice, SegmentedControl, Select, cn, type PickerGroup } from '@/ui'
 import {
-  CB_NOVAL, CB_NUM, CB_OPS, COND_PRESETS, aiCondition, aiReady, cbAddRule, cbFacts, cbHl, cbList, cbLive, cbNew, cbPickValue, cbRemoveRule,
+  CB_NOVAL, CB_NUM, CB_OPS, COND_PRESETS, aiCondition, aiReady, cbAddRule, cbHl, cbList, cbLive, cbNew, cbPickValue, cbRemoveRule,
   cbRestart, cbSetField, cbToBuilder, cbToJinja, cbValues, dataKey,
 } from '../../engine'
 import { focusSoon, useFieldGroups, useSyncedText } from './hooks'

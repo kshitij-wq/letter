@@ -1,9 +1,9 @@
-import { Check, ChevronRight, CircleCheck, GitBranch, Tag, Upload, Download } from 'lucide-react'
+import { Check, ChevronRight, CircleCheck, Files, GitBranch, Tag, Upload, Download } from 'lucide-react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { Button, DropZone, Notice } from '@/ui'
-import { csvMetaText, loadSample } from '../../engine'
-import { DATA_ACCEPT, LETTER_ACCEPT, openData, openLetter, openTagged, pickFile } from '../shell/openFile'
+import { csvMetaText } from '../../engine'
+import { DATA_ACCEPT, LETTER_ACCEPT, openData, openLetter, openSample, openTagged, openVersions, pickFile } from '../shell/openFile'
 
 const FLOW = [
   { icon: Tag, label: 'Map placeholders' },
@@ -37,6 +37,16 @@ export function FirstRun() {
             <p className="mt-1 text-sm text-muted">.docx (Word 2007 or later). Data: .csv, .xlsx, .xls.</p>
           </div>
         </DropZone>
+        <DropZone multiple label="Combine several versions: choose or drop all the versions (.docx)" accept={LETTER_ACCEPT} onFiles={(f) => { void openVersions(f) }}
+          className="group border border-hairline bg-panel px-5 py-4 hover:border-accent focus-visible:border-accent">
+          <div data-testid="combine-entry" className="flex items-start gap-3">
+            <Files aria-hidden className="mt-0.5 size-5 shrink-0 stroke-[1.25] text-muted transition-colors group-hover:text-accent" />
+            <div className="min-w-0">
+              <p className="text-base font-semibold">Combine several versions</p>
+              <p className="mt-0.5 text-sm text-muted">Client sent one letter per case (promotion, variable pay…)? Drop all versions here; text that is the same stays once, paragraphs that differ become if / else blocks.</p>
+            </div>
+          </div>
+        </DropZone>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-hairline-soft pt-6">
@@ -52,7 +62,7 @@ export function FirstRun() {
 
       <div className="flex flex-wrap items-center justify-center gap-x-3 text-muted">
         <span>No file to hand?</span>
-        <Button variant="ghost" onClick={() => loadSample()}>Open the sample letter</Button>
+        <Button variant="ghost" onClick={() => openSample()}>Open the sample letter</Button>
         <span aria-hidden>·</span>
         <Button variant="ghost" onClick={() => pickFile(LETTER_ACCEPT, openTagged)}>Check a tagged template…</Button>
       </div>

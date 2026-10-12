@@ -5,9 +5,10 @@ import { csvKeyUniverse, didYouMean, isCompUpKey, keyStatus, tagSyntaxProblem } 
 import { cbEnglish, cbExpr, cbNew } from './conditions.js'
 import { csvRows, filterColumns, flags, ingestCsv, ingestWorkbook, setDataFilter, templateValueFor, useSheet, wbCaches } from './data.js'
 import { analyze } from './detect.js'
+import { flushEditor } from './editor.js'
 import { buildBlob, mappingCsv, offer, templateCsv } from './downloads.js'
 import { addTagOps, existingTagInfo, loadMergeB, recomputeMerge, renameEverywhere } from './edits.js'
-import { emit, notify, on, toast } from './events.js'
+import { emit, notify, toast } from './events.js'
 import { addDefaultTo, fixTags } from './fixes.js'
 import { lsSet, norm, straightenTags } from './helpers.js'
 import { fullRefresh, loadDocx, scheduleBuild } from './load.js'
@@ -327,7 +328,7 @@ export async function downloadTemplate(){
 }
 export function downloadMapping(){ return offer(baseName()+'-tag-mapping.csv', mappingCsv()); }
 export function downloadTagListTemplate(){ return offer('compup-letter-tags-template.csv', templateCsv()); }
-export function downloadSetup(){ return offer(baseName()+'-tagger-setup.json', JSON.stringify(exportSetup())); }
+export async function downloadSetup(){ await flushEditor(); return offer(baseName()+'-tagger-setup.json', JSON.stringify(exportSetup())); }
 export function downloadBatchResults(){ return offer(baseName()+'-employee-test.csv', batchCsv()); }
 // a setup file chosen by the person: {report} on success, {error} otherwise
 export async function loadSetupFile(f){

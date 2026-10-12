@@ -1,15 +1,15 @@
 import { Download, Eye, FileText, FileUp, Moon, Monitor, Redo2, ShieldCheck, Sun, Table2, Undo2, Users, Layers } from 'lucide-react'
 import { es } from '@/hooks/useEngine'
 import { useUi } from '@/store'
-import { HISTORY, csvRows, downloadBatchResults, downloadMapping, downloadSetup, loadSample, redo, runBatch, scheduleRealCheck, server, setTab, setView, undo } from '../../engine'
+import { HISTORY, csvRows, downloadBatchResults, downloadMapping, downloadSetup, redo, runBatch, scheduleRealCheck, server, setTab, setView, undo } from '../../engine'
 import { runDownloadDocx } from './docx'
-import { LETTER_ACCEPT, openLetter, pickFile } from './openFile'
+import { LETTER_ACCEPT, openLetter, openSample, pickFile } from './openFile'
 import { registerCommands, type Command } from './registry'
 import { revealSide, STEP_NAMES } from './StepBar'
 import { isNarrowNow } from './useMedia'
 
 const STEP_ORDER = ['doc', 'tags', 'logic', 'check', 'export'] as const
-const VIEW_NAMES = { source: 'Client letter', tagged: 'Tagged template', filled: 'Employee preview' } as const
+const VIEW_NAMES = { edit: 'Edit letter', source: 'Client letter', tagged: 'Tagged template', filled: 'Employee preview' } as const
 
 /** Go to a step and make sure its panel can be seen (unfolds the panel, or opens the drawer on a phone). */
 export function goToStep(id: (typeof STEP_ORDER)[number]) { setTab(id); revealSide(isNarrowNow()) }
@@ -22,11 +22,11 @@ registerCommands(() => {
   const setTheme = useUi.getState().setTheme
 
   if (!has) {
-    out.push({ id: 'letter.sample', group: 'Letter', label: 'Open the sample letter', icon: <FileText aria-hidden />, run: () => { loadSample() } })
+    out.push({ id: 'letter.sample', group: 'Letter', label: 'Open the sample letter', icon: <FileText aria-hidden />, run: () => { openSample() } })
     out.push({ id: 'letter.open', group: 'Letter', label: 'Choose a letter (.docx)…', icon: <FileUp aria-hidden />, run: () => pickFile(LETTER_ACCEPT, openLetter) })
   } else {
     for (const id of STEP_ORDER) if (id !== es.tab) out.push({ id: `step.${id}`, group: 'Go to', label: STEP_NAMES[id], keywords: ['step'], icon: <Layers aria-hidden />, run: () => goToStep(id) })
-    for (const v of ['source', 'tagged', 'filled'] as const) if (v !== es.view) out.push({ id: `view.${v}`, group: 'View', label: VIEW_NAMES[v], keywords: ['letter', 'view', 'show'], icon: <Eye aria-hidden />, run: () => setView(v) })
+    for (const v of ['edit', 'source', 'tagged', 'filled'] as const) if (v !== es.view) out.push({ id: `view.${v}`, group: 'View', label: VIEW_NAMES[v], keywords: ['letter', 'view', 'show'], icon: <Eye aria-hidden />, run: () => setView(v) })
     if (HISTORY.undo.length) out.push({ id: 'edit.undo', group: 'Edit', label: 'Undo', shortcut: 'Ctrl+Z', icon: <Undo2 aria-hidden />, run: undo })
     if (HISTORY.redo.length) out.push({ id: 'edit.redo', group: 'Edit', label: 'Redo', shortcut: 'Ctrl+Shift+Z', icon: <Redo2 aria-hidden />, run: redo })
     if (server.ok) {

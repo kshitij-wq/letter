@@ -1,7 +1,6 @@
 // Moved from frontend_src/letter-tagger.html — see tests_ui/legacy for the reference page. No DOM rendering in this module.
 import { RX_TAG } from './detect.js'
 import { rewriteDocTags } from './edits.js'
-import { on } from './events.js'
 import { W, XMLNS, ancestor, childW, closestP, isW, parseXml } from './helpers.js'
 import { state } from './state.js'
 
