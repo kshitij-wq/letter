@@ -41,7 +41,7 @@ jobs:
         run: python manage.py test renderer -v 2
 
   page:
-    name: Page · parity with the old page
+    name: Page · parity and click-through
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -51,6 +51,12 @@ jobs:
           cache: pip
       - run: pip install -r requirements-dev.txt
       - run: python -m playwright install --with-deps chromium
-      # The click-through sweep is being ported to the React page; until then the new engine is held to the old page by parity.
       - name: Parity with the old page
         run: python tests_ui/parity.py
+      # Every letter x view x step, every button, Conditions end to end, downloads, bad files, team library, phone width
+      - name: Click-through sweep of the React page
+        run: python tests_ui/sweep.py
+      - name: Smoke tests (Preview & export, Validate)
+        run: |
+          python tests_ui/react/export.py
+          python tests_ui/react/validate.py

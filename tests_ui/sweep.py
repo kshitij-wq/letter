@@ -34,6 +34,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import traceback
 import time
 import zipfile
 from pathlib import Path
@@ -125,6 +126,16 @@ INIT_CLAUDE = """
 
 
 class Sweep:
+    @property
+    def doing(self):
+        return self._doing
+
+    @doing.setter
+    def doing(self, text):
+        self._doing = text
+        if os.environ.get("SWEEP_TRACE"):   # SWEEP_TRACE=1 prints each thing the sweep starts, to find where it hangs
+            print(f"  … {text}", flush=True)
+
     def __init__(self, page, quick=False):
         self.pg = page
         self.quick = quick
@@ -137,6 +148,7 @@ class Sweep:
 
     def wire(self, page):
         self.pg = page
+        page.set_default_timeout(8000)   # a control that isn't there is reported after 8 s, not 30
         page.on("pageerror", lambda e: self.fail(f"page error: {e}"))
         page.on("console", self.on_console)
         page.on("dialog", lambda d: asyncio.ensure_future(d.accept()))
@@ -170,6 +182,8 @@ class Sweep:
         await self.pg.wait_for_timeout(ms)
 
     async def ev(self, js, arg=None):
+        if os.environ.get("SWEEP_TRACE") == "2":
+            print(f"      ev {js.strip()[:70]!r}", flush=True)
         return await self.pg.evaluate(js, arg)
 
     async def visible(self, sel):
@@ -520,12 +534,159 @@ class Sweep:
         """Open a placeholder, click through everything in its panel, then check the step badge."""
         self.doing = f"placeholder panel in {letter}"
         await self.tab("tags")
-        row = self.pg.locator(f"{PANEL} [data-testid=tag-row], {PANEL} ul[aria-label=Placeholders] li button").first
+        row = self.pg.locator(f"{PANEL} [data-row-id]").first
         if await row.count():
             await row.click()
             await self.settle(400)
             await self.click_all(INSPECTOR, limit=14)
         await self.tag_badges(letter)
+
+    async def row_key(self, rid):
+        return await self.ev("(id)=>{const r=window.__lt.state.rows.find(x=>x.id===id); return r ? (r.key||'') : null}", rid)
+
+    async def tag_editor_flows(self):
+        """The placeholder editor: field picker, custom tag switch, several fields, format, the written tag, include, confirm, delete."""
+        pg = self.pg
+        self.doing = "Tags: the placeholder editor"
+        await self.view("source")
+        await self.tab("tags")
+        # a click on a placeholder in the letter opens its editor
+        ph = pg.locator("#paper .ph").first
+        self.expect(await ph.count() == 1, "the letter has no placeholder to click")
+        await ph.evaluate("e=>e.scrollIntoView({block:'center'})")
+        await ph.click()
+        await self.settle(500)
+        self.expect(await self.visible("#inspector[data-kind=tag]"), "clicking a placeholder in the letter didn't open its editor")
+        rid = await self.ev("()=>{const ui=window.__ltUi.useUi.getState(); return ui.inspector && ui.inspector.args.id}")
+        # change the field by typing a column name
+        await pg.locator("#tag-key-0").click()
+        await pg.keyboard.type("zz_pick")
+        await self.settle(250)
+        await pg.keyboard.press("Enter")
+        await self.settle(400)
+        self.expect(await self.row_key(rid) == "zz_pick", f"typing a field name didn't change the row's key: {await self.row_key(rid)!r}")
+        self.expect("zz_pick" in await pg.locator("#tag-final").input_value(), "the tag written into the letter doesn't follow the field")
+        # and a field from the list
+        await pg.locator("#tag-key-0").click()
+        await pg.keyboard.type("first_name")
+        await self.settle(250)
+        await pg.keyboard.press("Enter")
+        await self.settle(400)
+        self.expect(await self.row_key(rid) == "first_name", f"picking a field from the list didn't change the row's key: {await self.row_key(rid)!r}")
+        # custom tag switch adds and removes custom_schema.
+        sw = pg.locator(f"{INSPECTOR} [role=switch]")
+        self.expect(await sw.count() == 1, "no Custom tag switch for a plain field")
+        if await sw.count():
+            await sw.click()
+            await self.settle(300)
+            self.expect((await self.row_key(rid)).startswith("custom_schema."), f"Custom tag on should add custom_schema., key is {await self.row_key(rid)!r}")
+            await sw.click()
+            await self.settle(300)
+            self.expect(not (await self.row_key(rid)).startswith("custom_schema."), f"Custom tag off should remove custom_schema., key is {await self.row_key(rid)!r}")
+        # two fields side by side
+        await pg.get_by_role("button", name="Add another field").click()
+        await pg.keyboard.type("first_name")
+        await self.settle(250)
+        await pg.keyboard.press("Enter")
+        await self.settle(400)
+        self.expect("+" in await self.row_key(rid), f"Add another field didn't join two fields: {await self.row_key(rid)!r}")
+        await pg.get_by_role("button", name="Remove field 2").click()
+        await self.settle(300)
+        self.expect("+" not in await self.row_key(rid), "Remove field 2 left the second field in")
+        # format
+        await pg.locator("#tag-format").click()
+        opts = pg.get_by_role("option")
+        if await opts.count() > 1:
+            await opts.nth(1).click()
+            await self.settle(300)
+        await self.close_overlays(keep_inspector=True)
+        # the tag can be written by hand, and reset
+        await pg.locator("#tag-final").fill("{{ my_own_tag }}")
+        await self.settle(300)
+        reset = pg.get_by_role("button", name="Reset to generated tag")
+        self.expect(await reset.count() == 1, "editing the written tag didn't offer 'Reset to generated tag'")
+        if await reset.count():
+            await reset.click()
+            await self.settle(300)
+            self.expect("my_own_tag" not in await pg.locator("#tag-final").input_value(), "Reset to generated tag kept the hand-written tag")
+        await pg.locator("#tag-final").fill("{{ broken")
+        await self.settle(400)
+        self.expect(await pg.locator("#tag-problem").count() == 1, "a tag with a typing mistake showed no problem line")
+        await pg.get_by_role("button", name="Reset to generated tag").click()
+        await self.settle(300)
+        # include in template
+        inc = pg.get_by_role("checkbox", name="Include in template")
+        await inc.click()
+        await self.settle(300)
+        self.expect(not await self.ev("(id)=>window.__lt.state.rows.find(x=>x.id===id).enabled", rid), "Include in template off left the row on")
+        await inc.click()
+        await self.settle(300)
+        # confirm a suggested mapping, if one is waiting
+        conf = pg.get_by_role("button", name="Confirm mapping")
+        if await conf.count():
+            await conf.click()
+            await self.settle(400)
+        await pg.get_by_role("button", name="Done", exact=True).click()
+        await self.settle(300)
+        self.expect(not await self.visible("#inspector"), "Done left the editor open")
+        # a text added by hand can be deleted again (with a confirmation)
+        await self.view("source")
+        box = pg.get_by_label("Other text to tag")
+        await box.fill("Annexure 1")
+        await box.press("Enter")
+        await self.settle(600)
+        row = pg.locator(f"{PANEL} [data-row-id]", has_text="Annexure 1")
+        self.expect(await row.count() >= 1, "a text added by hand isn't in the list")
+        if await row.count():
+            await row.first.click()
+            await self.settle(300)
+            await pg.get_by_role("button", name="Delete", exact=True).click()
+            await self.settle(300)
+            await pg.locator("[data-testid=confirm-ok]").click()
+            await self.settle(500)
+            self.expect(await pg.locator(f"{PANEL} [data-row-id]", has_text="Annexure 1").count() == 0, "Delete left the text in the list")
+        # keyboard: arrow keys move between rows
+        first = pg.locator(f"{PANEL} [data-row-id]").first
+        await first.focus()
+        await pg.keyboard.press("ArrowDown")
+        await self.settle(250)
+        moved = await self.ev("()=>document.activeElement && document.activeElement.dataset.rowId")
+        self.expect(bool(moved) and moved != await first.get_attribute("data-row-id"), "ArrowDown didn't move to the next placeholder")
+        await self.close_overlays()
+
+    async def tables_flows(self):
+        """Salary tables: pick a field for an empty cell, the letter shows it, a click on the cell in the letter opens it."""
+        pg = self.pg
+        self.doing = "Tags: salary tables"
+        await self.view("source")
+        await self.tab("tags")
+        cells = pg.locator(f"{PANEL} [data-cell]", has_text="Needs a tag")
+        if not await cells.count():
+            return
+        before = await self.ev("()=>window.__lt.state.tables.reduce((s,t)=>s+window.__lt.tableCounts(t).done,0)")
+        cell = cells.first
+        await cell.evaluate("e=>e.scrollIntoView({block:'center'})")
+        await cell.locator("[role=combobox]").click()
+        await pg.keyboard.type("ctc")
+        await self.settle(250)
+        await pg.keyboard.press("Enter")
+        await self.settle(500)
+        after = await self.ev("()=>window.__lt.state.tables.reduce((s,t)=>s+window.__lt.tableCounts(t).done,0)")
+        self.expect(after > before, "picking a field for a table cell didn't tag it")
+        ghost = pg.locator("#paper .cell-ghost").first
+        if await ghost.count():
+            await ghost.evaluate("e=>e.scrollIntoView({block:'center'})")
+            await self.settle(300)
+            await ghost.click()
+            await self.settle(500)
+            self.expect(await self.ev("()=>window.__lt.state.tab") == "tags", "a click on a table cell in the letter didn't open the Tags step")
+        # the format and row-hiding options open and take a change
+        opt = pg.get_by_role("button", name=re.compile("Format and row hiding")).first
+        if await opt.count():
+            await opt.click()
+            await self.settle(300)
+            await self.click_all(PANEL, limit=15)
+        await self.close_overlays()
 
     async def condition_roundtrip(self):
         """Every test the condition builder offers writes a condition that reads back unchanged and runs in the preview engine."""
@@ -1137,6 +1298,21 @@ class Sweep:
             self.expect(await self.ev("()=>window.__lt.state.tab") == "tags", "a readiness line didn't go to its step")
             await self.tab("export")
 
+    async def run_batch(self, timeout):
+        """Test every employee (the section is folded at first). Returns whether a test ran and finished."""
+        pg = self.pg
+        run = pg.get_by_role("button", name=re.compile(r"^Test \d+ employees?$"))
+        if not await run.count():
+            head = pg.get_by_role("button", name=re.compile(r"^Test every employee"))
+            if await head.count():
+                await head.first.click()
+                await self.settle(300)
+        if not await run.count():
+            return False
+        await run.first.click()
+        await pg.get_by_text("employees tested in", exact=False).first.wait_for(timeout=timeout)
+        return True
+
     async def validate_flows(self):
         """Validate: real Jinja status, counts, the employee test with its table, results download."""
         pg = self.pg
@@ -1144,10 +1320,7 @@ class Sweep:
         await self.tab("check")
         await self.settle(1500)
         self.expect(await pg.get_by_role("list", name="Totals").count() == 1, "the Validate step shows no counts")
-        run = pg.get_by_role("button", name=re.compile(r"^Test (\d+ employees?|every employee)"))
-        if await run.count():
-            await run.first.click()
-            await pg.get_by_text("employees tested in", exact=False).first.wait_for(timeout=60000)
+        if await self.run_batch(60000):
             only = pg.get_by_role("checkbox", name="Only employees with problems")
             if await only.count():
                 await only.click()
@@ -1269,10 +1442,7 @@ async def no_backend(browser, url, sw):
     await sw.click_all(PANEL, limit=20)
     await sw.ev("""async()=>{ window.__lt.ingestCsv('first_name,rating\\nAsha,A\\nMeera,B','e.csv'); }""")
     await sw.settle(500)
-    run = page.get_by_role("button", name=re.compile(r"^Test "))
-    if await run.count():
-        await run.first.click()
-        await page.get_by_text("employees tested in", exact=False).first.wait_for(timeout=30000)
+    if await sw.run_batch(30000):
         sw.expect(await page.get_by_text("Real Jinja (the engine CompUp uses)", exact=False).count() == 0, "a claim about real Jinja without a back end")
     sw.api_404_ok = False
     await ctx.close()
@@ -1285,7 +1455,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab and 3 letters")
     ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): selection conditions export validate downloads letters replace roundtrip merge mailmerge tagged bad narrow team nobackend")
+    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables conditions export validate downloads letters replace roundtrip merge mailmerge tagged bad narrow team nobackend")
     ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
@@ -1315,11 +1485,16 @@ async def main():
             await page.get_by_role("button", name="Open the sample letter").click()
             await page.wait_for_function("window.__lt.state.built", timeout=30000)
             await sw.settle(800)
-            await sw.palette_all(limit=40)
-            for t in TABS:
-                await sw.tab(t)
-                await sw.click_all(PANEL, limit=20)
-                await sw.no_sideways_scroll(f"sample {t}")
+
+            async def sample_stage():
+                await sw.palette_all(limit=40)
+                for t in TABS:
+                    await sw.tab(t)
+                    await sw.click_all(PANEL, limit=20)
+                    await sw.no_sideways_scroll(f"sample {t}")
+
+            if not args.only or "sample" in args.only:
+                await sample_stage()
             await sw.load_data("emps.csv")
 
             async def letters_stage():
@@ -1338,7 +1513,7 @@ async def main():
                     for letter in letters[:3]:
                         await sw.load_letter(letter)
 
-            stages = [("selection", sw.selection_rules), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
+            stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
                       ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("roundtrip", sw.condition_roundtrip),
                       ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
                       ("team", lambda: team_library(browser, url, sw)), ("nobackend", lambda: no_backend(browser, url, sw))]
@@ -1346,14 +1521,15 @@ async def main():
                 if args.only and name not in args.only:
                     continue
                 try:
-                    await run()
+                    await asyncio.wait_for(run(), timeout=900)
                 except Exception as exc:  # noqa: BLE001 - one broken stage must not hide the others
                     shot = Path(tempfile.gettempdir()) / f"sweep-crash-{name}.png"
                     try:
                         await sw.pg.screenshot(path=str(shot))
                     except Exception:  # noqa: BLE001
                         pass
-                    sw.fail(f"stage {name} stopped: {str(exc).splitlines()[0][:300]} (screenshot: {shot})")
+                    where = [f"{Path(f.filename).name}:{f.lineno}" for f in traceback.extract_tb(exc.__traceback__) if f.filename.endswith("sweep.py")][-1:]
+                    sw.fail(f"stage {name} stopped at {where}: {str(exc).splitlines()[0][:300]} (screenshot: {shot})")
                     try:
                         await sw.close_overlays()
                     except Exception:  # noqa: BLE001
