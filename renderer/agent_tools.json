@@ -1,0 +1,243 @@
+{
+  "_note": "The one definition of the Letter Assistant's tools. The server (renderer/assistant.py) sends name, description and input_schema to Claude; the page (frontend/src/engine/agent.js) checks every call's arguments against the same input_schema and uses kind and allow_auto to decide what runs at once and what waits for the person. kind: read (runs at once) or write (a proposal the person applies or rejects). allow_auto: a narrow write that may be applied without asking, only when the person has turned that on and the call sets auto_apply.",
+  "tools": [
+    {
+      "name": "get_document_outline",
+      "kind": "read",
+      "description": "List the paragraphs of the letter in order. Each has a paragraph id (pid) that the other tools use, its page, where it is (body, header, footer, table), a short text and the tags in it. Call this before changing the letter, and again after a change that adds or removes paragraphs (ids can move).",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "only_with_tags": {"type": "boolean", "description": "Only paragraphs that already contain a {{ }} or {% %} tag."},
+          "limit": {"type": "integer", "minimum": 1, "maximum": 300, "description": "At most this many paragraphs (default 120)."}
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "find_text",
+      "kind": "read",
+      "description": "Find paragraphs that contain some text (not case sensitive). Returns the paragraph id, page and a snippet around each match.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {"type": "string", "minLength": 1, "maxLength": 200},
+          "limit": {"type": "integer", "minimum": 1, "maximum": 50}
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_selection",
+      "kind": "read",
+      "description": "What the person has selected in the letter right now: paragraphs (with ids and text) or words inside one paragraph. When they say \"this\" or \"here\", this is what they mean.",
+      "input_schema": {"type": "object", "properties": {}, "additionalProperties": false}
+    },
+    {
+      "name": "get_fields",
+      "kind": "read",
+      "description": "The fields that really exist: the columns of the uploaded data file (with how to write them in a tag, the type and, for columns with few categories, their values) and the CompUp standard tags with labels. Never use a field name that is not in this list.",
+      "input_schema": {
+        "type": "object",
+        "properties": {"search": {"type": "string", "maxLength": 100, "description": "Only fields whose name or label contains this."}},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_tags",
+      "kind": "read",
+      "description": "The pieces of text in the letter that become tags (placeholders): row id, the text, the field chosen, the tag that will be written and the status (need = no tag yet, check = a guess to confirm, tagged, off).",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "status": {"type": "string", "enum": ["all", "need", "check", "tagged", "off"]},
+          "limit": {"type": "integer", "minimum": 1, "maximum": 200}
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_conditions",
+      "kind": "read",
+      "description": "The conditions (if / else if / else / end if tags) in the letter, each with its key, the paragraph it is in, the tag text, a plain-English reading, whether it is closed, and (when the data file is loaded) how many employees see it. Also the salary-table rows that are hidden when empty.",
+      "input_schema": {"type": "object", "properties": {}, "additionalProperties": false}
+    },
+    {
+      "name": "get_validation",
+      "kind": "read",
+      "description": "The problems the checks found in the letter now: key, level (error or warn), category, text, the paragraphs involved and whether a one-click fix exists.",
+      "input_schema": {
+        "type": "object",
+        "properties": {"include_notes": {"type": "boolean", "description": "Also list notes, not only errors and warnings."}},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "preview_for_employee",
+      "kind": "read",
+      "description": "Fill the letter with made-up sample values (never a real employee) and return the text, so you can see what a condition or tag prints. The values are labelled as sample values. Use contains to see only the paragraphs with some text.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "contains": {"type": "string", "maxLength": 100},
+          "limit": {"type": "integer", "minimum": 1, "maximum": 60}
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "tag_text",
+      "kind": "write",
+      "allow_auto": true,
+      "description": "Turn a piece of text in the letter (a placeholder such as [Employee Name], a blank, or any exact text that appears in the letter) into a tag for a field. Give either row_id (from get_tags) or the exact text. The field must be a real one from get_fields. All places where that exact text appears are tagged.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "row_id": {"type": "string", "description": "A row id from get_tags."},
+          "text": {"type": "string", "minLength": 1, "maxLength": 200, "description": "The exact text in the letter, when there is no row id."},
+          "field": {"type": "string", "minLength": 1, "maxLength": 200, "description": "The field, e.g. employee_schema.designation or custom_schema.basic1. Join two with ' + ' to print them side by side."},
+          "format": {"type": "string", "enum": ["auto", "none", "indian", "indian_round", "dec0", "house", "dash", "intl", "dec2", "upper", "title", "date"], "description": "How to print it. auto picks money formatting for amounts."},
+          "custom": {"type": "boolean", "description": "true to write it as a custom cycle column (custom_schema.<name>)."},
+          "auto_apply": {"type": "boolean", "description": "true only when the person asked for exactly this change and the target is certain."}
+        },
+        "required": ["field"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "update_tag",
+      "kind": "write",
+      "allow_auto": true,
+      "description": "Change the tag of a placeholder that already has one (or confirm a guess): a different field, a different format, a hand-written tag, or skip it. Use the row id from get_tags.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "row_id": {"type": "string", "minLength": 1},
+          "field": {"type": "string", "maxLength": 200},
+          "format": {"type": "string", "enum": ["auto", "none", "indian", "indian_round", "dec0", "house", "dash", "intl", "dec2", "upper", "title", "date"]},
+          "custom": {"type": "boolean"},
+          "tag": {"type": "string", "maxLength": 600, "description": "A complete tag written by hand, e.g. {{ ctc | indian_comma }}. Replaces the field and format."},
+          "confirm": {"type": "boolean", "description": "true to confirm the current guess without changing it."},
+          "skip": {"type": "boolean", "description": "true to leave this text as typed (no tag)."},
+          "auto_apply": {"type": "boolean"}
+        },
+        "required": ["row_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "wrap_paragraphs_in_condition",
+      "kind": "write",
+      "description": "Show some paragraphs only when a condition is true (adds an if before the first paragraph and an end if after the last), optionally with different text otherwise. The paragraphs must sit together in the same place. Give the condition as rules (field, op, value) joined by and / or; write a raw Jinja expression only when the rules cannot say it. Text and numbers in rules are compared the CompUp way; list values for is-one-of are comma separated.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "pids": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 40},
+          "rules": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "object", "properties": {
+            "field": {"type": "string", "minLength": 1},
+            "op": {"type": "string", "enum": ["is", "isnot", "in", "notin", "has", "gt", "ge", "lt", "le", "eqn", "nen", "empty", "filled"]},
+            "value": {"type": "string"}
+          }, "required": ["field", "op"], "additionalProperties": false}},
+          "join": {"type": "string", "enum": ["and", "or"]},
+          "raw_expr": {"type": "string", "maxLength": 600, "description": "A Jinja expression without {% if %}, used instead of rules."},
+          "otherwise_text": {"type": "string", "maxLength": 2000, "description": "Text to show to everyone else, one paragraph per line."}
+        },
+        "required": ["pids"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "if_else_text",
+      "kind": "write",
+      "description": "Give whole paragraphs a different version for each value of a field (if / else if / else). The listed paragraphs are replaced by the versions, or the versions are added after them.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "pids": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 10},
+          "field": {"type": "string", "minLength": 1},
+          "match": {"type": "string", "enum": ["text", "number"]},
+          "cases": {"type": "array", "minItems": 1, "maxItems": 12, "items": {"type": "object", "properties": {"value": {"type": "string", "minLength": 1}, "text": {"type": "string", "maxLength": 3000}}, "required": ["value", "text"], "additionalProperties": false}},
+          "otherwise_text": {"type": "string", "maxLength": 3000},
+          "where": {"type": "string", "enum": ["replace", "after"]}
+        },
+        "required": ["pids", "field", "cases"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "wrap_table_row_in_condition",
+      "kind": "write",
+      "description": "Show a salary-table row only when its value is not empty or zero (or always show it). This uses the table's row-hiding: the row's cells must already have tags. Get table ids and rows from get_conditions.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "table_id": {"type": "string", "minLength": 1},
+          "row": {"type": "string", "minLength": 1, "description": "The row's label, or its row number."},
+          "hide_when_empty": {"type": "boolean", "description": "true (default) hides the row when its value is empty or 0; false always shows it."}
+        },
+        "required": ["table_id", "row"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "update_condition",
+      "kind": "write",
+      "description": "Change the condition of an existing if / else if tag (key from get_conditions). Give new rules or a raw Jinja expression.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "key": {"type": "string", "minLength": 1},
+          "rules": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "object", "properties": {"field": {"type": "string", "minLength": 1}, "op": {"type": "string", "enum": ["is", "isnot", "in", "notin", "has", "gt", "ge", "lt", "le", "eqn", "nen", "empty", "filled"]}, "value": {"type": "string"}}, "required": ["field", "op"], "additionalProperties": false}},
+          "join": {"type": "string", "enum": ["and", "or"]},
+          "raw_expr": {"type": "string", "maxLength": 600}
+        },
+        "required": ["key"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "remove_condition",
+      "kind": "write",
+      "description": "Remove a whole condition block that was added in this tool (the if, any else if / else, and the end if). The text between them stays. Tags that were already in the uploaded letter cannot be removed.",
+      "input_schema": {
+        "type": "object",
+        "properties": {"key": {"type": "string", "minLength": 1, "description": "The key of the if tag, from get_conditions."}},
+        "required": ["key"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "replace_paragraph_text",
+      "kind": "write",
+      "description": "Reword one paragraph. Every {{ }} and {% %} tag in the paragraph must stay exactly as it is, in the same order; only the words between them may change. Give expected_text (the current text) so the change is not applied to the wrong paragraph.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "pid": {"type": "string", "minLength": 1},
+          "new_text": {"type": "string", "minLength": 1, "maxLength": 4000},
+          "expected_text": {"type": "string", "maxLength": 4000}
+        },
+        "required": ["pid", "new_text"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "apply_fix",
+      "kind": "write",
+      "description": "Run the one-click fix of a problem from get_validation (for example changing = to ==). Only fixes that change tags on their own are available; others need the person.",
+      "input_schema": {
+        "type": "object",
+        "properties": {"issue_key": {"type": "string", "minLength": 1}},
+        "required": ["issue_key"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "undo",
+      "kind": "write",
+      "description": "Undo the last change made through this assistant (only while nothing else has been changed since).",
+      "input_schema": {"type": "object", "properties": {}, "additionalProperties": false}
+    }
+  ]
+}
