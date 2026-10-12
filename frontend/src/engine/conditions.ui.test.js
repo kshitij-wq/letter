@@ -138,3 +138,18 @@ describe('what the Conditions step and the selection panel read', () => {
     expect(logicRows().every((e) => blockCountInfo(e) === null)).toBe(true)
   })
 })
+
+import { setCustomKey, isCustomKey, canBeCustom } from './rows.js'
+import { describe as d2, it as i2, expect as e2 } from 'vitest'
+d2('custom tag switch', () => {
+  i2('adds and removes custom_schema.', () => {
+    e2(setCustomKey('basic_mo', true)).toBe('custom_schema.basic_mo')
+    e2(setCustomKey('custom_schema.basic_mo', false)).toBe('basic_mo')
+    e2(setCustomKey('first_name + last_name', true)).toBe('custom_schema.first_name + custom_schema.last_name')
+    e2(setCustomKey('fx:full_name', true)).toBe('fx:full_name')
+    e2(setCustomKey('employee_schema.rating', true)).toBe('employee_schema.rating')
+    e2(isCustomKey('custom_schema.basic_mo')).toBe(true)
+    e2(isCustomKey('basic_mo')).toBe(false)
+    e2(canBeCustom('fx:full_name')).toBe(false)
+  })
+})
