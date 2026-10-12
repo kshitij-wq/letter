@@ -4,7 +4,7 @@ import 'superdoc/style.css'
 import { Tag } from 'lucide-react'
 import { Button, toast } from '@/ui'
 import { setView } from '../../engine'
-import { editorChanged, finalTag, flushEditor, registerEditor, selectEditorWords, squash, state, subscribe, tagSyntaxProblem, unregisterEditor } from '../../engine'
+import { editorChanged, editorInput, finalTag, flushEditor, registerEditor, selectEditorWords, squash, state, subscribe, tagSyntaxProblem, unregisterEditor } from '../../engine'
 import { firePaper } from '../paper/paperEvents'
 import { installTagChips, type ChipHooks } from './tagChips'
 import './editor.css'
@@ -25,7 +25,7 @@ export default function EditorSurface() {
   useEffect(() => {
     if (!host.current || !bar.current || !state.srcBuf) return
     let base: any = null, dirty = false, live = true, sd: any = null, stopChips = () => {}, chips: ReturnType<typeof installTagChips> | null = null, unsub = () => {}
-    const file = new File([state.srcBuf], state.fileName || 'letter.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+    const srcBuf = state.srcBuf, srcName = state.fileName || 'letter.docx'
     const handle = {
       exportDocx: async () => {
         const blob: Blob = await sd.export({ exportType: ['docx'], triggerDownload: false, commentsType: 'clean' })
@@ -62,7 +62,9 @@ export default function EditorSurface() {
         if (r) firePaper('placeholder', { id: r.id, el })
       },
     }
-    try {
+    const start = async () => {
+      const file = new File([await editorInput(srcBuf)], srcName, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+      if (!live) return
       sd = new SuperDoc({
         selector: host.current,
         toolbar: '#editor-toolbar',
@@ -91,7 +93,8 @@ export default function EditorSurface() {
         onException: (e: any) => { console.warn('SuperDoc', e); if (live && !ready) setFailed('The editor could not open this letter. The other views still work.') },
         onContentError: () => { if (live) setFailed('The editor could not open this letter. The other views still work.') },
       } as any)
-    } catch (e) { console.warn(e); setFailed('The editor could not start in this browser.') }
+    }
+    start().catch((e) => { console.warn(e); setFailed('The editor could not start in this browser.') })
 
     return () => {
       live = false

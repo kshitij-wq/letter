@@ -26,7 +26,37 @@ export function editorSourceId() {
   return ed.loadId
 }
 
-const squash = (s) => s.replace(/\s+/g, ' ').trim()
+const CT = 'application/vnd.openxmlformats-officedocument.wordprocessingml'
+const NS_W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+/**
+ * The letter as the editor should open it. Word always writes a styles part and a relationships part for the document; a
+ * hand-made or generated .docx often has neither, and the editor cannot save such a file. Missing ones are added empty (the
+ * letter itself is not touched). Returns the same buffer when nothing is missing.
+ */
+export async function editorInput(buf) {
+  const zip = await JSZip.loadAsync(buf)
+  const main = zip.file('word/document.xml') ? 'word/document.xml' : null
+  if (!main) return buf
+  let ct = await zip.file('[Content_Types].xml').async('string')
+  let changed = false
+  if (!zip.file('word/_rels/document.xml.rels')) {
+    zip.file('word/_rels/document.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>')
+    changed = true
+  }
+  if (!zip.file('word/styles.xml')) {
+    zip.file('word/styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="${NS_W}"><w:docDefaults><w:rPrDefault><w:rPr><w:sz w:val="22"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr/></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>`)
+    if (!/PartName="\/word\/styles\.xml"/.test(ct)) ct = ct.replace('</Types>', `<Override PartName="/word/styles.xml" ContentType="${CT}.styles+xml"/></Types>`)
+    changed = true
+  }
+  if (!changed) return buf
+  // the relationship that points the document at its styles
+  const rels = await zip.file('word/_rels/document.xml.rels').async('string')
+  if (!/relationships\/styles"/.test(rels)) zip.file('word/_rels/document.xml.rels', rels.replace('</Relationships>', '<Relationship Id="rIdStyles1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'))
+  zip.file('[Content_Types].xml', ct)
+  return zip.generateAsync({ type: 'arraybuffer', mimeType: `${CT}.document`, compression: 'DEFLATE' })
+}
+
+const squash =(s) => s.replace(/\s+/g, ' ').trim()
 
 /** Every tag in the document (all parts, a tag split over runs counts as one), whitespace squashed. */
 export async function docTags(buf) {

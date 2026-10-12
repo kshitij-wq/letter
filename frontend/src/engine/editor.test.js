@@ -1,6 +1,6 @@
 import JSZip from 'jszip'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { build, docTags, ed, editorChanged, flushEditor, keepBlockedChange, loadDocx, missingTags, registerEditor, restoreBlockedTags, sampleDocx, saveEditor, setRowKey, state, undoEditorChange, exportSetup } from './index.js'
+import { build, docTags, ed, editorInput, editorChanged, flushEditor, keepBlockedChange, loadDocx, missingTags, registerEditor, restoreBlockedTags, sampleDocx, saveEditor, setRowKey, state, undoEditorChange, exportSetup } from './index.js'
 
 const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
 const docxOf = async (paras, header = '') => {
@@ -20,6 +20,22 @@ describe('tag guard', () => {
   it('missingTags counts copies and ignores added tags', () => {
     expect(missingTags(['{{ a }}', '{{ a }}', '{{ b }}'], ['{{ a }}', '{{ c }}'])).toEqual(['{{ a }}', '{{ b }}'])
     expect(missingTags(['{{ a }}'], ['{{ a }}', '{{ a }}'])).toEqual([])
+  })
+})
+
+describe('editorInput', () => {
+  it('adds the styles and relationships parts a hand-made letter lacks, and leaves the text alone', async () => {
+    const buf = await docxOf(['Dear {{ first_name }},'])
+    const out = await editorInput(buf)
+    const z = await JSZip.loadAsync(out)
+    expect(z.file('word/styles.xml')).toBeTruthy()
+    expect(z.file('word/_rels/document.xml.rels')).toBeTruthy()
+    expect(await z.file('[Content_Types].xml').async('string')).toContain('/word/styles.xml')
+    expect(await docTags(out)).toEqual(['{{ first_name }}'])
+  })
+  it('returns a complete letter unchanged', async () => {
+    const once = await editorInput(await docxOf(['x']))
+    expect(await editorInput(once)).toBe(once)
   })
 })
 
