@@ -5,6 +5,7 @@ import './paper.css'
 import { MarginFlags } from './MarginFlags'
 import { firePaper, getFlags } from './paperEvents'
 import { selRange } from './selRange'
+import { useParagraphAccess } from '../conditions/paragraphAccess'
 
 const closestIn = (target: EventTarget | null, selector: string): HTMLElement | null => (target instanceof Element ? target.closest<HTMLElement>(selector) : null)
 
@@ -17,9 +18,11 @@ const closestIn = (target: EventTarget | null, selector: string): HTMLElement | 
 export function Paper() {
   useEngineRev()
   const sheet = useRef<HTMLElement>(null)
+  const body = useRef<HTMLDivElement>(null)
   const view = es.view
   const html = paperHtml(view)
   const flags = view === 'source' ? getFlags() : []
+  useParagraphAccess(body, html)   // body paragraphs get tabindex + keyboard (features/conditions)
 
   const onMouseUp = (e: MouseEvent<HTMLDivElement>) => {
     if (es.view !== 'source') return
@@ -40,7 +43,30 @@ export function Paper() {
     if (ph) { firePaper('placeholder', { id: ph.dataset.row as string, el: ph }); return }
     const lg = closestIn(e.target, '[data-key]')
     if (lg) { firePaper('logic', { key: lg.dataset.key as string, el: lg }); return }
-    if (p) clickParagraph(p.dataset.pid as string, e.shiftKey)
+    if (!p) return
+    // outside the Conditions step a click picks the word under the pointer (to tag it); in Conditions it picks the paragraph
+    if (es.tab !== 'logic' && !e.shiftKey && selectWordAt(e.clientX, e.clientY, p)) return
+    clickParagraph(p.dataset.pid as string, e.shiftKey)
+  }
+
+  // select the whole word at a point and hand it to the engine, as if the user had dragged over it
+  const selectWordAt = (x: number, y: number, p: HTMLElement) => {
+    const r = document.caretRangeFromPoint?.(x, y)
+    const node = r?.startContainer
+    if (!r || !node || node.nodeType !== 3 || !p.contains(node)) return false
+    const t = node.textContent || ''
+    const isW = (c: string) => /[\p{L}\p{N}_'’&.-]/u.test(c)
+    let s = r.startOffset, en = r.startOffset
+    while (s > 0 && isW(t[s - 1])) s--
+    while (en < t.length && isW(t[en])) en++
+    while (en > s && /[.'’-]/.test(t[en - 1])) en--
+    if (en <= s) return false
+    const sel = window.getSelection(); if (!sel) return false
+    const range = document.createRange(); range.setStart(node, s); range.setEnd(node, en)
+    sel.removeAllRanges(); sel.addRange(range)
+    const txt = sel.toString().trim(); if (!txt) return false
+    selectWords(txt, selRange(sel, p))
+    return true
   }
 
   // condition lines are buttons in the markup: Enter and Space open them
@@ -54,7 +80,7 @@ export function Paper() {
 
   return (
     <article id="paper" ref={sheet} tabIndex={-1} aria-label="Letter" className="paper" data-view={view} data-picking={es.closing || es.placing ? '' : undefined}>
-      <div className="paper-body" onMouseUp={onMouseUp} onKeyDown={onKeyDown} dangerouslySetInnerHTML={{ __html: html }} />
+      <div ref={body} className="paper-body" onMouseUp={onMouseUp} onKeyDown={onKeyDown} dangerouslySetInnerHTML={{ __html: html }} />
       {flags.length > 0 && (
         <MarginFlags paper={sheet} flags={flags} dep={html.length}
           onSelect={(f, el) => firePaper('flag', { index: f.index, el })} />
