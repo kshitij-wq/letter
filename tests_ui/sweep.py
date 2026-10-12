@@ -1237,6 +1237,7 @@ class Sweep:
         self.expect(await self.visible("[data-testid=assistant-panel]"), "the Assistant button did not open the panel")
         await self.click_all("[data-testid=assistant-panel]", limit=30)
         await self.no_sideways_scroll("assistant panel")
+        await pg.wait_for_function("()=>window.__lt.state.rows.some(r=>r.count)")
         await self.ev("()=>{ const r=window.__lt.state.rows.find(r=>r.count); window.__lt.setRowKey(r.id, '') }")   # one placeholder without a tag to propose for
         await pg.get_by_test_id("assistant-input").fill("propose a tag")
         await pg.get_by_test_id("assistant-send").click()
