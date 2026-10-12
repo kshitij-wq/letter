@@ -5,6 +5,7 @@ import './paper.css'
 import { MarginFlags } from './MarginFlags'
 import { firePaper, getFlags } from './paperEvents'
 import { selRange } from './selRange'
+import { useParagraphAccess } from '../conditions/paragraphAccess'
 
 const closestIn = (target: EventTarget | null, selector: string): HTMLElement | null => (target instanceof Element ? target.closest<HTMLElement>(selector) : null)
 
@@ -17,9 +18,11 @@ const closestIn = (target: EventTarget | null, selector: string): HTMLElement | 
 export function Paper() {
   useEngineRev()
   const sheet = useRef<HTMLElement>(null)
+  const body = useRef<HTMLDivElement>(null)
   const view = es.view
   const html = paperHtml(view)
   const flags = view === 'source' ? getFlags() : []
+  useParagraphAccess(body, html)   // body paragraphs get tabindex + keyboard (features/conditions)
 
   const onMouseUp = (e: MouseEvent<HTMLDivElement>) => {
     if (es.view !== 'source') return
@@ -54,7 +57,7 @@ export function Paper() {
 
   return (
     <article id="paper" ref={sheet} tabIndex={-1} aria-label="Letter" className="paper" data-view={view} data-picking={es.closing || es.placing ? '' : undefined}>
-      <div className="paper-body" onMouseUp={onMouseUp} onKeyDown={onKeyDown} dangerouslySetInnerHTML={{ __html: html }} />
+      <div ref={body} className="paper-body" onMouseUp={onMouseUp} onKeyDown={onKeyDown} dangerouslySetInnerHTML={{ __html: html }} />
       {flags.length > 0 && (
         <MarginFlags paper={sheet} flags={flags} dep={html.length}
           onSelect={(f, el) => firePaper('flag', { index: f.index, el })} />
