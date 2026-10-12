@@ -203,6 +203,37 @@ def main():
                 assert "After this year's review" not in text
         pg.get_by_role("button", name="Back to tagged template").click()
 
+        # --- second round: another base, one typed condition and one "Everything else"
+        pg.goto(url)
+        with pg.expect_file_chooser() as fc:
+            pg.get_by_test_id("combine-entry").click()
+        fc.value.set_files([str(VERS / f"{n}.docx") for n in NAMES])
+        expect(pg.get_by_test_id("combine-screen")).to_be_visible()
+        pg.get_by_test_id("combine-base-2").check()
+        pg.get_by_role("combobox", name="Field that decides the version").click()
+        pg.get_by_placeholder("Search fields").fill(FIELD)
+        pg.get_by_text(f"Use “{FIELD}” as the field").click()
+        pg.get_by_test_id("combine-value-0").fill("promotion")
+        pg.get_by_role("combobox", name="When does variable-pay apply").click()
+        pg.get_by_role("option", name="Typed condition").click()
+        pg.get_by_test_id("combine-raw-1").fill(f'{FIELD} == "variable"')
+        pg.get_by_test_id("combine-value-2").fill("none")
+        pg.get_by_role("combobox", name="When does bonus-only apply").click()
+        pg.get_by_role("option", name="Everything else").click()
+        expect(pg.get_by_test_id("combine-go")).to_be_enabled()
+        pg.get_by_test_id("combine-go").click()
+        expect(pg.get_by_test_id("combine-screen")).to_have_count(0)
+        pg.get_by_test_id("step-export").click()
+        with pg.expect_download() as dl:
+            pg.click('button:has-text("Download tagged .docx")')
+        tagged2 = Path(dl.value.path()).read_bytes()
+        res = validate_docx(tagged2)
+        assert res["ok"], res["syntax"]
+        for n, val in [("promotion", "promotion"), ("variable-pay", "variable"), ("no-increase", "none"), ("bonus-only", "zzz")]:
+            got = doc_lines(io.BytesIO(render_docx(tagged2, {"employee_schema": {"case": val}})))
+            want = doc_lines(VERS / f"{n}.docx")
+            assert got == want, f"round 2, {n}: filled letter differs from the version\n got : {got}\n want: {want}"
+
         b.close()
     if errors:
         print("PAGE ERRORS:", *errors, sep="\n  ")
