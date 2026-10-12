@@ -211,3 +211,40 @@ export function applyParaCondition(otherText){
   });
   if (!res.cancel) done();
 }
+
+/* ======================= builder edits and the live result (new: what the builder's event handlers did, as data) =======================
+   The builder object (state.cb) is edited in place by these; the interface redraws itself. */
+export function cbRestart(){ return {rules:[cbBlank()], join:'and', raw:null}; }
+// a field was chosen for rule k; a number-like field with nothing typed yet starts at "is more than"
+export function cbSetField(cb, k, field){ const r=cb.rules[k]; r.field=String(field??'').trim(); if (!r.value && cbIsNumeric(r.field) && !CB_NUM[r.op]) r.op='gt'; }
+export function cbAddRule(cb){ cb.rules.push(cbBlank()); return cb.rules.length-1; }
+export function cbRemoveRule(cb, k){ cb.rules.splice(k,1); }
+// a click on a value chip ("In your data"): one value, or a list for "is one of"; the empty value means "is empty"
+export function cbPickValue(cb, k, v){
+  const r=cb.rules[k];
+  if (r.op==='in'||r.op==='notin'){ const L=cbList(r.value); const i=L.findIndex(x=>x.toLowerCase()===v.toLowerCase()); if (i>=0) L.splice(i,1); else L.push(v); r.value=L.join(', '); }
+  else if (String(r.value).trim().toLowerCase()===v.toLowerCase() && r.op==='is'){ r.op='in'; }
+  else { if (r.value && r.op==='is' && String(r.value).trim().toLowerCase()!==v.toLowerCase()){ r.op='in'; r.value=r.value+', '+v; } else r.value=v; }
+  if (v==='' && (r.op==='is'||r.op==='in')){ r.op='empty'; r.value=''; }
+}
+// Builder -> Jinja keeps the text; Jinja -> Builder needs a condition the builder can read (null = stay in Jinja)
+export function cbToJinja(cb){ cb.raw=cbExpr(cb); return cb; }
+export function cbToBuilder(cb){
+  const p=cbParse(cb.raw||''); if (!p && (cb.raw||'').trim()) return null;
+  // text not changed since switching to Jinja: bring back the builder's rules, half-built ones too
+  return cb.raw===cbExpr({...cb, raw:null}) ? {...cb, raw:null} : p || {rules:[cbBlank()], join:'and', raw:null};
+}
+// What the builder shows under a condition: the sync part (words, typing mistake) ...
+export function cbFacts(cb){
+  const raw=cb.raw!=null; const expr=cbExpr(cb); const en=cbEnglish(cb);
+  const why = expr ? tagSyntaxProblem(`{% if ${expr} %}`) : '';
+  return {raw, expr, en, why, handOk: raw ? cbHandOk(cb.raw) : true};
+}
+// ... and the part that runs the condition on the data: how many employees, the one being previewed, made-up fields
+export async function cbLive(cb){
+  const expr=cbExpr(cb); const hasRows=csvRows().length>0;
+  const [count, emp]=await Promise.all([hasRows ? cbCount(expr).catch(()=>({error:true})) : null, cbEmployee(expr)]);
+  const rules=cb.raw!=null ? (cbParse(cb.raw)||{rules:[]}).rules : cb.rules;
+  const made=hasRows ? [...new Set(rules.map(r=>String(r.field||'').trim()).filter(Boolean))].filter(f=>buildCtx(Math.min(state.pvIdx||0, csvRows().length-1)).sampled.has(f)) : [];
+  return {hasRows, count, emp, made};
+}

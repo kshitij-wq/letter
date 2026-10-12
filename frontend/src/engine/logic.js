@@ -1,4 +1,5 @@
 // Moved from frontend_src/letter-tagger.html — see tests_ui/legacy for the reference page. No DOM rendering in this module.
+import { blockCountsNow } from './blocks.js'
 import { build } from './build.js'
 import { rowPair } from './checks.js'
 import { condEnglish } from './conditions.js'
@@ -141,3 +142,76 @@ export function lgWord(kw){ return ({if:'Only when', elif:'Else when', else:'Oth
 export function syncLogic(){ if (state.an) computeLogic(); notify(); }
 // "show this paragraph in the letter": the page scrolls to it and flashes it (the UI listens)
 export function showPid(pid){ emit('show', {pid}); }
+
+/* ---- new: the data the Conditions step and the selection panel draw (what renderLogic / renderSelToolsInner computed inline) ---- */
+// problems to fix: blocks that are not closed, stray end/else tags, an if and its end in different table cells, tags that lost their place
+export function logicProblems(){
+  const L=state.lg||[];
+  const open=L.filter(e=>e.status==='open'), stray=L.filter(e=>e.status==='stray'), cells=L.filter(e=>e.status==='cells' && e.kw.startsWith('end'));
+  const unplaced=state.unplaced||[];
+  const probs=open.length+stray.length+cells.length;
+  const nCond=L.filter(e=>e.kw==='if').length;
+  const label=!L.length ? '' : probs ? `${probs} to fix` : `${nCond ? `${nCond} condition${nCond>1?'s':''}` : `${L.length} tag${L.length>1?'s':''}`} · all closed`;
+  return {open, stray, cells, unplaced, probs, nCond, total:L.length, label};
+}
+// one row per tag (a tag typed by you can hold several: only its first shows)
+export function logicRows(){ return (state.lg||[]).filter(e=>!(e.src==='you' && e.sub>0)); }
+// "on p.2 " / "in the header " (empty when there is no page to name)
+export function logicWhere(e){ return pageLabel(e.p) ? (e.p.kind==='body' ? 'on '+pageLabel(e.p)+' ' : 'in the '+e.p.kind+' ') : ''; }
+// the plain-words line under a tag: what it does, and (when the data file is loaded) how many employees get it
+export function logicSay(e){
+  const {isCond, en, lead}=lgInfo(e);
+  const opEn=(e.kw==='endif' && e.opener && e.opener.kw==='if') ? condEnglish(e.opener.expr) : '';
+  if (isCond) return {lead, en, expr:e.expr.slice(0,70)};
+  if (e.kw==='else') return {text:'Shown when none of the above match'};
+  if (opEn) return {text:`Ends the part shown when ${opEn}`};
+  return null;
+}
+export function blockCountInfo(e){
+  const b=blockCountsNow(); if (!b || !b.byKey.has(e.key)) return null;
+  const n=b.byKey.get(e.key), T=b.total;
+  return {n, total:T, kind: n===0?'none':n===T?'all':'some', text: n===0 ? 'nobody in your data' : n===T ? `all ${T} employees` : `${n} of ${T} employees`};
+}
+// the paragraphs selected in the letter, where they sit and which block they are inside (null when none)
+export function paraSelection(){
+  const ps=(state.sel.pids||[]).map(id=>state.an.byPid.get(id)).filter(Boolean).sort((a,b)=>a.order-b.order); if (!ps.length) return null;
+  const first=ps[0], last=ps[ps.length-1];
+  const stack=openStackAt(last.pid, state.lg); const top=stack[stack.length-1];
+  const openTop = top && top.status==='open' ? top : null;
+  const onPage = first.kind==='body' ? (first.page ? `on page ${first.page}` : 'in the letter') : `in the ${first.kind}`;
+  return {ps, first, last, stack, top, openTop, kw0: openTop ? (openTop.kw==='for'?'endfor':'endif') : 'if', place0: openTop ? 'after' : 'before', onPage};
+}
+// "Click the paragraph where … should go / end": null when no picking is on
+export function pickingInfo(){
+  if (state.view!=='source') return null;
+  if (state.placing){
+    const u=state.placing;
+    const note = u.place&&u.place!=='at' ? ' ('+PLACE_SHORT[u.place]+')' : u.ctxB ? ' (it goes after “'+u.ctxB.slice(-24).trim()+'” if those words are there, otherwise at the end)' : ' (it goes at the end of the paragraph)';
+    return {kind:'place', code:String(u.text).slice(0,60), note};
+  }
+  if (state.closing){ const e=state.lg.find(x=>x.key===state.closing); return {kind:'close', code:e?e.text.slice(0,60):'this block', word:e&&e.kw==='for'?'for':'if'}; }
+  return null;
+}
+// the "Advanced: insert a single logic tag" box: choosing a kind keeps a condition already typed (if <-> else if)
+export function lgTextForKw(current, kw){
+  const cur=parseLogic(normalizeLogicText(current));
+  const keepExpr = (cur.kw==='if'||cur.kw==='elif') && (kw==='if'||kw==='elif') && cur.expr && cur.expr!=='CONDITION' ? cur.expr : '';
+  return logicTpl(kw, keepExpr);
+}
+export function lgTextWithExpr(current, expr){ const cur=parseLogic(normalizeLogicText(current)); return {kw: cur.kw==='elif'?'elif':'if', text: logicTpl(cur.kw==='elif'?'elif':'if', expr)}; }
+// a field name goes where CONDITION is, else at the cursor (before the closing %} when the cursor is at the end)
+export function lgInsertAtCursor(v, txt, a, b){
+  const i=v.indexOf('CONDITION');
+  if (i>=0) return v.slice(0,i)+txt+v.slice(i+9);
+  a=a??v.length; b=b??v.length;
+  const at = (a===v.length) ? Math.max(0, v.search(/\s*-?%\}\s*$/)) : a;
+  return v.slice(0,at)+(at && !/\s$/.test(v.slice(0,at))?' ':'')+txt+v.slice(at===a?b:at);
+}
+// a field name into the "Insert a tag here" box: inside empty {{ }}, or at the cursor; an empty box gets {{ field }}
+export function insertIntoText(v, txt, a, b){
+  a=a??v.length; b=b??v.length;
+  if (!v.trim()) return `{{ ${txt} }}`;
+  if (/\{\{\s*\}\}$/.test(v.trim()) && a===v.length) return `{{ ${txt} }}`;
+  const pad=a && !/\s$/.test(v.slice(0,a)) ? ' ' : '';
+  return v.slice(0,a)+pad+txt+v.slice(b);
+}
