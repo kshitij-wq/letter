@@ -1231,6 +1231,7 @@ class Sweep:
         pg = self.pg
         self.doing = "the assistant"
         await self.load_letter("northwind.docx")
+        await self.load_data("emps.csv")   # earlier stages may leave another data file loaded, and its columns decide which placeholders there are
         await self.view("source")
         if not await self.visible("[data-testid=assistant-panel]"):   # the header sweep may have opened it
             await pg.get_by_test_id("assistant-toggle").click()
