@@ -51,7 +51,7 @@ export function LogicItem({ e }: { e: any }) {
 
   return (
     <li data-lg-key={e.key} data-key={e.key} className="lg-item list-none border-b border-hairline-soft py-3 last:border-b-0">
-      <div className={cn('grid gap-1.5', depth > 0 && 'border-l border-hairline pl-3')} style={depth > 0 ? { marginLeft: Math.min(depth, 4) * 12 } : undefined}>
+      <div className={cn('grid grid-cols-[minmax(0,1fr)] gap-1.5', depth > 0 && 'border-l border-hairline pl-3')} style={depth > 0 ? { marginLeft: Math.min(depth, 4) * 12 } : undefined}>
         <div className="flex min-h-7 items-center gap-2">
           <Badge tone={isEnd ? 'neutral' : 'cond'}>{lgWord(e.kw)}</Badge>
           {problem && <Badge tone="err"><CircleAlert aria-hidden className="size-3" />{problem}</Badge>}

@@ -85,7 +85,7 @@ export function TagInspector({ args, close }: InspectorPanelProps) {
           <Heading>Text in the letter</Heading>
           <p className="break-words font-serif text-xl leading-snug">{r.find}</p>
           {cx && (
-            <p className="mt-2 break-words rounded-control bg-hairline-soft px-2.5 py-1.5 font-serif text-base leading-snug text-muted" title={cx.before + cx.find + cx.after}>
+            <p className="mt-2 break-words rounded-control bg-hairline-soft px-2.5 py-1.5 font-serif text-base leading-snug text-muted">
               {cx.before.length > 60 ? '…' : ''}{cx.before.slice(-60)}<mark className="rounded-[2px] bg-hl px-0.5 text-hl-ink">{cx.find}</mark>{cx.after.slice(0, 30)}{cx.after.length > 30 ? '…' : ''}
             </p>
           )}
