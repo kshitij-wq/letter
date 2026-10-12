@@ -1,30 +1,49 @@
-import { CircleAlert, CircleCheck, TriangleAlert } from 'lucide-react'
-import { es, useEngineRev } from '@/hooks/useEngine'
-import { Button, Notice } from '@/ui'
-import { decodeXmlText, scheduleRealCheck, server, stepInfo } from '../../engine'
+import { FileUp, RefreshCw } from 'lucide-react'
+import { useEngineRev } from '@/hooks/useEngine'
+import { useUi } from '@/store'
+import { Button, EmptyState, IconButton, Notice, Section } from '@/ui'
+import { realCheck, server } from '../../engine'
+import { LETTER_ACCEPT, openTagged, pickFile } from '../shell/openFile'
+import { AskClaude } from './AskClaude'
+import { BatchSection } from './BatchSection'
+import { Counts, EngineLine, IssueGroups, Resolved } from './IssueList'
+import { checkView } from './types'
 
-const plain = (html: string) => decodeXmlText(String(html || '').replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim()
-
-/** R1 placeholder for Validate: the counts and the messages the page's own checks found. R2 replaces this file. */
+/** Validate: the template's problems (the page's own checks and real Jinja's), then the test of every employee, then Claude. */
 export function CheckStep() {
   useEngineRev()
-  const { info, done } = stepInfo() as { info: Record<string, { title: string }>; done: Record<string, boolean> }
-  const checks = ((es.built && es.built.checks) || []) as { level: string; html: string }[]
+  const v = checkView()
+  const inspector = useUi((s) => s.inspector)
+  const selectedKey = inspector?.kind === 'issue' ? (inspector.args.key as string) : null
+
+  if (!v.hasLetter) return <EmptyState title="No letter yet">Open a letter in the Document step, then its problems are listed here.</EmptyState>
+
   return (
-    <div className="grid gap-4">
-      <Notice tone={done.check ? 'ok' : checks.some((c) => c.level === 'error') ? 'err' : 'info'}>{info.check.title}</Notice>
-      {server.ok && <div><Button disabled={server.checking} loading={server.checking} onClick={() => scheduleRealCheck()}>Check again with real Jinja</Button></div>}
-      <ul className="grid gap-2">
-        {checks.slice(0, 12).map((c, i) => {
-          const Icon = c.level === 'error' ? CircleAlert : c.level === 'warn' ? TriangleAlert : CircleCheck
-          return (
-            <li key={i} className="flex items-start gap-2 text-base">
-              <Icon aria-hidden className={c.level === 'error' ? 'mt-0.5 text-err' : c.level === 'warn' ? 'mt-0.5 text-warn' : 'mt-0.5 text-info'} />
-              <span className="min-w-0 break-words">{plain(c.html)}</span>
-            </li>
-          )
-        })}
-      </ul>
+    <div className="grid gap-7">
+      <Section title="Template check" count={v.stats}>
+        <div className="grid gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" icon={<FileUp aria-hidden />} onClick={() => pickFile(LETTER_ACCEPT, openTagged)}>Check another tagged template…</Button>
+            {server.ok && (
+              <IconButton label="Re-check with real Jinja" size="sm" className="ml-auto" loading={server.checking} onClick={() => realCheck()}><RefreshCw aria-hidden /></IconButton>
+            )}
+          </div>
+          <p className="text-sm text-muted">Problems with tags and conditions in this letter. A lettered flag in the letter's margin marks each one.</p>
+          <EngineLine engine={v.engine} />
+          <Counts counts={v.counts} />
+          {v.clean && (
+            <Notice tone="ok">
+              <b>No problems found</b>
+              <p className="mt-0.5 text-sm">{v.cleanText}</p>
+            </Notice>
+          )}
+          <IssueGroups groups={v.groups} selectedKey={selectedKey} />
+          <Resolved items={v.resolved} />
+          {v.summary && <p className="text-sm text-muted">{v.summary}</p>}
+        </div>
+      </Section>
+      <BatchSection />
+      <AskClaude />
     </div>
   )
 }

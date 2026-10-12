@@ -1,16 +1,17 @@
 // Moved from frontend_src/letter-tagger.html — see tests_ui/legacy for the reference page. No DOM rendering in this module.
 import { build } from './build.js'
-import { KEYWORDS, csvKeyUniverse, identifiersIn, keyStatus } from './checks.js'
+import { KEYWORDS, csvKeyUniverse, identifiersIn, keyStatus, locateTags, placeChips } from './checks.js'
 import { buildCtx, csvRows, empLabel, getPath } from './data.js'
 import { RX_TAG } from './detect.js'
 import { buildModel, paraModel } from './docx.js'
 import { buildBlob, csvCell } from './downloads.js'
 import { notify, toast } from './events.js'
 import { W, childW, closestP, esc, isW, parseXml, serialize, straighten } from './helpers.js'
+import { escRe } from './edits.js'
 import { syncLogic } from './logic.js'
 import { getEnv, loadEngine, rt } from './preview.js'
 import { finalTag, tagProblem } from './rows.js'
-import { postValidate, server } from './server.js'
+import { postValidate, server, templateTagsWith } from './server.js'
 import { state } from './state.js'
 
 /* ======================= preview pipeline ======================= */
@@ -280,6 +281,45 @@ export async function realBatch(B, rows){
     }
   }catch(e){ if (state.batch===B) B.realErr=e.message||String(e); }
   finally{ if (state.batch===B){ B.realRunning=false; notify(); } }
+}
+/* ---- what "Test every employee" shows (new: the data half of the old renderBatch / batchTableHtml; no HTML) ----
+   status: none (not run) | error (the template can't be filled) | running | done */
+export function batchView(){
+  const rows=csvRows(); const B=state.batch; const f=state.dataFilter;
+  const out={rows:rows.length, src:null, noRowsText: state.csv && !rows.length ? `Your data file (${state.csv.name}) has no employee rows. Load a CSV or Excel file with one row per employee.` : 'Load a CSV or Excel file with one row per employee to run this test.',
+    status:'none', running:false, stats:'', error:null, progress:{done:0, total:0, pct:0}, done:null};
+  if (rows.length){ const total=state.csv.rows.length; out.src={name:state.csv.name, count:rows.length, of: f&&f.col&&total!==rows.length ? total : 0, filter: f&&f.col&&total!==rows.length ? {col:f.col, value:f.value} : null}; }
+  if (!B) return out;
+  if (B.error){ out.status='error'; out.error={msg:B.error.msg, tag:B.error.tag||''}; return out; }
+  out.progress={done:B.done, total:B.total, pct:B.total?100*B.done/B.total:0};
+  if (B.running){ out.status='running'; out.running=true; return out; }
+  out.status='done';
+  const bad=B.perEmp.filter(x=>x.n>0).length, ok=B.done-bad;
+  out.stats=`${ok} fine · ${bad} to look at`;
+  const rank={error:0,warn:1,info:2}; const lab={error:'Fix',warn:'Check',info:'Note'};
+  const groups=[...B.groups.values()].sort((a,b)=>rank[a.level]-rank[b.level] || (b.real?1:0)-(a.real?1:0) || b.count-a.count).map(g=>({
+    level:g.level, label:lab[g.level], real:!!g.real, count:g.count, html:g.msg, text:decodeXmlText(String(g.msg).replace(/<[^>]+>/g,'')),
+    fixDefault: g.real && g.name && g.tag && new RegExp(`${escRe(g.name)}\\s*\\|\\s*(float|int)\\b`).test(g.tag) ? g.name : '',
+    chips: g.real ? placeChips(locateTags(g.tag?[g.tag]:templateTagsWith(g.name),4)) : [],
+  }));
+  let real={kind:'none', text:''};
+  if (server.ok){
+    if (B.realRunning) real={kind:'busy', text:'Now filling the same employees with real Jinja…'};
+    else if (B.realErr) real={kind:'error', text:`Real Jinja check didn't finish: ${B.realErr}`};
+    else if (B.real && B.real.employees){ const n=new Set(B.real.employees.failed.map(x=>x.index)).size;
+      real = n ? {kind:'failed', text:`Real Jinja (the engine CompUp uses) can't make the letter for ${n} employee${n>1?'s':''}; marked "Real Jinja" below.`} : {kind:'passed', text:`Real Jinja (the engine CompUp uses) filled the letter for all ${B.real.employees.tested} employees.`}; }
+    else if (B.cancelled) real={kind:'none', text:''};
+    else real={kind:'busy', text:'Waiting for the real Jinja check…'};
+  }
+  const only = bad>0 && (state.batchOnlyBad===undefined ? true : !!state.batchOnlyBad);
+  // never "all clear" unless it is true: nobody has a problem, the run finished, the template hasn't changed and real Jinja filled everyone.
+  // Without the back end (claude.ai) a clean run is reported as what it is: the page's own engine only (pageOnly).
+  const clear = bad===0 && !B.cancelled && !B.stale;
+  const confirmed = server.ok ? real.kind==='passed' : false;
+  out.done={ok, bad, total:B.done, seconds:(B.ms||0)/1000, cancelled:!!B.cancelled, stale:!!B.stale, groups, real, only, hasProblems:bad>0, canDownload:groups.length>0,
+    allClear: clear && server.ok && confirmed, confirmed, pageOnly: clear && !server.ok,
+    list:(only ? B.perEmp.filter(x=>x.n>0) : B.perEmp).map(x=>({i:x.i, n:x.n, label:empLabel(x.i)}))};
+  return out;
 }
 export function batchCsv(){ const B=state.batch; const lines=[['Employee','CSV row','Level','Issue']]; for (const g of B.groups.values()) for (const i of g.emps) lines.push([empLabel(i), i+2, g.level, decodeXmlText(g.msg.replace(/<[^>]+>/g,''))]); return '﻿'+lines.map(l=>l.map(csvCell).join(',')).join('\r\n'); }
 // the list of values behind the preview (was drawn by renderPvPanel): one line per field the template uses
