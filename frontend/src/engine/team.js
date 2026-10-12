@@ -43,6 +43,9 @@ export function setTeamClient(id, fromSnap){
   }
   if (!fromSnap || id!==prev){ if (state.an){ analyze(); fullRefresh(); } }
 }
+// the client picker and the "New client" row of the Team library panel (was renderTeam + its handlers)
+export function chooseTeamClient(id){ setTeamClient(id); notify(); }
+export function setTeamNew(on){ state.teamNew=!!on; notify(); }
 export function teamWriteError(e){
   const code=e && e.code;
   if (code==='invalid_argument'){ state.teamReadOnly=true; notify(); toast("You can use the team library but not save to it. Ask the owner of this tool for Contributor access."); }
