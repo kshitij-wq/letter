@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/* R0 placeholder: bundled latin fonts (work offline) and a bare page. The design tokens (DESIGN.md) arrive in R1. */
+@font-face { font-family: 'Public Sans Variable'; font-style: normal; font-display: swap; font-weight: 100 900;
+  src: url('@fontsource-variable/public-sans/files/public-sans-latin-wght-normal.woff2') format('woff2-variations'); }
+@font-face { font-family: 'Source Serif 4 Variable'; font-style: normal; font-display: swap; font-weight: 200 900;
+  src: url('@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2') format('woff2-variations'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-display: swap; font-weight: 400;
+  src: url('@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2') format('woff2'); }
+
+:root { --ui: 'Public Sans Variable', system-ui, sans-serif; --letter: 'Source Serif 4 Variable', Georgia, serif; --mono: 'IBM Plex Mono', ui-monospace, monospace; }
+body { margin: 0; font-family: var(--ui); background: #f6f6f4; color: #1d2423; }
+.bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #e3e3df; }
+.bar h1 { font-size: 15px; margin: 0 8px 0 0; font-weight: 650; }
+.msg { color: #5b6664; font-size: 13px; }
+.empty { padding: 40px 16px; color: #5b6664; text-align: center; }
+.paper { max-width: 780px; margin: 24px auto; padding: 48px 56px; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .08); font-family: var(--letter); font-size: 15px; line-height: 1.55; }
+.paper p { margin: 0 0 .6em; }
+.paper table { border-collapse: collapse; width: 100%; }
+.paper td { border: 1px solid #ccc; padding: 4px 8px; }
+.paper .ph { background: #fff3a8; border-radius: 2px; }
+.paper .tg { font-family: var(--mono); background: #fff3a8; }
+.paper .ic { display: none; }

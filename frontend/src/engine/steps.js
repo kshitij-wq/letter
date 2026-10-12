@@ -1,0 +1,120 @@
+// Moved from frontend_src/letter-tagger.html — see tests_ui/legacy for the reference page. No DOM rendering in this module.
+import { build } from './build.js'
+import { csvRows } from './data.js'
+import { emit, notify } from './events.js'
+import { refreshPreview } from './pipeline.js'
+import { rowStatus } from './rows.js'
+import { server } from './server.js'
+import { state } from './state.js'
+import { tableCounts } from './tables.js'
+
+/* ======================= steps ======================= */
+export const STEPS=['doc','tags','logic','check','export'];
+// A step is only marked done from what the page can see, never from clicks or navigation.
+// what the step badges and the export checklist both read: Validate's counts and the condition problems
+export function readiness(){
+  const lg=state.lg||[];
+  const bad=lg.filter(e=>e.status==='open'||e.status==='stray'||(e.status==='cells'&&(e.kw||'').startsWith('end'))).length+(state.unplaced||[]).length;
+  let errs, warns;
+  if (state.checkCounts){ errs=state.checkCounts.e; warns=state.checkCounts.w; }
+  else { const ch=state.built?state.built.checks:[]; errs=ch.filter(x=>x.level==='error').length; warns=ch.filter(x=>x.level==='warn').length; }
+  return {lg, bad, errs, warns};
+}
+// the readiness checklist in Preview & export: every line comes from the page's current state
+export function exportFacts(){
+  const live=state.rows.filter(r=>r.count && rowStatus(r)!=='off');
+  let cellsAll=0, cellsDone=0; for (const t of state.tables){ if (!t.enabled) continue; const c=tableCounts(t); cellsAll+=c.all; cellsDone+=c.done; }
+  const needTag=live.filter(r=>rowStatus(r)==='need').length + (cellsAll-cellsDone);
+  const toCheck=live.filter(r=>rowStatus(r)==='check').length;
+  const total=live.length+cellsAll;
+  const lg=state.lg||[];
+  const ifs=lg.filter(e=>e.kw==='if').length;
+  const openN=lg.filter(e=>e.status==='open').length;
+  const {bad, errs, warns}=readiness();
+  return {total, needTag, toCheck, ifs, openN, bad, errs, warns};
+}
+// Steps: Document → Tags & fields → Conditions → Validate → Preview & export.
+// The current step is kept in engine state because the preview and the checks look at it; the UI layer can mirror it.
+export function setTab(t, opts){
+  if (!STEPS.includes(t)) t='doc';
+  const changed=state.tab!==t;
+  state.tab=t;
+  notify();
+  emit('tab', {tab:t, changed, open:!!(opts && opts.open)});
+}
+
+// what the step badges and the export checklist read: counts and "done" per step, from what the page can see
+// (never from clicks or navigation). Same rules as the old updateTabBadges().
+export function stepInfo(){
+  const inDoc=state.rows.filter(r=>r.count);
+  const need=inDoc.filter(r=>['need','check'].includes(rowStatus(r))).length + state.tables.reduce((s,t)=>{ if (!t.enabled) return s; const c=tableCounts(t); return s+c.all-c.done; },0);
+  const taggedAny=inDoc.some(r=>rowStatus(r)==='tagged') || state.tables.some(t=>t.enabled && tableCounts(t).done>0);
+  const {lg, bad, errs, warns}=readiness();
+  const hasCond=lg.some(e=>e.kw==='if');
+  // an error from Validate that points at a condition (an if / elif / for tag) keeps Conditions from showing done
+  const logicErr=(state.issues||[]).some(x=>x.level==='error' && (x.cat==='conditions' || (x.cat==='syntax' && (x.tags||[]).some(t=>typeof t==='string' && /^\s*\{%/.test(t)))));
+  const realOk = !server.ok || !!(server.check && !server.check.syntax.length);
+  const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+  const done={
+    doc: !!(state.an && !state.isSample),
+    tags: !need && taggedAny,
+    logic: hasCond && !bad && !logicErr,
+    check: !!state.an && !errs && !warns && realOk && !server.checking,
+    export: false,
+  };
+  const info={
+    doc:{n:'', label:'Document'+(done.doc?', done':''), title: state.isSample ? 'Sample letter loaded' : done.doc ? 'Your letter is loaded' : 'No letter loaded'},
+    tags:{n:need||'', label:'Tags & fields'+(need?`, ${need} to do`:done.tags?', done':''), title: need ? `${plural(need,'tag')} still to do` : done.tags ? 'Every placeholder has a tag' : 'Nothing tagged yet'},
+    logic:{n:bad||'', err:!!bad, label:'Conditions'+(bad?`, ${plural(bad,'problem')}`:logicErr?', Validate found a problem':done.logic?', done':hasCond?'':', optional'), title: bad ? `${plural(bad,'condition problem')}` : logicErr ? 'Validate found a problem in a condition' : done.logic ? 'Conditions are closed' : 'Optional'},
+    check:{n:errs||warns||'', err:!!errs, label:'Validate'+(errs?`, ${plural(errs,'error')}`:warns?`, ${plural(warns,'warning')}`:server.checking?', checking':done.check?', done':''), title: errs ? `${plural(errs,'error')} to fix` : warns ? `${plural(warns,'warning')} to check` : done.check ? 'No problems found' : server.checking ? 'Checking with real Jinja…' : server.ok && !(server.check) ? 'Real Jinja check has not finished' : 'Not checked yet'},
+    export:{n:'', label:'Preview & export', title:''},
+  };
+  return {done, info};
+}
+
+// the readiness checklist in Preview & export: every line comes from the page's current state.
+// Returns {items:[{kind:'ok'|'warn'|'err'|'idle', label, text, sub, step, stepLabel}], warn:'' }
+export function exportChecklist(){
+  if (!state.an) return {items:[], warn:''};
+  const F=exportFacts(); const pl=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+  const items=[];
+  // each line starts with a short label so it reads on its own: "Validate — no errors · 1 warning"
+  const add=(kind, label, text, sub, step, stepLabel)=>items.push({kind, label, text, sub:sub||'', step:step||'', stepLabel:stepLabel||''});
+  // placeholders
+  if (!F.total) add('idle', 'Placeholders', 'none found in this letter', '', 'tags', 'Tags & fields');
+  else if (!F.needTag && !F.toCheck) add('ok', 'Placeholders', `all ${F.total} mapped`, '', 'tags', 'Tags & fields');
+  else add('warn', 'Placeholders', [F.needTag?`${F.needTag} still need${F.needTag===1?'s':''} a tag`:'', F.toCheck?`${F.toCheck} to check`:''].filter(Boolean).join(' · '), `${F.total-F.needTag-F.toCheck} of ${F.total} mapped`, 'tags', 'Tags & fields');
+  // conditions
+  if (F.bad) add('err', 'Conditions', [F.openN?`${F.openN} not closed`:'', F.bad-F.openN?`${F.bad-F.openN} to fix`:''].filter(Boolean).join(' · '), '', 'logic', 'Conditions');
+  else if (F.ifs) add('ok', 'Conditions', `${pl(F.ifs,'condition')}, all closed`, '', 'logic', 'Conditions');
+  else add('idle', 'Conditions', 'none (optional)', '', 'logic', 'Conditions');
+  // validate: this page's own checks, then the real Jinja check
+  if (!state.built) add('idle', 'Validate', 'not checked yet', '', 'check', 'Validate');
+  else if (F.errs) add('err', 'Validate', pl(F.errs,'error')+(F.warns?' · '+pl(F.warns,'warning'):''), '', 'check', 'Validate');
+  else if (F.warns) add('warn', 'Validate', 'no errors · '+pl(F.warns,'warning'), '', 'check', 'Validate');
+  else add('ok', 'Validate', 'no errors', '', 'check', 'Validate');
+  const sc=server.check;
+  if (!server.ok) add('idle', 'Real Jinja check', 'not available here', 'It runs when this page is opened from Letter Studio.');
+  else if (server.err) add('warn', 'Real Jinja check', "didn't run", server.err, 'check', 'Validate');
+  else if (!sc || server.checking) add('idle', 'Real Jinja check', 'running…');
+  else if (sc.syntax.length) add('err', 'Real Jinja check', `found ${pl(sc.syntax.length,'typing mistake')}`, '', 'check', 'Validate');
+  else add('ok', 'Real Jinja check', 'passed', sc.target==='built' ? 'No typing mistakes in the template with your changes.' : 'No typing mistakes in the file as uploaded.');
+  // employee test
+  const B=state.batch, nRows=csvRows().length;
+  if (!B) add('idle', 'Employee test', 'not run yet', nRows ? 'Run Test every employee in Validate.' : 'Needs employee data.', 'check', 'Validate');
+  else if (B.running) add('idle', 'Employee test', `testing… ${B.done} of ${B.total}`, '', 'check', 'Validate');
+  else if (B.error) add('err', 'Employee test', "the template can't be filled", B.error.msg||'', 'check', 'Validate');
+  else { const bad=B.perEmp.filter(x=>x.n>0).length, ok=B.done-bad; add(bad||B.stale?'warn':'ok', 'Employee test', `${ok} of ${B.done} fine`, [bad?`${bad} to look at`:'', B.stale?'The template changed since this test. Run it again.':'', B.cancelled?'Stopped early.':''].filter(Boolean).join(' · '), 'check', 'Validate'); }
+  // the download stays available with errors; say what will be in the file
+  const realN = server.ok && sc && !server.checking ? sc.syntax.length : 0;
+  const n=F.errs||realN;
+  return {items, warn: n ? `${F.errs?pl(F.errs,'error'):pl(realN,'typing mistake')} will stay in the file.` : ''};
+}
+
+// the three views of the letter: source (what you tag), tagged (the template that gets downloaded), filled (one employee's letter)
+export function setView(v){
+  state.view=v;
+  if (v==='tagged') build();
+  if (v==='filled'){ state.pv=state.pv||{}; refreshPreview(); }
+  notify();
+}
