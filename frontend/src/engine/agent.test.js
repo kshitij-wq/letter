@@ -1,5 +1,6 @@
 import JSZip from 'jszip'
 import { readFileSync } from 'node:fs'
+import process from 'node:process'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   HISTORY, TOOLS, TOOL_BY_NAME, ToolError, WRITE, agentState, applied, applyWrite, buildAgentContext, clearConversation, decide, finalTag, ingestCsv, loadDocx, planWrite,
