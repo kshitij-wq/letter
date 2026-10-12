@@ -12,11 +12,15 @@ export type PickerGroup = { heading: string; options: PickerOption[] }
  * Type to filter, Up/Down to move, Enter to pick, Esc to close. With `allowCustom`, typing something that is not in the
  * list offers “Use <text>” so a custom column name can be entered.
  */
-export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a field', searchPlaceholder = 'Search fields', allowCustom, customLabel = (t) => `Use “${t}”`, emptyText = 'No field matches.', id, 'aria-label': ariaLabel, disabled, className }: {
+export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a field', searchPlaceholder = 'Search fields', allowCustom, customLabel = (t) => `Use “${t}”`, emptyText = 'No field matches.', id, 'aria-label': ariaLabel, disabled, className, defaultOpen, onOpenChange }: {
   value: string; onChange: (v: string) => void; groups: PickerGroup[]; placeholder?: string; searchPlaceholder?: string
   allowCustom?: boolean; customLabel?: (text: string) => string; emptyText?: string; id?: string; 'aria-label'?: string; disabled?: boolean; className?: string
+  /** Start with the list open (a picker added on request). */
+  defaultOpen?: boolean
+  /** Told when the list opens or closes (to drop a picker that was opened and closed without a pick). */
+  onOpenChange?: (open: boolean) => void
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(!!defaultOpen)
   const [query, setQuery] = useState('')
   const listId = useId()
   const all = useMemo(() => groups.flatMap((g) => g.options), [groups])
@@ -26,7 +30,7 @@ export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a f
   const pick = (v: string) => { onChange(v); setOpen(false); setQuery('') }
 
   return (
-    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setQuery('') }}>
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setQuery(''); onOpenChange?.(o) }}>
       <PopoverTrigger asChild>
         <button type="button" id={id} role="combobox" aria-expanded={open} aria-controls={listId} aria-label={ariaLabel} disabled={disabled}
           className={cn('inline-flex h-8 w-full items-center justify-between gap-2 rounded-control border border-hairline bg-panel px-2.5 text-left text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-55', className)}>
