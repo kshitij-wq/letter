@@ -10,10 +10,10 @@ const button = cva(
   {
     variants: {
       variant: {
-        primary: 'border-accent bg-accent text-accent-ink hover:border-accent-hover hover:bg-accent-hover',
-        secondary: 'border-hairline bg-panel text-ink hover:border-muted/60 hover:bg-hairline-soft',
-        ghost: 'border-transparent bg-transparent text-muted hover:bg-hairline-soft hover:text-ink',
-        danger: 'border-err/50 bg-panel text-err hover:border-err hover:bg-err-wash',
+        primary: 'border-accent bg-accent text-accent-ink shadow-key hover:border-accent-hover hover:bg-accent-hover disabled:opacity-60 disabled:shadow-none',
+        secondary: 'border-hairline bg-panel text-ink shadow-key hover:border-accent-line hover:bg-accent-wash hover:text-accent',
+        ghost: 'border-transparent bg-transparent text-muted hover:bg-accent-wash hover:text-accent',
+        danger: 'border-err-line bg-panel text-err hover:border-err hover:bg-err-wash',
       },
       size: { sm: 'h-7 px-2.5 text-sm', md: 'h-8 px-3 text-base' },
     },

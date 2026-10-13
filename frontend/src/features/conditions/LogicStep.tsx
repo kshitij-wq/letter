@@ -4,7 +4,6 @@ import { Badge, Button, EmptyState, IconButton, Notice } from '@/ui'
 import { discardUnplaced, logicProblems, logicRows, logicWhere, snippet, startClosing, startPlacing } from '../../engine'
 import { showPid } from '../paper/navigate'
 import { LogicItem } from './LogicItem'
-import { MergePanel } from './MergePanel'
 import { Code } from './parts'
 
 function Alerts() {
@@ -77,7 +76,6 @@ export function LogicStep() {
           </EmptyState>
         )}
       </div>
-      <MergePanel hasLetter={!!es.an} />
     </div>
   )
 }

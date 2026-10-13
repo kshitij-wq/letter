@@ -62,7 +62,7 @@ function Proposal({ it }: { it: Item }) {
 }
 
 function Row({ it }: { it: Item }) {
-  if (it.kind === 'user') return <p className="ml-6 self-end rounded-panel bg-accent-wash px-3 py-2 text-base leading-snug" data-testid="msg-user">{it.text}</p>
+  if (it.kind === 'user') return <p className="ml-6 self-end rounded-panel border border-accent-line bg-accent-wash px-3 py-2 text-base leading-snug" data-testid="msg-user">{it.text}</p>
   if (it.kind === 'assistant') return <p className="mr-6 whitespace-pre-wrap text-base leading-snug" data-testid="msg-assistant">{it.text}</p>
   if (it.kind === 'proposal') return <Proposal it={it} />
   return <p className={cn('text-sm', it.failed ? 'text-err' : 'text-muted')} data-testid="msg-work">{it.text}</p>
@@ -78,6 +78,7 @@ export function AssistantPanel() {
   const a = agentState
   const items = a.items as Item[]
   const using = usingText()
+  const ready = aiReady() && !!es.an
   useEffect(() => { end.current?.scrollIntoView({ block: 'end' }) }, [items.length, a.busy, a.error])
   const send = (t: string) => { if (t.trim() && !a.busy) { setText(''); sendMessage(t) } }
 
@@ -89,15 +90,15 @@ export function AssistantPanel() {
         <IconButton label="Clear the conversation" size="sm" disabled={!items.length || a.busy} onClick={clearConversation}><Trash2 aria-hidden /></IconButton>
         <IconButton label="Close the assistant" size="sm" onClick={() => close(false)}><X aria-hidden /></IconButton>
       </div>
-      {!aiReady() ? (
-        <div className="px-4"><Notice tone="warn">Claude isn't set up yet. Add ANTHROPIC_API_KEY to the .env file in the letter-studio folder and restart.</Notice></div>
-      ) : (
+      {aiReady() && !es.an && <div className="px-4 pb-2"><Notice tone="info">Open a letter first. The assistant works on the letter you have open.</Notice></div>}
+      {!aiReady() && <div className="px-4 pb-2"><Notice tone="warn">Claude isn't set up yet. Add ANTHROPIC_API_KEY to the .env file next to manage.py and restart the server.</Notice></div>}
+      {(
         <>
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 py-3" data-testid="assistant-log">
             {!items.length && (
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-muted">Ask about this letter. Claude reads it and proposes changes; nothing changes until you press Apply.</p>
-                <div className="flex flex-wrap gap-1.5">{STARTERS.map((s) => <button key={s} type="button" onClick={() => send(s)} className="rounded-control border border-hairline px-2.5 py-1 text-left text-sm transition-colors hover:bg-hairline-soft">{s}</button>)}</div>
+                <div className="flex flex-wrap gap-1.5">{STARTERS.map((s) => <button key={s} type="button" disabled={!ready} onClick={() => send(s)} className="disabled:cursor-not-allowed disabled:opacity-50 rounded-control border border-hairline px-2.5 py-1 text-left text-sm transition-colors hover:bg-hairline-soft">{s}</button>)}</div>
               </div>
             )}
             {items.map((it) => <Row key={it.id} it={it} />)}
@@ -108,11 +109,11 @@ export function AssistantPanel() {
           <div className="flex shrink-0 flex-col gap-2 border-t border-hairline-soft px-4 py-3">
             <Switch checked={a.autoApply} onCheckedChange={setAutoApply} className="text-sm">Apply small edits without asking</Switch>
             {using && <div className="text-sm text-muted" data-testid="assistant-using">Using: <Chip>{using}</Chip></div>}
-            <Textarea value={text} rows={2} placeholder="Ask Claude about this letter" aria-label="Message to Claude" data-testid="assistant-input" onChange={(e) => setText(e.target.value)}
+            <Textarea value={text} rows={2} placeholder="Ask Claude about this letter" aria-label="Message to Claude" data-testid="assistant-input" disabled={!ready} onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(text) } }} />
             {a.busy
               ? <Button icon={<Square aria-hidden />} onClick={stopAgent} data-testid="assistant-stop">Stop</Button>
-              : <Button variant="primary" icon={<Send aria-hidden />} disabled={!text.trim()} onClick={() => send(text)} data-testid="assistant-send">Send</Button>}
+              : <Button variant="primary" icon={<Send aria-hidden />} disabled={!ready || !text.trim()} onClick={() => send(text)} data-testid="assistant-send">Send</Button>}
           </div>
         </>
       )}

@@ -11,7 +11,7 @@
     "lint": "eslint src/engine"
   },
   "dependencies": {
-    "@fontsource-variable/public-sans": "5.3.0",
+    "@fontsource-variable/public-sans": "^5.3.0",
     "@fontsource-variable/source-serif-4": "5.3.1",
     "@fontsource/ibm-plex-mono": "5.3.0",
     "@tanstack/react-virtual": "3.14.15",

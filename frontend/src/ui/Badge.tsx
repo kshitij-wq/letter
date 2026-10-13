@@ -6,11 +6,11 @@ const badge = cva('tnum inline-flex shrink-0 items-center gap-1 whitespace-nowra
   variants: {
     tone: {
       neutral: 'bg-hairline-soft text-muted',
-      ok: 'bg-ok-wash text-ok',
-      warn: 'bg-warn-wash text-warn',
-      err: 'bg-err-wash text-err',
-      info: 'bg-info-wash text-info',
-      cond: 'bg-cond-wash text-cond',
+      ok: 'bg-ok-wash text-ok ring-1 ring-inset ring-ok-line',
+      warn: 'bg-warn-wash text-warn ring-1 ring-inset ring-warn-line',
+      err: 'bg-err-wash text-err ring-1 ring-inset ring-err-line',
+      info: 'bg-info-wash text-info ring-1 ring-inset ring-info-line',
+      cond: 'bg-cond-wash text-cond ring-1 ring-inset ring-cond-line',
     },
     shape: { badge: 'rounded-badge px-1.5', pill: 'min-w-[18px] justify-center rounded-full px-1.5' },
   },

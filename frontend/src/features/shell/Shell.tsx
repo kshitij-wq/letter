@@ -37,7 +37,7 @@ export function Shell() {
         {has && !narrow && !collapsed && <SidePanel />}
         <Canvas />
         {has && <Inspector />}
-        {has && assistant && <AssistantPanel />}
+        {assistant && <AssistantPanel />}
       </div>
       {has && narrow && (
         <Sheet open={drawer} onOpenChange={setDrawer} title="Current step" side="left">

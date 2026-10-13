@@ -188,7 +188,7 @@ async def main():
             await idle(page)
             fake.play([tool("tag_text", {"row_id": "g:nope", "field": "emp_code"})], [say("That text is not in the letter.")])
             await ask(page, "Tag the nonexistent thing")
-            await expect(page.get_by_test_id("msg-work").filter(has_text="no placeholder").or_(page.get_by_test_id("msg-work").filter(has_text="There is no"))).to_be_visible()
+            await expect(page.get_by_test_id("msg-work").filter(has_text="no placeholder").or_(page.get_by_test_id("msg-work").filter(has_text="There is no")).first).to_be_visible()
             await idle(page)
             fake.play((502, "Claude had a problem on its side. Try again in a minute."))
             await ask(page, "hello")

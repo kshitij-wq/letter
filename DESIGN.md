@@ -1,36 +1,36 @@
 ---
 name: Letter Tagger
-description: A notesheet-green office file where the letter sits on paper and every finding is a lettered flag in its margin.
+description: A warm-white office file where the letter sits on paper and every finding is a lettered flag in its margin.
 colors:
-  ground: "#EEF1EF"
-  notesheet: "#F6F8F6"
+  ground: "#F4F4F1"
+  notesheet: "#FAFAF8"
   panel: "#FFFFFF"
   paper: "#FFFFFF"
   paper-ink: "#1B1B1B"
-  paper-line: "#E1E4E2"
-  ink: "#17211D"
-  muted: "#58665F"
-  hairline: "#DCE2DE"
-  hairline-soft: "#E9EEEB"
-  teal: "#0B6E5F"
-  teal-deep: "#095C50"
-  teal-wash: "#E0F0EB"
-  on-teal: "#FFFFFF"
-  tag-ink: "#7A4300"
-  tag-wash: "#FFF2D9"
-  tag-line: "#EDCB8A"
-  highlighter: "#FFF0A3"
-  highlighter-ink: "#3A3200"
-  flag-red: "#B42318"
-  flag-red-wash: "#FCEBE9"
-  flag-amber: "#8F5600"
-  flag-amber-wash: "#FFF3DC"
-  flag-green: "#17784A"
-  flag-green-wash: "#E3F3EA"
-  flag-blue: "#2F5B86"
-  flag-blue-wash: "#E8F0F8"
-  flag-indigo: "#4B4FA8"
-  flag-indigo-wash: "#ECEDFB"
+  paper-line: "#E4E4E0"
+  ink: "#18181B"
+  muted: "#62626B"
+  hairline: "#DCDCD7"
+  hairline-soft: "#EAEAE6"
+  accent: "#3F4BC9"
+  accent-deep: "#323DB0"
+  accent-wash: "#EEF0FD"
+  on-accent: "#FFFFFF"
+  tag-ink: "#6B4400"
+  tag-wash: "#FFF0BD"
+  tag-line: "#F0BE2A"
+  highlighter: "#FFE98A"
+  highlighter-ink: "#3A3000"
+  flag-red: "#B91C1C"
+  flag-red-wash: "#FEECEC"
+  flag-amber: "#92400E"
+  flag-amber-wash: "#FFF4DD"
+  flag-green: "#166534"
+  flag-green-wash: "#E6F6EC"
+  flag-blue: "#0F5F8C"
+  flag-blue-wash: "#E8F3F9"
+  flag-indigo: "#7E22CE"
+  flag-indigo-wash: "#F5EBFF"
 typography:
   headline:
     fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
@@ -77,8 +77,8 @@ rounded:
   paper: "2px"
   tag: "3px"
   badge: "4px"
-  control: "6px"
-  panel: "8px"
+  control: "8px"
+  panel: "10px"
   pill: "999px"
 spacing:
   xs: "4px"
@@ -89,15 +89,15 @@ spacing:
   xxl: "32px"
 components:
   button-primary:
-    backgroundColor: "{colors.teal}"
-    textColor: "{colors.on-teal}"
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.on-accent}"
     rounded: "{rounded.control}"
     typography: "{typography.subtitle}"
     padding: "5px 12px"
     height: "32px"
   button-primary-hover:
-    backgroundColor: "{colors.teal-deep}"
-    textColor: "{colors.on-teal}"
+    backgroundColor: "{colors.accent-deep}"
+    textColor: "{colors.on-accent}"
   button-secondary:
     backgroundColor: "{colors.panel}"
     textColor: "{colors.ink}"
@@ -135,8 +135,8 @@ components:
     padding: "0 10px"
     height: "28px"
   chip-selected:
-    backgroundColor: "{colors.teal-wash}"
-    textColor: "{colors.teal}"
+    backgroundColor: "{colors.accent-wash}"
+    textColor: "{colors.accent}"
   badge:
     backgroundColor: "{colors.hairline-soft}"
     textColor: "{colors.muted}"
@@ -190,7 +190,7 @@ components:
     padding: "6px 8px"
     height: "48px"
   placeholder-row-selected:
-    backgroundColor: "{colors.teal-wash}"
+    backgroundColor: "{colors.accent-wash}"
     textColor: "{colors.ink}"
   tag-chip:
     backgroundColor: "{colors.tag-wash}"
@@ -237,13 +237,13 @@ components:
 
 The letter is the correspondence, and everything the tool knows about it is a lettered noting in its margin, like flagged pages in a government file. The page is built as a desk: a pale green-grey ground, a slightly lighter notesheet layer for the steps and the current step's panel, and the letter itself on white paper in the middle. The category's usual arrangement, a document wedged between a long settings sidebar and a stack of cards, is refused. The left panel holds only the current step; the right inspector appears only when something is selected; the findings live on the paper.
 
-The mood is quiet, clerical and exact: hairline rules instead of boxes, one calm teal reserved for the action you take, and a small set of flag colours that each mean one thing. It is a tool for HR and compensation people who open it a few times a cycle, so every surface says what is wrong, where, and the one action that fixes it, in short plain sentences.
+The mood is quiet, clerical and exact: hairline rules instead of boxes, one quiet indigo reserved for the action you take, and a small set of flag colours that each mean one thing. It is a tool for HR and compensation people who open it a few times a cycle, so every surface says what is wrong, where, and the one action that fixes it, in short plain sentences.
 
-Dark mode keeps the same world: the desk goes to deep green-black, the notesheet lifts one step, and the paper itself darkens, so the letter never glares against its ground.
+Dark mode keeps the same world: the desk goes to deep neutral black, the notesheet lifts one step, and the paper itself darkens, so the letter never glares against its ground.
 
 **Key Characteristics:**
 - Three tonal layers (ground, notesheet, white) separated by 1px hairlines, not shadows.
-- Teal #0B6E5F marks the primary action, selection and focus, and nothing else.
+- Accent #0B6E5F marks the primary action, selection and focus, and nothing else.
 - Five flag colours with fixed jobs: red error, amber to-check, indigo condition, blue note, green tagged or resolved.
 - Three type voices that never swap: Public Sans for the tool, IBM Plex Mono for tags, Source Serif 4 for the letter.
 - Margin flags are lettered pennants (A, B, C) that match the lettered items in the Validate list.
@@ -252,10 +252,10 @@ Dark mode keeps the same world: the desk goes to deep green-black, the notesheet
 
 ## Colors
 
-A desaturated green-grey desk with one teal accent and five signal colours; every neutral leans the same cool green hue (about 157-168 in OKLCH) so nothing looks pasted in.
+A warm near-white desk with white panels and soft hairlines, near-black ink, one indigo accent, and one muted flag colour per job. Neutrals do the work; the CompUp mark (navy, orange, yellow) appears only in the header and the favicon.
 
 ### Primary
-- **CompUp Teal** (#0B6E5F): the single accent. Fills the primary button (Download tagged .docx), the selected step's underline, selected rows and chips (as text and 1px border), the focus ring, links, the progress fill, and the caret. Hover is **Deep Teal** (#095C50). Text on teal is **On Teal** white (#FFFFFF). **Teal Wash** (#E0F0EB) is the selected-row, selected-chip, drop-target and text-selection ground.
+- **Accent Indigo** (#3F4BC9): the single accent. Fills the primary button (Download tagged .docx), the selected step's number and underline, selected rows and chips (as text and 1px border), the focus ring, links, checked boxes and switches, the progress fill, and the caret. Hover is **Deep Indigo** (#323DB0). Text on it is white. **Accent Wash** (#EEF0FD, line #C5CAF5) is the selected-row, selected-chip, drop-target and text-selection tint.
 
 ### Neutral
 - **Desk Ground** (#EEF1EF): the page behind the letter, and the track under the segmented view switch's hairlines.
@@ -275,12 +275,12 @@ A desaturated green-grey desk with one teal accent and five signal colours; ever
 - **Flag Blue** (#2F5B86, wash #E8F0F8): notes and information, and the default notice.
 - **Flag Green** (#17784A, wash #E3F3EA): tagged, filled and resolved: tagged placeholders, completed step marks, a clean check.
 
-Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0F1513, panel #161E1B, notesheet #1B2420, ink #E3ECE8, muted #9AABA4, hairline #2A3632, soft #212B27; teal lifts to #4CC2A6 (hover #6BD3BA, text on it #06241D, wash #163A32); paper #1C2421 with ink #E6EAE8; flags lighten to red #FF8A7E, amber #F2B55C, green #5ED39A, blue #9DB8D8, indigo #A9ACF5 on deep washes.
+Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0F1012, notesheet #141517, panel #1A1B1E, ink #ECECEE, muted #A1A1AA, hairline #2E2F34, soft #232428; the accent lifts to #8E9BFF (hover #AAB4FF, text on it #0B0D2B, wash #22264F); paper stays white (#FFFFFF, ink #1B1B1B) with the light flag values inside it; flags lighten for contrast on the dark panels.
 
 ### Named Rules
-**The Earned Teal Rule.** Teal means "this is what you do" or "this is what you have selected". It never colours a status, a decoration or a heading. If something is teal, clicking it moves the work forward.
+**The Earned Accent Rule.** The accent means "this is what you do" or "this is what you have selected". It never colours a status, a decoration or a heading. If something is accent, clicking it moves the work forward.
 
-**The One Job Per Flag Rule.** Red, amber, indigo, blue and green each keep one meaning on every surface. A condition is never amber; a note is never red; a success is never teal.
+**The One Job Per Flag Rule.** Red, amber, indigo, blue and green each keep one meaning on every surface. A condition is never amber; a note is never red; a success is never indigo.
 
 **The Notesheet Layering Rule.** Depth between regions comes from the ground, notesheet and white steps plus a hairline, in that order from the edge of the screen inward.
 
@@ -340,16 +340,16 @@ Quiet and legible: buttons and chips are outlined, status is carried by tint and
 
 ### Buttons
 - **Shape:** 6px corners, 32px high (28px small, 32px square for icon-only), 5px 12px padding, weight 600, 6px gap to an icon.
-- **Primary:** Teal fill with white text and a matching 1px border; one per view (Download tagged .docx). Hover goes to Deep Teal.
+- **Primary:** Accent fill with white text and a matching 1px border; one per view (Download tagged .docx). Hover goes to Deep Indigo.
 - **Secondary (default):** Panel white with a hairline border and ink text. Hover tints to Hairline Soft and darkens the border to Filing Grey.
 - **Ghost:** Transparent with muted text, ink and a soft wash on hover; for undo/redo and quiet tools.
 - **Danger:** Red text and red border on white; hover fills with the red wash.
 - **Press and busy:** 0.5px downward nudge on press; a 12px spinner replaces the icon while busy. Disabled drops to 45% opacity.
-- **Focus:** a 2px teal outline at 2px offset on every focusable element (inside fields it is inset).
+- **Focus:** a 2px accent outline at 2px offset on every focusable element (inside fields it is inset).
 
 ### Chips and filters
 - **Style:** 28px high, 6px corners, white with a hairline border and 12.5px text at weight 500; an optional count in muted semibold.
-- **State:** Selected turns Teal Wash with teal text and a teal border. Pressed toggles in the validate summary go dashed and muted when switched off.
+- **State:** Selected turns Accent Wash with accent text and a accent border. Pressed toggles in the validate summary go dashed and muted when switched off.
 
 ### Badges and notices
 - **Badge:** 11px semibold, 4px corners, 0 6px padding, tint plus matching ink from the flag set (Fix and Error red, Check amber, Note blue, Tagged and Resolved green, Condition indigo, plain grey default). Count pills on step tabs are fully round.
@@ -357,17 +357,17 @@ Quiet and legible: buttons and chips are outlined, status is carried by tint and
 
 ### Inputs / Fields
 - **Style:** 32px high, 1px hairline border, 6px corners, white ground, 5px 8px padding; selects take a drawn 16px chevron; text areas start at 60px.
-- **Focus:** the 2px teal outline, inset by one pixel, with the border turning teal.
+- **Focus:** the 2px accent outline, inset by one pixel, with the border turning accent.
 - **Error / Disabled:** the Jinja editor turns its border red when invalid; disabled fields drop to 55% opacity.
 - **Combobox:** a field list in an 8px-radius popover with sticky group heads, 30px options, and a mono code on the right in muted type.
 
 ### Navigation (step bar)
 - **Style:** a 44px strip on the header's white surface, with one hairline under it. Each step is a 20px round mark (number, or a green check when done), a 13.5px semibold label and an optional count pill (amber for to-do, solid red for errors). No connecting rules: the marks carry the sequence.
-- **States:** Unselected is Filing Grey; hover and selected go to ink; the selected mark turns ink and the label gets a 2px teal bar under it. Arrow keys move between steps. On phones the list scrolls sideways.
+- **States:** Unselected is Filing Grey; hover and selected go to ink; the selected mark turns ink and the label gets a 2px accent bar under it. Arrow keys move between steps. On phones the list scrolls sideways.
 
 ### Placeholder rows (list)
 - **Style:** 48px grid of a 24px status mark, the found text and field summary, a right-aligned count, and a chevron. Status is a mark tint only (green tagged, amber to check, yellow needs a tag, grey otherwise) so the row never changes size.
-- **State:** hover washes Hairline Soft; selected is Teal Wash with a 1px teal inset ring; a 1.2 second teal wash flash marks a row you were just sent to.
+- **State:** hover washes Hairline Soft; selected is Accent Wash with a 1px accent inset ring; a 1.2 second accent wash flash marks a row you were just sent to.
 
 ### Inspector
 - **Style:** a 380px white column with a 48px head (title, close), hairline separators, 16px section padding and 16px gaps. It keeps the inventory context: the quote from the letter, then mapping, format, live preview of the real value and the written tag, with a sticky foot of Include, previous/next and a primary Done.
@@ -383,10 +383,10 @@ A condition is shown as a bracket, not a box. Paragraphs inside an if-block get 
 Each finding on the Check view is a pennant in the paper's left margin level with its paragraph: 20 by 18px (16px on phones), red for an error, amber for a warning, white bold letter A, B, C in order. The same letter heads the matching item in the Validate list. Hover or focus outlines the paragraph in the flag colour; the open flag gets a 2px ink ring. When fixed, the flag goes quiet grey and the item moves to a Resolved group that stays visible. More flags than the margin fits stack downward.
 
 ### Paper
-The letter is white, 2px corners, with the Paper lift shadow, set in Source Serif 4. Letter parts such as header and footer are dashed boxes; tables keep the letter's own 1px paper-line borders; a page break is a full-bleed desk-coloured strip with the page number. Hovering a paragraph washes it; selecting one gives it a Teal Wash ground and a 1px teal outline.
+The letter is white, 2px corners, with the Paper lift shadow, set in Source Serif 4. Letter parts such as header and footer are dashed boxes; tables keep the letter's own 1px paper-line borders; a page break is a full-bleed desk-coloured strip with the page number. Hovering a paragraph washes it; selecting one gives it a Accent Wash ground and a 1px accent outline.
 
 ### Motion
-Colour, background and border changes take 150ms ease; drawers slide in 200ms; tooltips wait 150ms; the where-you-landed flash fades a teal wash over 1.2 seconds. Spinners are 0.7 to 0.8 seconds. All of it drops to a near-zero duration under `prefers-reduced-motion`.
+Colour, background and border changes take 150ms ease; drawers slide in 200ms; tooltips wait 150ms; the where-you-landed flash fades a accent wash over 1.2 seconds. Spinners are 0.7 to 0.8 seconds. All of it drops to a near-zero duration under `prefers-reduced-motion`.
 
 ## Do's and Don'ts
 
@@ -395,7 +395,7 @@ Colour, background and border changes take 150ms ease; drawers slide in 200ms; t
 - **Do** mark every finding on the paper as a lettered pennant and give the matching Validate item the same letter.
 - **Do** let status change colour and mark only: a row, step or flag keeps its size and position when its status changes.
 - **Do** keep resolved items on screen, labelled Resolved, in a collapsible group.
-- **Do** use teal for the one primary action, selection and focus; use the flag colours only for their one job each.
+- **Do** use accent for the one primary action, selection and focus; use the flag colours only for their one job each.
 - **Do** separate regions with a 1px Hairline or a tone change, with 6px controls and 8px panels.
 - **Do** write tags in IBM Plex Mono at their size and quotes from the letter in Source Serif 4.
 - **Do** label sample values as sample (dotted underline, amber "Sample" badge) and never style them like real data.
@@ -403,7 +403,7 @@ Colour, background and border changes take 150ms ease; drawers slide in 200ms; t
 
 ### Don't:
 - **Don't** put the letter in a card inside a stack of cards or beside a long settings sidebar; the current step is a single panel and the inspector appears only on demand.
-- **Don't** colour a status, heading or decoration teal.
+- **Don't** colour a status, heading or decoration accent.
 - **Don't** give panels, rows, cards or buttons a resting shadow; only the paper has one, and floating layers take the Pop shadow.
 - **Don't** add small uppercase, letter-spaced labels above headings; section titles are sentence-case semibold.
 - **Don't** put a coloured stripe on a card, row or notice; the only stripe in the system is the condition bracket in the letter's margin.
