@@ -13,9 +13,10 @@ What it does, in order:
     step: loads the data files, clicks every visible, enabled button / menu item / switch in the step panel, the inspector,
     the preview bar and the header, selects words and paragraphs in the letter with the mouse, moves between employees,
     undo / redo, and checks that no panel scrolls sideways
+  * the Assistant panel with a faked agent (every control; one proposed change applied and undone)
   * the Conditions step end to end (paragraph condition with Builder and Jinja, otherwise text, change a condition, close an
     open block, text by value, a condition inside a sentence, insert a tag here, advanced single tags, place unplaced tags,
-    combine two versions) and the click-selects-a-word rules of every step
+    combine two versions, combine several versions) and the click-selects-a-word rules of every step
   * downloads (the .docx, mapping CSV, setup file, CSV template), the setup file round trip, the replace-letter window
   * tagged templates (Check a tagged template), margin flags, one-click fixes, the export checklist
   * a Word mail-merge letter with an employee export, with the Claude helpers (a faked /api/assist)
@@ -55,7 +56,7 @@ TABS = ["doc", "tags", "logic", "check", "export"]
 PANEL = "[data-testid=step-panel]"
 INSPECTOR = "#inspector"
 # Buttons that would hide the panels the sweep clicks in
-SKIP_LABELS = {"Hide panel", "Show panel"}
+SKIP_LABELS = {"Hide panel", "Show panel", "Close the assistant"}
 IGNORE = ["favicon.ico", "fonts.googleapis", "fonts.gstatic", "ERR_ABORTED"]
 MAILMERGE = ("ACME Letter - MHPromotion.docx", "employees_export.csv")   # Word merge fields + an export with a Letter Template column
 CLICKABLE = "button, summary, [role=button], [role=menuitem], [role=menuitemradio], [role=menuitemcheckbox], [role=switch], [role=checkbox], [role=combobox]"
@@ -80,6 +81,15 @@ async def fake_claude(page):
             out = {"summary": "fake review", "items": [{"severity": "fix", "title": "t", "detail": "d", "quote": "Dear", "suggestion": "{{ first_name }}"}]}
         elif task == "condition":
             out = {"condition": 'custom_schema.promo | string | lower | trim == "yes"', "explanation": "fake", "fields": ["custom_schema.promo"], "assumptions": []}
+        elif task == "agent":   # the Assistant: "propose" asks for one tag change, anything else looks at the tags and answers
+            last = (pl.get("messages") or [{"content": []}])[-1]["content"]
+            if any(b.get("type") == "tool_result" for b in last):
+                out = {"content": [{"type": "text", "text": "fake reply"}], "stop_reason": "end_turn"}
+            elif any(b.get("text", "").startswith("propose") for b in last):
+                row = ((pl.get("context") or {}).get("tags") or {}).get("open") or [{}]
+                out = {"content": [{"type": "tool_use", "id": "toolu_sweep", "name": "tag_text", "input": {"row_id": row[0].get("row_id", "none"), "field": "emp_code"}}], "stop_reason": "tool_use"}
+            else:
+                out = {"content": [{"type": "tool_use", "id": "toolu_sweep", "name": "get_tags", "input": {"status": "need"}}], "stop_reason": "tool_use"}
         else:
             out = {"answer": "fake answer", "tags": ["{{ first_name }}"]}
         await route.fulfill(json=out)
@@ -727,13 +737,16 @@ class Sweep:
         # theme
         await pg.locator("header button[aria-label^='Theme']").click()
         await pg.get_by_role("menuitemradio", name="Dark").click()
+        await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         await self.settle(200)
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") == "dark", "choosing Dark didn't set the dark theme")
         await pg.locator("header button[aria-label^='Theme']").click()
         await pg.get_by_role("menuitemradio", name="Light").click()
+        await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") == "light", "choosing Light didn't set the light theme")
         await pg.locator("header button[aria-label^='Theme']").click()
         await pg.get_by_role("menuitemradio", name="System").click()
+        await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") is None, "choosing System left a theme set")
         # the key to the marks, and back to top
         key = pg.get_by_role("button", name=re.compile(r"^Key"))
@@ -763,7 +776,7 @@ class Sweep:
         await self.settle(250)
         self.expect(not await self.visible("#inspector"), "Esc didn't close the inspector")
         # undo and redo buttons follow the history
-        await pg.get_by_role("button", name="Undo").click() if await pg.get_by_role("button", name="Undo").is_enabled() else None
+        await pg.get_by_role("button", name="Undo", exact=True).click() if await pg.get_by_role("button", name="Undo", exact=True).is_enabled() else None
         await pg.get_by_role("button", name="Redo").click() if await pg.get_by_role("button", name="Redo").is_enabled() else None
 
     async def drop_and_restore(self):
@@ -1123,7 +1136,7 @@ class Sweep:
             await li.get_by_role("button", name="Delete this tag").click()
             await self.settle(500)
             self.expect(len(await self.logic_tags()) == before_n - 1, "Delete this tag didn't delete the tag")
-            await pg.get_by_role("button", name="Undo").click()
+            await pg.get_by_role("button", name="Undo", exact=True).click()
             await self.settle(400)
             self.expect(len(await self.logic_tags()) == before_n, "Undo didn't bring the deleted tag back")
         self.doing = "condition: a click on a condition line in the letter"
@@ -1144,7 +1157,7 @@ class Sweep:
         n = await pg.locator("[data-lg-key]").count()
         self.expect(n >= 6, f"the Conditions list shows {n} items after adding many conditions")
         for _ in range(3):
-            await pg.get_by_role("button", name="Undo").click()
+            await pg.get_by_role("button", name="Undo", exact=True).click()
             await self.settle(200)
         for _ in range(3):
             await pg.get_by_role("button", name="Redo").click()
@@ -1213,6 +1226,109 @@ class Sweep:
             if await pg.locator("#mgClear").count():
                 await pg.locator("#mgClear").first.click()
                 await self.settle(300)
+        await self.close_overlays()
+
+    # ------------------------------------------------------------------------------------------------ the assistant
+    async def assistant_flows(self):
+        """The Assistant panel with a faked agent: every control, then one proposed change applied and undone."""
+        pg = self.pg
+        self.doing = "the assistant"
+        await self.load_letter("northwind.docx")
+        await self.load_data("emps.csv")   # earlier stages may leave another data file loaded, and its columns decide which placeholders there are
+        await self.view("source")
+        if not await self.visible("[data-testid=assistant-panel]"):   # the header sweep may have opened it
+            await pg.get_by_test_id("assistant-toggle").click()
+        self.expect(await self.visible("[data-testid=assistant-panel]"), "the Assistant button did not open the panel")
+        await self.click_all("[data-testid=assistant-panel]", limit=30)
+        await self.no_sideways_scroll("assistant panel")
+        await pg.wait_for_function("()=>window.__lt.state.rows.some(r=>r.count)")
+        await self.ev("()=>{ const r=window.__lt.state.rows.find(r=>r.count); window.__lt.setRowKey(r.id, '') }")   # one placeholder without a tag to propose for
+        await pg.get_by_test_id("assistant-input").fill("propose a tag")
+        await pg.get_by_test_id("assistant-send").click()
+        card = pg.get_by_test_id("proposal-card").last
+        await card.wait_for(timeout=10000)
+        self.expect(await card.get_attribute("data-status") == "pending", "a proposal was applied before the person said so")
+        await card.get_by_test_id("proposal-apply").click()
+        await pg.wait_for_function("()=>[...document.querySelectorAll('[data-testid=proposal-card]')].pop().dataset.status==='applied'", timeout=10000)
+        await card.get_by_test_id("assistant-undo").click()
+        await pg.wait_for_function("()=>[...document.querySelectorAll('[data-testid=proposal-card]')].pop().dataset.status==='undone'", timeout=10000)
+        await pg.get_by_test_id("assistant-toggle").click()
+        self.expect(not await self.visible("[data-testid=assistant-panel]"), "the Assistant button did not close the panel")
+        await self.close_overlays()
+
+    # ------------------------------------------------------------------------------------------------ combine several versions
+    async def combine_flows(self):
+        """Combine several versions: the home page entry, the screen (also on a phone and in dark mode), the result on the Conditions step."""
+        self.doing = "combine several versions"
+        pg = self.pg
+        names = ["promotion", "variable-pay", "no-increase", "bonus-only"]
+        files = [str(FIX / "versions" / f"{n}.docx") for n in names]
+        await self.load_letter("letterA.docx")
+        await self.tab("doc")
+        async with pg.expect_file_chooser() as fc:
+            await pg.get_by_role("button", name="Combine versions…").click()
+        await (await fc.value).set_files(files)
+        await self.settle(1200)
+        self.expect(await self.visible("[data-testid=combine-screen]"), "choosing the versions didn't open the Combine screen")
+        self.expect(await pg.get_by_test_id("combine-go").is_disabled(), "Combine is enabled before any version has a condition")
+        # a field and a value per version, through the page
+        await pg.get_by_role("combobox", name="Field that decides the version").click()
+        await pg.get_by_placeholder("Search fields").fill("employee_schema.case")
+        await pg.get_by_text("Use “employee_schema.case” as the field").click()
+        for i, v in enumerate(["promotion", "variable", "none", "bonus"]):
+            await pg.get_by_test_id(f"combine-value-{i}").fill(v)
+        await self.settle(300)
+        self.expect(await pg.get_by_test_id("combine-go").is_enabled(), "Combine stays off with every version set")
+        # the typed-condition and everything-else choices, the reorder arrows, the Show buttons, the checkbox
+        await pg.get_by_role("combobox", name="When does bonus-only apply").click()
+        await pg.get_by_role("option", name="Everything else").click()
+        await pg.get_by_role("combobox", name="When does no-increase apply").click()
+        await pg.get_by_role("option", name="Typed condition").click()
+        await pg.get_by_test_id("combine-raw-2").fill('employee_schema.case == "none"')
+        await pg.get_by_role("button", name="Move no-increase up").click()
+        await pg.get_by_role("button", name="Move no-increase down").click()
+        for b in await pg.get_by_role("button", name="Show").all():
+            await b.click()
+        await pg.get_by_label("Ignore small differences in numbers and spacing").click()
+        await pg.get_by_label("Ignore small differences in numbers and spacing").click()
+        await self.settle(200)
+        self.expect(await pg.get_by_test_id("combine-go").is_enabled(), "Combine turned off after valid edits")
+        await self.no_sideways_scroll("combine screen")
+        # a phone, and dark mode
+        await pg.set_viewport_size({"width": 390, "height": 844})
+        await self.settle(300)
+        await self.no_sideways_scroll("combine screen on a phone")
+        await pg.evaluate("()=>document.documentElement.setAttribute('data-theme','dark')")
+        await self.settle(200)
+        await self.no_sideways_scroll("combine screen in dark mode")
+        await pg.evaluate("()=>document.documentElement.removeAttribute('data-theme')")
+        await pg.set_viewport_size({"width": 1400, "height": 950})
+        await self.settle(200)
+        # combine: the Conditions step lists the new blocks, undo puts the letter back
+        await pg.get_by_test_id("combine-go").click()
+        await self.confirm_replace()
+        await self.settle(1500)
+        self.expect(not await self.visible("[data-testid=combine-screen]"), "the Combine screen stayed after Combine")
+        self.expect(await self.ev("()=>window.__lt.state.tab") == "logic", "after combining the page isn't on the Conditions step")
+        n = await self.ev("()=>window.__lt.state.logic.filter(l=>l.mg).length")
+        self.expect(n >= 6, f"combining added only {n} if / else lines")
+        self.expect(await self.ev("()=>window.__lt.state.logic.some(l=>/-?%}$/.test(l.text) && /else/.test(l.text))"), "no else line for the Everything else version")
+        await self.ev("()=>window.__lt.undo()")
+        await self.settle(500)
+        self.expect(await self.ev("()=>window.__lt.state.logic.length") == 0, "undo after combining left logic lines behind")
+        await self.ev("()=>window.__lt.redo()")
+        await self.settle(500)
+        await self.click_all(PANEL, limit=12)
+        # Cancel returns to the letter (or the home page)
+        await self.tab("doc")
+        async with pg.expect_file_chooser() as fc:
+            await pg.get_by_role("button", name="Combine versions…").click()
+        await (await fc.value).set_files(files[:1])
+        await self.settle(800)
+        self.expect(await self.visible("[data-testid=combine-hint]"), "one version gave no hint")
+        await pg.get_by_test_id("combine-cancel").click()
+        await self.settle(300)
+        self.expect(not await self.visible("[data-testid=combine-screen]"), "Back to the letter didn't close the Combine screen")
         await self.close_overlays()
 
     # ------------------------------------------------------------------------------------------------ downloads
@@ -1364,7 +1480,7 @@ class Sweep:
         for key in ["Control+z", "Control+z", "Control+Shift+z", "Control+y"]:
             await self.pg.keyboard.press(key)
             await self.settle(150)
-        await self.pg.get_by_role("button", name="Undo").click() if await self.pg.get_by_role("button", name="Undo").is_enabled() else None
+        await self.pg.get_by_role("button", name="Undo", exact=True).click() if await self.pg.get_by_role("button", name="Undo", exact=True).is_enabled() else None
         await self.pg.get_by_role("button", name="Redo").click() if await self.pg.get_by_role("button", name="Redo").is_enabled() else None
 
     async def tags_step(self):
@@ -1718,7 +1834,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab and 3 letters")
     ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables shell conditions export validate downloads letters replace drop oldtags roundtrip editor merge mailmerge tagged bad narrow team nobackend")
+    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables shell conditions export validate downloads letters replace drop oldtags roundtrip editor merge combine assistant mailmerge tagged bad narrow team nobackend")
     ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
@@ -1779,7 +1895,7 @@ async def main():
 
             stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("shell", sw.shell_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
                       ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("drop", sw.drop_and_restore), ("oldtags", sw.old_tags_flow), ("roundtrip", sw.condition_roundtrip),
-                      ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
+                      ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("combine", sw.combine_flows), ("assistant", sw.assistant_flows), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
                       ("team", lambda: team_library(browser, url, sw)), ("nobackend", lambda: no_backend(browser, url, sw))]
             for name, run in stages:
                 if args.only and name not in args.only:

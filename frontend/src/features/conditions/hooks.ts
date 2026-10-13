@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useCallback, useMemo, useReducer, useRef, useState } from 'react'
 import { useEngineRev } from '@/hooks/useEngine'
 import type { PickerGroup, PickerOption } from '@/ui'
 import { comboOptions } from '../../engine'
@@ -51,11 +51,4 @@ export function buildFieldGroups(noFx?: boolean): PickerGroup[] {
 export function useFieldGroups(noFx?: boolean): PickerGroup[] {
   const rev = useEngineRev()
   return useMemo(() => buildFieldGroups(noFx), [rev, noFx])
-}
-
-/** Run `fn` once after the page has drawn the next update (scroll to the new item, flash it ...). */
-export function useAfterPaint() {
-  const alive = useRef(true)
-  useEffect(() => () => { alive.current = false }, [])
-  return useCallback((fn: () => void) => { requestAnimationFrame(() => requestAnimationFrame(() => { if (alive.current) fn() })) }, [])
 }
