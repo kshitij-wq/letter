@@ -1,8 +1,12 @@
-import { Pencil, X } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
-import { useEngineRev } from '@/hooks/useEngine'
+import { MapPin, Pencil, X } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { es, useEngineRev } from '@/hooks/useEngine'
 import { Button, Checkbox, IconButton, Input, Section, Select, cn } from '@/ui'
-import { addPrefixToTags, oldTagNames, renameTag, renameTagTyped, replaceInTags, rewriteAmountTags, tagOpParts, undoTagOp } from '../../engine'
+import { addPrefixToTags, fieldLabel, oldTagNames, renameTag, renameTagTyped, replaceInTags, rewriteAmountTags, squash, tagOpParts, undoTagOp } from '../../engine'
+import { scrollBehavior } from '../paper/navigate'
+import { plainLine } from '../validate/plain'
+import { CustomToggle } from './CustomToggle'
+import { getPicked, locateTag, setPicked, useOpenTag, usePicked, useTagPos } from './existing'
 import { useCollapsed } from './useCollapsed'
 
 const AMOUNT_FORMATS = [
@@ -11,7 +15,6 @@ const AMOUNT_FORMATS = [
   { value: 'indian_round', label: '(x | float) | round(0) | int | indian_comma' },
   { value: 'intl', label: 'x | int_comma' },
 ]
-const SHOWN = 12
 
 const STATUS: Record<string, { text: string; tone: string }> = {
   csv: { text: 'In your data', tone: 'text-ok' },
@@ -20,23 +23,47 @@ const STATUS: Record<string, { text: string; tone: string }> = {
   unknown: { text: 'Not in your data file', tone: 'text-err' },
 }
 
-function NameRow({ n, picked, onPick }: { n: any; picked: boolean; onPick: (on: boolean) => void }) {
+/** What is wrong with the tags this name sits in, in everyday words (the page's own checks, reworded by the plain-language layer). */
+function problemsOf(n: any): string[] {
+  const marks = es.tagMarks as Map<string, { level: string; msg: string }> | null
+  if (!marks || !marks.size) return []
+  const out: string[] = []
+  for (const p of n.places as { tag: string }[]) {
+    const mk = marks.get(squash(p.tag))
+    if (mk && (mk.level === 'error' || mk.level === 'warn')) { const t = plainLine(mk.msg); if (!out.includes(t)) out.push(t) }
+  }
+  return out
+}
+
+/** One tag name in the letter: its field, where it stands against the data file, any problem, Locate, and rename. */
+export function NameRow({ n }: { n: any }) {
   const [editing, setEditing] = useState(false)
   const [to, setTo] = useState('')
+  const picked = usePicked().has(n.id)
+  const open = useOpenTag()
+  const pos = useTagPos(n.id)
+  const ref = useRef<HTMLLIElement>(null)
+  const isOpen = open?.id === n.id
+  useEffect(() => { if (isOpen) ref.current?.scrollIntoView({ block: 'nearest', behavior: scrollBehavior() }) }, [isOpen, open?.n])
   const st = STATUS[n.status] || STATUS.unknown
+  const label = n.status === 'unknown' ? '' : fieldLabel(n.id)
+  const problems = problemsOf(n)
   const submit = (e: FormEvent) => { e.preventDefault(); if (renameTagTyped(n.id, to)) { setEditing(false); setTo('') } }
   return (
-    <li className="py-1.5">
+    <li ref={ref} data-testid={`old-tag-${n.id}`} data-open={isOpen ? '' : undefined} className={cn('py-1.5', isOpen && '-mx-2 rounded-control bg-accent-wash px-2')}>
       <div className="flex items-center gap-2">
-        <Checkbox checked={picked} onCheckedChange={onPick} className="relative [&_label]:sr-only">{`Select ${n.id}`}</Checkbox>
+        <Checkbox checked={picked} onCheckedChange={(on) => setPicked(n.id, !!on)} className="relative [&_label]:sr-only">{`Select ${n.id}`}</Checkbox>
         <code className="min-w-0 truncate font-mono text-sm" title={n.id}>{n.id}</code>
         <span className="tnum shrink-0 text-xs text-muted">{n.count}×</span>
-        <IconButton label={`Rename ${n.id}`} size="sm" className="ml-auto" onClick={() => setEditing((e) => !e)}><Pencil aria-hidden /></IconButton>
+        <IconButton label={`Show ${n.id} in the letter`} size="sm" className="ml-auto" onClick={() => locateTag(n.id)}><MapPin aria-hidden /></IconButton>
+        <IconButton label={`Rename ${n.id}`} size="sm" onClick={() => setEditing((e) => !e)}><Pencil aria-hidden /></IconButton>
       </div>
       <p className={cn('ml-6 flex flex-wrap items-center gap-x-2 text-xs', st.tone)}>
-        <span>{st.text}{n.suggestion ? <> · did you mean <code className="font-mono">{n.suggestion}</code>?</> : null}</span>
+        <span>{label && label.toLowerCase() !== n.id.toLowerCase() ? <span className="text-ink">{label} · </span> : null}{st.text}{n.suggestion ? <> · did you mean <code className="font-mono">{n.suggestion}</code>?</> : null}{pos ? <span className="text-muted"> · showing {pos.index + 1} of {pos.count}</span> : null}</span>
         {n.suggestion && <Button size="sm" variant="ghost" className="-my-1 h-6 px-1.5 text-xs" onClick={() => renameTag(n.id, n.suggestion)}>Use {n.suggestion}</Button>}
       </p>
+      <CustomToggle fieldKey={n.id} compact className="ml-6 mt-1" onChange={(k) => renameTagTyped(n.id, k)} />
+      {problems.map((p) => <p key={p} className="ml-6 text-xs text-err" data-testid="old-tag-problem">{p}</p>)}
       {editing && (
         <form onSubmit={submit} className="ml-6 mt-1.5 flex gap-2">
           <Input mono autoFocus value={to} onChange={(e) => setTo(e.target.value)} placeholder="Rename to…" aria-label={`New name for ${n.id}`} spellCheck={false} />
@@ -51,8 +78,6 @@ function NameRow({ n, picked, onPick }: { n: any; picked: boolean; onPick: (on: 
 export function OldTags() {
   useEngineRev()
   const [open, setOpen] = useCollapsed('oldTagsBlock', false)
-  const [picked, setPicked] = useState<Set<string>>(new Set())
-  const [all, setAll] = useState(false)
   const [prefix, setPrefix] = useState('custom_schema.')
   const [fmt, setFmt] = useState('dec0')
   const [find, setFind] = useState('')
@@ -61,22 +86,15 @@ export function OldTags() {
   const info = oldTagNames()
   if (!(info.total > 0 || info.ops.length > 0)) return null
   const names = info.names as any[]
-  const shown = all ? names : names.slice(0, SHOWN)
-  const pick = (id: string, on: boolean) => setPicked((s) => { const x = new Set(s); if (on) x.add(id); else x.delete(id); return x })
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
   const tools = 'flex flex-col gap-1.5'
 
   return (
-    <Section title="Tags already in the letter" summary={`${plural(info.total, 'tag')}, ${plural(names.length, 'name')}. Rename or clean up the tags it came with.`} open={open} onOpenChange={setOpen}>
+    <Section title="Tags already in the letter" summary={`${plural(info.total, 'tag')}, ${plural(names.length, 'name')}. Add a prefix, change amount formats, find and replace.`} open={open} onOpenChange={setOpen}>
       <div className="flex flex-col gap-4">
-        <p className="text-sm text-muted">Clean up an older template: rename tags, add a prefix such as <code className="font-mono text-xs">custom_schema.</code>, or rewrite amount tags in one go. Changes apply to the tags that were already in the uploaded letter.</p>
-        <ul className="divide-y divide-hairline-soft">
-          {names.length ? shown.map((n) => <NameRow key={n.id} n={n} picked={picked.has(n.id)} onPick={(on) => pick(n.id, on)} />) : <li className="py-2 text-sm text-muted">No tag names.</li>}
-        </ul>
-        {names.length > SHOWN && <Button size="sm" variant="ghost" className="self-start" onClick={() => setAll((a) => !a)}>{all ? 'Show fewer names' : `Show all ${names.length} names`}</Button>}
-
-        <form className={tools} onSubmit={(e) => { e.preventDefault(); addPrefixToTags(prefix, [...picked]) }}>
-          <label htmlFor="old-prefix" className="text-sm font-medium">Add a prefix to the ticked names (or all non-CompUp names)</label>
+        <p className="text-sm text-muted">The tags are listed at the top of this step. Here you can clean them up in one go: add a prefix such as <code className="font-mono text-xs">custom_schema.</code>, or rewrite amount tags in one go. Changes apply to the tags that were already in the uploaded letter.</p>
+        <form className={tools} onSubmit={(e) => { e.preventDefault(); addPrefixToTags(prefix, [...getPicked()]) }}>
+          <label htmlFor="old-prefix" className="text-sm font-medium">Add a prefix to the ticked tags (or all non-CompUp names)</label>
           <div className="flex gap-2">
             <Input id="old-prefix" mono value={prefix} onChange={(e) => setPrefix(e.target.value)} spellCheck={false} />
             <Button type="submit">Add prefix</Button>

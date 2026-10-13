@@ -1,8 +1,8 @@
 import { CircleAlert, CircleCheck, Flag, Info, LocateFixed, Minus, RotateCcw, Trash2, TriangleAlert } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
-import { Badge, Button, Checkbox, Select, Switch, confirm } from '@/ui'
-import { canBeCustom, isCustomKey, setCustomKey, setRowKey } from '../../engine'
+import { Badge, Button, Checkbox, Select, confirm } from '@/ui'
+import { setRowKey } from '../../engine'
 import {
   ST_INFO, canConfirm, confirmRow, deleteRow, fieldPickerGroups, finalTag, formatOptions, inferNote, nextReviewId, noteFor, previewTag, resetRowTag, rowContext, rowEdited, rowNote,
   rowStatus, setRowEnabled, setRowFormat, setRowTag, tagProblem,
@@ -12,6 +12,7 @@ import { InspectorBody, InspectorFoot } from '../shell/Inspector'
 import type { InspectorPanelProps } from '../shell/registry'
 import { FieldSlots } from './FieldSlots'
 import { TagInput } from './TagInput'
+import { CustomToggle } from './CustomToggle'
 import { locateRow, showRow, usePos } from './locate'
 
 const TONE = { tagged: 'ok', check: 'warn', need: 'err', off: 'neutral' } as const
@@ -107,11 +108,7 @@ export function TagInspector({ args, close }: InspectorPanelProps) {
         <section>
           <Heading htmlFor="tag-key-0">Employee field</Heading>
           <FieldSlots id={id} fieldKey={r.key || ''} groups={groups} focusFirst={!!args.focus} />
-          {r.key && canBeCustom(r.key) && (
-            <Switch className="mt-3" checked={isCustomKey(r.key)} onCheckedChange={(on) => setRowKey(id, setCustomKey(r.key, on))}>
-              <span>Custom tag <span className="text-sm text-muted">· adds <code className="font-mono">custom_schema.</code> before the field</span></span>
-            </Switch>
-          )}
+          <CustomToggle className="mt-3" fieldKey={r.key || ''} onChange={(k) => setRowKey(id, k)} />
           {!r.key && <p className="mt-2 text-sm text-muted">{r.override ? 'No field chosen. This text uses a tag you wrote yourself.' : 'No field chosen yet.'}</p>}
           {r.scope === 'all' && r.count > 1 && (
             <p className="mt-2.5 flex items-start gap-1.5 text-sm text-muted"><Info aria-hidden className="mt-px size-3.5 shrink-0" />Changing this updates all {r.count} places.</p>

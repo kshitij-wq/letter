@@ -580,6 +580,77 @@ class Sweep:
     async def row_key(self, rid):
         return await self.ev("(id)=>{const r=window.__lt.state.rows.find(x=>x.id===id); return r ? (r.key||'') : null}", rid)
 
+    async def existing_tags_flow(self):
+        """A letter that already has tags: the Tags step lists them up front (never 'No placeholders'), Locate cycles through a
+        tag's places, a click on a yellow tag in the letter opens its row, and a letter with no tags still says 'No placeholders'."""
+        pg = self.pg
+        panel = pg.locator(PANEL)
+        for name in ("acme_tagged.docx", "conditions_tagged.docx"):
+            self.doing = f"Tags: tags already in {name}"
+            await self.load_letter(name)
+            await self.view("source")
+            await self.tab("tags")
+            await self.settle(400)
+            info = await self.ev("()=>{const o=window.__lt.oldTagNames(); return {total:o.total, names:o.names.map(n=>({id:n.id,count:n.count,places:n.places.length}))}}")
+            if not self.expect(info["total"] > 0, f"{name} has no tags the page can see"):
+                continue
+            txt = await panel.inner_text()
+            self.expect(f"This letter already has {info['total']} tag" in txt, f"{name}: the Tags step doesn't say how many tags the letter already has")
+            self.expect("No placeholders in the letter" not in txt and "No placeholders yet" not in txt and "of 0 " not in txt, f"{name}: the Tags step says there are no placeholders although the letter has tags")
+            rows = panel.locator("[data-testid=existing-tags] li[data-testid^=old-tag-]")
+            self.expect(await rows.count() >= min(len(info["names"]), 10), f"{name}: the existing tags aren't listed up front")
+            self.expect(await panel.locator("[data-testid=already-tagged]").count() + await panel.locator("[data-testid=next-card]").count() >= 1, f"{name}: neither the Next to tag card nor 'already tagged' is shown")
+            # Locate cycles through the places of the most used name
+            top = max(info["names"], key=lambda n: n["places"])
+            row = panel.locator(f"[data-testid='old-tag-{top['id']}']")
+            if await row.count() == 0:
+                await panel.get_by_role("button", name=re.compile(r"^Show all \d+ tags")).click()
+                await self.settle(200)
+            loc = row.get_by_role("button", name=f"Show {top['id']} in the letter")
+            self.expect(await loc.count() == 1, f"{name}: no Locate button on the row of {top['id']}")
+            if await loc.count():
+                await loc.click()
+                await self.settle(500)
+                self.expect(await self.ev("()=>document.querySelectorAll('#paper .tg.flash').length") >= 1, f"{name}: Locate didn't highlight the tag in the letter")
+                if top["places"] > 1:
+                    await loc.click()
+                    await self.settle(500)
+                    self.expect(await row.get_by_text(re.compile(rf"showing 2 of {top['places']}")).count() == 1, f"{name}: a second Locate didn't move on to place 2 of {top['places']}")
+            # a plain name (basic) can be switched to custom_schema.basic and back with the Custom tag switch on its row
+            plain = await self.ev("()=>{const n=window.__lt.oldTagNames().names.find(n=>/^[a-z_]+$/.test(n.id) && !window.__lt.isCompUpKey(n.id)); return n?n.id:null}")
+            if plain:
+                prow = panel.locator(f"[data-testid='old-tag-{plain}']")
+                if await prow.count() == 0:
+                    await panel.get_by_role("button", name=re.compile(r"^Show all \d+ tags")).click()
+                    await self.settle(200)
+                ptog = prow.get_by_role("switch", name=re.compile("^Custom tag"))
+                if self.expect(await ptog.count() == 1, f"{name}: no Custom tag switch on the row of {plain}"):
+                    await ptog.click()
+                    await self.settle(500)
+                    self.expect(await self.ev("(id)=>window.__lt.oldTagNames().names.some(n=>n.id==='custom_schema.'+id)", plain), f"{name}: the Custom tag switch didn't rename {plain} to custom_schema.{plain}")
+                    back = panel.locator(f"[data-testid='old-tag-custom_schema.{plain}']").get_by_role("switch", name=re.compile("^Custom tag"))
+                    if await back.count():
+                        await back.click()
+                        await self.settle(500)
+                        self.expect(await self.ev("(id)=>window.__lt.oldTagNames().names.some(n=>n.id===id)", plain), f"{name}: turning Custom tag off didn't take custom_schema. off {plain} again")
+            # a click on a yellow tag in the letter opens that tag's row
+            await self.ev("()=>window.__ltUi.useUi.getState().closeInspector && window.__ltUi.useUi.getState().closeInspector()")
+            await self.tab("doc")
+            await self.view("source")
+            chip = pg.locator("#paper .tg:not(.lg-chip)").first
+            if await chip.count():
+                await chip.evaluate("e=>e.scrollIntoView({block:'center'})")
+                await chip.click()
+                await self.settle(500)
+                self.expect(await self.ev("()=>window.__lt.state.tab") == "tags", f"{name}: a click on a tag in the letter didn't open Tags & fields")
+                self.expect(await panel.locator("[data-testid^=old-tag-][data-open]").count() == 1, f"{name}: a click on a tag in the letter didn't highlight its row")
+            await self.close_overlays()
+        # no tags at all: the empty state stays
+        self.doing = "Tags: a letter without tags"
+        await self.load_letter("letterA.docx")
+        await self.tab("tags")
+        self.expect(await panel.locator("[data-testid=existing-tags]").count() == 0 and "already has" not in await panel.inner_text(), "a letter without tags shows the 'already has tags' list")
+
     async def next_to_tag_flows(self):
         """Tags & fields: the progress line, the Next-to-tag card (pick a field, Tag it, Skip), the inline Pick field on a row,
         the floating toolbar next to selected words, and the folded sections below the list."""
@@ -616,15 +687,28 @@ class Sweep:
         shown = (await card.locator("button.font-serif").inner_text()).strip()
         left0 = await self.ev("()=>window.__lt.inventoryStats().need")
         await card.locator("#next-field").click()
-        await pg.keyboard.type("first_name")
+        await pg.keyboard.type("bonus_pct")
         await self.settle(250)
         await pg.keyboard.press("Enter")
         await self.settle(300)
         self.expect(not await tag_it.is_disabled(), "Tag it stayed disabled after a field was chosen")
+        # the Custom tag switch sits next to the field picker, off by default, and adds custom_schema. to the chosen field
+        tog = card.get_by_role("switch", name=re.compile("^Custom tag"))
+        if self.expect(await tog.count() == 1 and await tog.is_visible(), "the Next to tag card has no visible Custom tag switch"):
+            self.expect(await tog.get_attribute("aria-checked") == "false", "the Custom tag switch in the card isn't off by default")
+            await tog.click()
+            await self.settle(250)
+            self.expect(await tog.get_attribute("aria-checked") == "true", "the Custom tag switch in the card didn't turn on")
+            self.expect("custom_schema.bonus_pct" in await card.inner_text(), "turning Custom tag on didn't show custom_schema.bonus_pct in the card's field")
+            await tog.click()
+            await self.settle(250)
+            self.expect(await tog.get_attribute("aria-checked") == "false", "the Custom tag switch in the card didn't turn off")
+            await tog.click()
+            await self.settle(250)
         await tag_it.click()
         await self.settle(600)
         key = await self.ev("(f)=>{const r=window.__lt.state.rows.find(x=>x.find===f); return r ? r.key : null}", shown)
-        self.expect(key == "first_name", f"Tag it didn't tag the shown text (key {key!r})")
+        self.expect(key == "custom_schema.bonus_pct", f"Tag it didn't tag the shown text with the custom tag (key {key!r})")
         self.expect(await self.ev("()=>window.__lt.inventoryStats().need") == left0 - 1, "Tag it didn't take one off 'Needs a tag'")
         nxt = (await card.locator("button.font-serif").inner_text()).strip() if await card.count() else ""
         self.expect(nxt != shown, "the card didn't move on to the next placeholder")
@@ -1933,7 +2017,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab and 3 letters")
     ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags nexttag tables shell conditions export validate downloads letters replace drop oldtags roundtrip editor merge combine assistant mailmerge tagged bad narrow team nobackend")
+    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags nexttag tables shell conditions export validate downloads letters replace drop oldtags existing roundtrip editor merge combine assistant mailmerge tagged bad narrow team nobackend")
     ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
@@ -1993,7 +2077,7 @@ async def main():
                         await sw.load_letter(letter, keep_edit=True)
 
             stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("shell", sw.shell_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
-                      ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("drop", sw.drop_and_restore), ("oldtags", sw.old_tags_flow), ("roundtrip", sw.condition_roundtrip),
+                      ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("drop", sw.drop_and_restore), ("oldtags", sw.old_tags_flow), ("existing", sw.existing_tags_flow), ("roundtrip", sw.condition_roundtrip),
                       ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("combine", sw.combine_flows), ("assistant", sw.assistant_flows), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow), ("nexttag", sw.next_to_tag_flows),
                       ("team", lambda: team_library(browser, url, sw)), ("nobackend", lambda: no_backend(browser, url, sw))]
             for name, run in stages:

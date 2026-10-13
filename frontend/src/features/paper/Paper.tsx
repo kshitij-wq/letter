@@ -49,6 +49,11 @@ export function Paper() {
     if (ph) { firePaper('placeholder', { id: ph.dataset.row as string, el: ph }); return }
     const lg = closestIn(e.target, '[data-key]')
     if (lg) { firePaper('logic', { key: lg.dataset.key as string, el: lg }); return }
+    // a tag the letter already had: outside Conditions a click opens it in the Tags list (it is not words to tag)
+    const tg = es.tab !== 'logic' && es.view === 'source' ? closestIn(e.target, '.tg:not(.lg-chip)') : null
+    const tp = tg ? closestIn(tg, 'p.lp') : null
+    const to = tg?.querySelector<HTMLElement>('.tx')?.dataset.o
+    if (tg && tp && to != null) { firePaper('tag', { pid: tp.dataset.pid as string, offset: +to, el: tg }); return }
     if (!p) return
     // outside the Conditions step a click picks the word under the pointer (to tag it); in Conditions it picks the paragraph
     if (es.tab !== 'logic' && !e.shiftKey && selectWordAt(e.clientX, e.clientY, p)) return

@@ -8,6 +8,8 @@ export type PaperEvents = {
   placeholder: { id: string; el: HTMLElement }
   /** The ghost chip in an empty salary-table cell. */
   cell: { t: string; ri: string; ci: string; el: HTMLElement }
+  /** A yellow tag that was already in the letter (a `.tg` chip). `pid` is its paragraph, `offset` where the clicked text starts in the paragraph. */
+  tag: { pid: string; offset: number; el: HTMLElement }
   /** A condition line or chip in the letter. `key` is the engine's logic key (state.lg[].key). */
   logic: { key: string; el: HTMLElement }
   /** A lettered margin flag. `index` is the issue index (state.issues[index]). */
