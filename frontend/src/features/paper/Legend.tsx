@@ -20,7 +20,7 @@ export function legendItems(): { main: Item[]; more: Item[] } {
 }
 
 const Swatch = ({ sw }: { sw: string }) => sw === 'flag'
-  ? <b aria-hidden className="grid h-[14px] w-[16px] shrink-0 place-items-center bg-err pr-[2px] text-[10px] font-bold leading-none text-panel [clip-path:polygon(0_0,76%_0,100%_50%,76%_100%,0_100%)]">A</b>
+  ? <b aria-hidden className="grid h-[14px] w-[16px] shrink-0 place-items-center bg-err pr-[2px] text-[11px] font-bold leading-none text-panel [clip-path:polygon(0_0,76%_0,100%_50%,76%_100%,0_100%)]">A</b>
   : <i aria-hidden className={`sw ${sw}`} />
 
 /** A compact key: the main marks inline on a wide canvas, everything in a "Key" popover. */

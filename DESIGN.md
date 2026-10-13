@@ -33,32 +33,32 @@ colors:
   flag-indigo-wash: "#F5EBFF"
 typography:
   headline:
-    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
     fontSize: "18px"
     fontWeight: 600
     lineHeight: 1.3
   title:
-    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
     fontSize: "15px"
     fontWeight: 600
     lineHeight: 1.45
   subtitle:
-    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
     fontSize: "13.5px"
     fontWeight: 600
     lineHeight: 1.45
   body:
-    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
     fontSize: "13.5px"
     fontWeight: 400
     lineHeight: 1.45
   body-small:
-    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
     fontSize: "12.5px"
     fontWeight: 400
     lineHeight: 1.45
   label:
-    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
     fontSize: "11px"
     fontWeight: 600
     lineHeight: 1.5
@@ -245,7 +245,7 @@ Dark mode keeps the same world: the desk goes to deep neutral black, the noteshe
 - Three tonal layers (ground, notesheet, white) separated by 1px hairlines, not shadows.
 - Accent #0B6E5F marks the primary action, selection and focus, and nothing else.
 - Five flag colours with fixed jobs: red error, amber to-check, indigo condition, blue note, green tagged or resolved.
-- Three type voices that never swap: Public Sans for the tool, IBM Plex Mono for tags, Source Serif 4 for the letter.
+- Three type voices that never swap: Calibri (Carlito where Calibri is not installed) for the tool, IBM Plex Mono for tags, Source Serif 4 for the letter.
 - Margin flags are lettered pennants (A, B, C) that match the lettered items in the Validate list.
 - Status restyles a row; it never reflows it. Resolved items stay visible as Resolved.
 - 6px controls, 8px panels, 2px paper.
@@ -286,7 +286,8 @@ Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0
 
 ## Typography
 
-**UI Font:** Public Sans (with system-ui, -apple-system, Segoe UI, sans-serif), weights 400, 500, 600, 700
+**UI Font:** Calibri, falling back to Carlito (bundled, metric-compatible, OFL) and then system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif. Carlito ships 400, 700 and 400 italic, so 500 renders as 400 and 600 as 700.
+**UI scale:** Calibri has a smaller x-height than Public Sans, so the app scale is 14 / 15 / 16 / 18 / 21px (xs / sm / base / lg / xl) and body is 16px: every UI size listed below is about 1px larger in the built page than the number printed here.
 **Tag Font:** IBM Plex Mono (with ui-monospace, SFMono-Regular, Menlo, Consolas), weights 400, 500
 **Letter Font:** Source Serif 4 (with Georgia, Times New Roman, serif), optical size 8-60, weights 400, 600
 
