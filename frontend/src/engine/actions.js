@@ -282,7 +282,7 @@ export function batchFixDefault(id){
 // the tag names found in the letter, most used first, each with where it stands against the data file
 export function oldTagNames(){
   const info=existingTagInfo(); const U=csvKeyUniverse();
-  const names=[...info.names.values()].sort((a,b)=>b.count-a.count || a.id.localeCompare(b.id)).map(n=>{ const status=keyStatus(n.id,U); return {id:n.id, count:n.count, status, suggestion: status==='unknown' ? didYouMean(n.id,U) : null}; });
+  const names=[...info.names.values()].sort((a,b)=>b.count-a.count || a.id.localeCompare(b.id)).map(n=>{ const status=keyStatus(n.id,U); return {id:n.id, count:n.count, places:n.places, status, suggestion: status==='unknown' ? didYouMean(n.id,U) : null}; });
   return {total:info.total, amountTags:new Set(info.amount.map(a=>a.tag)).size, names, ops:state.tagOps};
 }
 export function renameTag(from, to){ renameEverywhere(from, to); toast(`Changed ${from} to ${to}.`); }

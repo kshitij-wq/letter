@@ -220,7 +220,7 @@ export function existingTagInfo(){
       const expr=tag.startsWith('{%') ? inner.replace(/^(if|elif|for\s+\w+(?:\s*,\s*\w+)?\s+in|set\s+\w+\s*=)\s*/,'') : inner;
       if (/^(else|endif|endfor|raw|endraw)$/.test(expr)) continue;
       const ids=identifiersIn(expr).filter(x=>x!=='currentDatetime' && !locals.has(x.split('.')[0]));
-      for (const id of ids){ const e=names.get(id)||{id, count:0}; e.count++; names.set(id,e); }
+      for (const id of ids){ const e=names.get(id)||{id, count:0, places:[]}; e.count++; e.places.push({pid:p.pid, s:m.index, e:m.index+m[0].length, tag}); names.set(id,e); }
       if (tag.startsWith('{{') && [...new Set(ids)].length===1 && /indian_comma|int_comma|\|\s*float|\|\s*int|\.format\(|\|\s*round/.test(tag)) amount.push({tag, id:ids[0], pid:p.pid});
     }
   }

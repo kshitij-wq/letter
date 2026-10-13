@@ -57,6 +57,8 @@
 .ph.s-off { text-decoration: line-through; text-decoration-color: var(--muted); }
 .ph:hover { background-color: var(--accent-wash); }
 .ph.flash { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tg.flash { outline: 2px solid var(--accent); outline-offset: 1px; }
+.paper[data-view="source"] .tg:not(.lg-chip) { cursor: pointer; }
 
 /* a Jinja tag: yellow chip in mono; conditions are indigo */
 .tg { font-family: var(--f-mono); font-size: .82em; font-weight: 400; background: var(--tag-bg); color: var(--tag); border: 1px solid var(--tag-line); border-radius: 3px; padding: 0 3px; white-space: pre-wrap; }

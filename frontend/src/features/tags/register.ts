@@ -8,6 +8,7 @@ import { TagInspector } from './TagInspector'
 import { TagsStep } from './TagsStep'
 import { focusCell } from './SalaryTables'
 import { showRow } from './locate'
+import { openTag, tagNameAt } from './existing'
 
 registerStep('tags', { Panel: TagsStep, hint: 'Tag each placeholder below, or click words in the letter to tag them.' })
 registerInspector('tag', { title: 'Placeholder', Panel: TagInspector })
@@ -17,6 +18,14 @@ setPaperHandler('placeholder', ({ id }) => {
   setTab('tags')
   if (es.filter !== 'all') setFilter('all')
   flashRow(id)
+})
+// a click on a yellow tag the letter already had: Tags & fields opens that tag's row (scrolled into view and highlighted)
+setPaperHandler('tag', ({ pid, offset, el }) => {
+  const id = tagNameAt(pid, offset)
+  if (!id) return
+  setTab('tags')
+  openTag(id)
+  el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600)
 })
 // a click on the ghost tag in an empty table cell: open that table and put the cursor in the cell's field
 setPaperHandler('cell', ({ t, ri, ci }) => {
