@@ -45,6 +45,9 @@ type UiState = {
   openInspector: (kind: string, args?: Record<string, unknown>) => void
   /** Closes without running the panel's onClose (see registerInspector); use closeInspector() from features/shell/Inspector for the full close. */
   dismissInspector: () => void
+  /** The Assistant column on the right (remembered). */
+  assistantOpen: boolean
+  setAssistantOpen: (o: boolean) => void
   paletteOpen: boolean
   setPaletteOpen: (o: boolean) => void
   /** The Download tagged .docx button: Building…, then a 2 second Downloaded. */
@@ -67,6 +70,8 @@ export const useUi = create<UiState>((set) => ({
   inspector: null,
   openInspector: (kind, args = {}) => set({ inspector: { kind, args } }),
   dismissInspector: () => set({ inspector: null }),
+  assistantOpen: !!lsGet('lt.assistant', false),
+  setAssistantOpen: (assistantOpen) => { lsSet('lt.assistant', assistantOpen); set({ assistantOpen }) },
   paletteOpen: false,
   setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
   docx: 'idle',

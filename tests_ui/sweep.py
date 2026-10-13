@@ -13,6 +13,7 @@ What it does, in order:
     step: loads the data files, clicks every visible, enabled button / menu item / switch in the step panel, the inspector,
     the preview bar and the header, selects words and paragraphs in the letter with the mouse, moves between employees,
     undo / redo, and checks that no panel scrolls sideways
+  * the Assistant panel with a faked agent (every control; one proposed change applied and undone)
   * the Conditions step end to end (paragraph condition with Builder and Jinja, otherwise text, change a condition, close an
     open block, text by value, a condition inside a sentence, insert a tag here, advanced single tags, place unplaced tags,
     combine two versions, combine several versions) and the click-selects-a-word rules of every step
@@ -55,7 +56,7 @@ TABS = ["doc", "tags", "logic", "check", "export"]
 PANEL = "[data-testid=step-panel]"
 INSPECTOR = "#inspector"
 # Buttons that would hide the panels the sweep clicks in
-SKIP_LABELS = {"Hide panel", "Show panel"}
+SKIP_LABELS = {"Hide panel", "Show panel", "Close the assistant"}
 IGNORE = ["favicon.ico", "fonts.googleapis", "fonts.gstatic", "ERR_ABORTED"]
 MAILMERGE = ("ACME Letter - MHPromotion.docx", "employees_export.csv")   # Word merge fields + an export with a Letter Template column
 CLICKABLE = "button, summary, [role=button], [role=menuitem], [role=menuitemradio], [role=menuitemcheckbox], [role=switch], [role=checkbox], [role=combobox]"
@@ -80,6 +81,15 @@ async def fake_claude(page):
             out = {"summary": "fake review", "items": [{"severity": "fix", "title": "t", "detail": "d", "quote": "Dear", "suggestion": "{{ first_name }}"}]}
         elif task == "condition":
             out = {"condition": 'custom_schema.promo | string | lower | trim == "yes"', "explanation": "fake", "fields": ["custom_schema.promo"], "assumptions": []}
+        elif task == "agent":   # the Assistant: "propose" asks for one tag change, anything else looks at the tags and answers
+            last = (pl.get("messages") or [{"content": []}])[-1]["content"]
+            if any(b.get("type") == "tool_result" for b in last):
+                out = {"content": [{"type": "text", "text": "fake reply"}], "stop_reason": "end_turn"}
+            elif any(b.get("text", "").startswith("propose") for b in last):
+                row = ((pl.get("context") or {}).get("tags") or {}).get("open") or [{}]
+                out = {"content": [{"type": "tool_use", "id": "toolu_sweep", "name": "tag_text", "input": {"row_id": row[0].get("row_id", "none"), "field": "emp_code"}}], "stop_reason": "tool_use"}
+            else:
+                out = {"content": [{"type": "tool_use", "id": "toolu_sweep", "name": "get_tags", "input": {"status": "need"}}], "stop_reason": "tool_use"}
         else:
             out = {"answer": "fake answer", "tags": ["{{ first_name }}"]}
         await route.fulfill(json=out)
@@ -727,13 +737,16 @@ class Sweep:
         # theme
         await pg.locator("header button[aria-label^='Theme']").click()
         await pg.get_by_role("menuitemradio", name="Dark").click()
+        await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         await self.settle(200)
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") == "dark", "choosing Dark didn't set the dark theme")
         await pg.locator("header button[aria-label^='Theme']").click()
         await pg.get_by_role("menuitemradio", name="Light").click()
+        await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") == "light", "choosing Light didn't set the light theme")
         await pg.locator("header button[aria-label^='Theme']").click()
         await pg.get_by_role("menuitemradio", name="System").click()
+        await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") is None, "choosing System left a theme set")
         # the key to the marks, and back to top
         key = pg.get_by_role("button", name=re.compile(r"^Key"))
@@ -1213,6 +1226,34 @@ class Sweep:
             if await pg.locator("#mgClear").count():
                 await pg.locator("#mgClear").first.click()
                 await self.settle(300)
+        await self.close_overlays()
+
+    # ------------------------------------------------------------------------------------------------ the assistant
+    async def assistant_flows(self):
+        """The Assistant panel with a faked agent: every control, then one proposed change applied and undone."""
+        pg = self.pg
+        self.doing = "the assistant"
+        await self.load_letter("northwind.docx")
+        await self.load_data("emps.csv")   # earlier stages may leave another data file loaded, and its columns decide which placeholders there are
+        await self.view("source")
+        if not await self.visible("[data-testid=assistant-panel]"):   # the header sweep may have opened it
+            await pg.get_by_test_id("assistant-toggle").click()
+        self.expect(await self.visible("[data-testid=assistant-panel]"), "the Assistant button did not open the panel")
+        await self.click_all("[data-testid=assistant-panel]", limit=30)
+        await self.no_sideways_scroll("assistant panel")
+        await pg.wait_for_function("()=>window.__lt.state.rows.some(r=>r.count)")
+        await self.ev("()=>{ const r=window.__lt.state.rows.find(r=>r.count); window.__lt.setRowKey(r.id, '') }")   # one placeholder without a tag to propose for
+        await pg.get_by_test_id("assistant-input").fill("propose a tag")
+        await pg.get_by_test_id("assistant-send").click()
+        card = pg.get_by_test_id("proposal-card").last
+        await card.wait_for(timeout=10000)
+        self.expect(await card.get_attribute("data-status") == "pending", "a proposal was applied before the person said so")
+        await card.get_by_test_id("proposal-apply").click()
+        await pg.wait_for_function("()=>[...document.querySelectorAll('[data-testid=proposal-card]')].pop().dataset.status==='applied'", timeout=10000)
+        await card.get_by_test_id("assistant-undo").click()
+        await pg.wait_for_function("()=>[...document.querySelectorAll('[data-testid=proposal-card]')].pop().dataset.status==='undone'", timeout=10000)
+        await pg.get_by_test_id("assistant-toggle").click()
+        self.expect(not await self.visible("[data-testid=assistant-panel]"), "the Assistant button did not close the panel")
         await self.close_overlays()
 
     # ------------------------------------------------------------------------------------------------ combine several versions
@@ -1793,7 +1834,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab and 3 letters")
     ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables shell conditions export validate downloads letters replace drop oldtags roundtrip editor merge combine mailmerge tagged bad narrow team nobackend")
+    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables shell conditions export validate downloads letters replace drop oldtags roundtrip editor merge combine assistant mailmerge tagged bad narrow team nobackend")
     ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
@@ -1854,7 +1895,7 @@ async def main():
 
             stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("shell", sw.shell_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
                       ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("drop", sw.drop_and_restore), ("oldtags", sw.old_tags_flow), ("roundtrip", sw.condition_roundtrip),
-                      ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("combine", sw.combine_flows), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
+                      ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("combine", sw.combine_flows), ("assistant", sw.assistant_flows), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
                       ("team", lambda: team_library(browser, url, sw)), ("nobackend", lambda: no_backend(browser, url, sw))]
             for name, run in stages:
                 if args.only and name not in args.only:

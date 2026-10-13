@@ -84,6 +84,19 @@ export function missingTags(before, after) {
   return gone
 }
 
+/**
+ * The engine changed the letter's own text (a reworded paragraph, text by value, an undo of those): the editor must open the
+ * letter as it is now. The source docx gets the engine's parts, and editorSourceId() then reloads the editor view.
+ */
+export async function syncEditorSource() {
+  const zip = await JSZip.loadAsync(state.srcBuf)
+  let changed = false
+  for (const { path } of state.parts) if (zip.file(path) && (await zip.file(path).async('string')) !== state.xml[path]) { zip.file(path, state.xml[path]); changed = true }
+  if (!changed) return
+  state.srcBuf = await zip.generateAsync({ type: 'arraybuffer', mimeType: `${CT}.document`, compression: 'DEFLATE' })
+  notify()
+}
+
 const setStatus = (s) => { ed.status = s; notify() }
 
 /** The editor says its text changed. Saves by itself after 2 seconds without typing. */

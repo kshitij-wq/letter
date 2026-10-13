@@ -3,6 +3,7 @@ import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { Sheet } from '@/ui'
 import { setTab } from '../../engine'
+import { AssistantPanel } from '../assistant/AssistantPanel'
 import { Canvas } from '../paper/Canvas'
 import { CommandPalette } from './CommandPalette'
 import { Header } from './Header'
@@ -24,6 +25,7 @@ export function Shell() {
   const collapsed = useUi((s) => s.sideCollapsed)
   const drawer = useUi((s) => s.drawerOpen)
   const setDrawer = useUi((s) => s.setDrawerOpen)
+  const assistant = useUi((s) => s.assistantOpen)
   const has = !!es.an
 
   return (
@@ -35,6 +37,7 @@ export function Shell() {
         {has && !narrow && !collapsed && <SidePanel />}
         <Canvas />
         {has && <Inspector />}
+        {has && assistant && <AssistantPanel />}
       </div>
       {has && narrow && (
         <Sheet open={drawer} onOpenChange={setDrawer} title="Current step" side="left">
