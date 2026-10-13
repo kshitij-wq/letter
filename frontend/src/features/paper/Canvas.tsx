@@ -2,6 +2,7 @@ import { ArrowUp } from 'lucide-react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Button, IconButton, Notice, SegmentedControl, type Segment } from '@/ui'
 import { dismissRestore, fmtWhen, restoreAutosave, setView } from '../../engine'
+import { CombineScreen } from '../combine/CombineScreen'
 import { FirstRun } from '../firstrun/FirstRun'
 import { LETTER_ACCEPT, openLetter, pickFile } from '../shell/openFile'
 import { canvasSlots } from '../shell/registry'
@@ -21,6 +22,7 @@ const VIEWS: Segment<View>[] = [
 /** The middle of the screen: the first-run page, or the view switch, the notices and the letter on its desk. */
 export function Canvas() {
   useEngineRev()
+  if (es.combine) return <main id="main" className="flex min-w-0 flex-1 flex-col overflow-y-auto bg-ground"><CombineScreen /></main>
   if (!es.an) return <main id="main" className="flex min-w-0 flex-1 flex-col overflow-y-auto bg-ground"><FirstRun /></main>
   const Preview = es.view === 'filled' ? canvasSlots.previewBar : undefined
   const restore = es.pendingRestore as { savedAt?: string } | null

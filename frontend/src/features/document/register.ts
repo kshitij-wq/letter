@@ -1,9 +1,9 @@
 import { createElement } from 'react'
-import { FileCheck2, FileUp, Table2, Trash2 } from 'lucide-react'
+import { FileCheck2, FileUp, Files, Table2, Trash2 } from 'lucide-react'
 import { es } from '@/hooks/useEngine'
 import { clearData, loadSetupFile } from '../../engine'
 import { confirm, toast } from '@/ui'
-import { DATA_ACCEPT, LETTER_ACCEPT, openData, openTagged, pickFile } from '../shell/openFile'
+import { DATA_ACCEPT, LETTER_ACCEPT, openData, openTagged, openVersions, pickFile, pickFiles } from '../shell/openFile'
 import { registerCommands, registerStep } from '../shell/registry'
 import { DocStep } from './DocStep'
 
@@ -12,8 +12,9 @@ registerStep('doc', { Panel: DocStep, hint: 'The letter and its employee data.' 
 const icon = (I: typeof Table2) => createElement(I, { 'aria-hidden': true })
 
 registerCommands(() => {
-  if (!es.an) return []
+  if (!es.an) return [{ id: 'combine.versions', group: 'Letter', label: 'Combine versions…', keywords: ['merge', 'several', 'client', 'if else'], icon: icon(Files), run: () => pickFiles(LETTER_ACCEPT, openVersions) }]
   return [
+    { id: 'combine.versions', group: 'Letter', label: 'Combine versions…', keywords: ['merge', 'several', 'client', 'if else'], icon: icon(Files), run: () => pickFiles(LETTER_ACCEPT, openVersions) },
     { id: 'data.add', group: 'Letter', label: es.csv ? 'Replace employee data…' : 'Add employee data…', keywords: ['csv', 'excel', 'xlsx', 'employees', 'upload'], icon: icon(Table2), run: () => pickFile(DATA_ACCEPT, (f) => openData(f)) },
     ...(es.csv ? [{ id: 'data.remove', group: 'Letter', label: 'Remove employee data', keywords: ['csv', 'clear'], icon: icon(Trash2), run: async () => {
       if (await confirm({ title: 'Remove the employee data?', body: 'Tags you mapped to its columns stay; previews switch to sample values.', confirmLabel: 'Remove', danger: true })) clearData()

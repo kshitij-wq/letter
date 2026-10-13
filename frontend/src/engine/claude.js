@@ -6,7 +6,7 @@ import { cbExpr, cbNew, cbNum } from './conditions.js'
 import { csvRows, fileHeaders } from './data.js'
 import { analyze } from './detect.js'
 import { MERGE_MISMATCH } from './docx.js'
-import { notify, on, toast } from './events.js'
+import { notify, toast } from './events.js'
 import { W, ancestor, isW, snake, straighten } from './helpers.js'
 import { fullRefresh } from './load.js'
 import { pageLabel } from './logic.js'
@@ -21,8 +21,8 @@ import { recordUndo } from './undo.js'
 // The key stays on the server; the page sends the letter's text, tag names, column names and the
 // values of columns with only a few categories. Employee rows are never sent.
 export function aiReady(){ return !!(server.ok && server.info && server.info.assistant && server.info.assistant.ready); }
-export async function postAssist(task, payload){
-  const r=await fetch('api/assist', {method:'POST', body:JSON.stringify({task, payload}), headers:{'Content-Type':'application/json', 'X-CSRFToken':csrfToken()}, credentials:'same-origin'});
+export async function postAssist(task, payload, opts){
+  const r=await fetch('api/assist', {method:'POST', body:JSON.stringify({task, payload}), headers:{'Content-Type':'application/json', 'X-CSRFToken':csrfToken()}, credentials:'same-origin', ...(opts&&opts.signal?{signal:opts.signal}:{})});
   let j={}; try{ j=await r.json(); }catch(e){ j={error:`The server answered ${r.status}.`}; }
   if (!r.ok) throw new Error(j.error||`The server answered ${r.status}.`);
   return j;

@@ -98,6 +98,7 @@ async def main():
             # ---- 1. the sample letter, real Jinja, Claude ready -------------------------------------------------
             ctx, page = await new_page(browser, url, claude_ready=True)
             await page.get_by_role("button", name="Open the sample letter").click()
+            await page.locator("[data-testid=seg-source]").click()   # letters open in the Edit letter view; #paper is the other view
             await expect(page.locator("#paper .lp").first).to_be_visible()
             await go_validate(page)
             await expect(page.get_by_text("Real Jinja check passed")).to_be_visible(timeout=15000)

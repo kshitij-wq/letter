@@ -23,6 +23,7 @@ UI text plain and short. There is no PDF feature on purpose (removed at the user
   - `runChecks` / `tagSyntaxProblem` / `locateTags`: the Check tab's findings and where they are
   - `realCheck` / `realBatch`: calls `/api/validate` when the back end is there
   - condition builder: `cbHtml`, `cbExpr`, `cbParse`, `cbEnglish`, `applyParaCondition`
+- Letter Assistant (a chat that edits the letter through tools): `renderer/agent_tools.json` is the one tool list (names, schemas, `kind` read/write, `allow_auto`); the server (`assistant.agent_turn`, task `agent`) only validates history and relays it. `engine/agent.js` is the loop (max 8 rounds, argument check against the same schemas, a write becomes a proposal card the person Applies or Rejects) and `engine/agentTools.js` the tools, thin wrappers over engine actions; each write runs as one undo step, is checked after, and is rolled back on any failure. Tools call `flushEditor()` first and `syncEditorSource()` after a change so the SuperDoc view reloads. UI: `features/assistant/`; tests `engine/agent.test.js`, `renderer/tests_agent.py`, `tests_ui/react/assistant.py` (fakes `/api/assist`).
 - `renderer/frontend/index.html` — generated; don't edit by hand.
 - `renderer/engine.py` — Jinja environment, CompUp filters, `validate_docx`, `render_docx`, plain-language errors.
 - `renderer/views.py` — `/`, `/api/health`, `/api/validate`, `/api/assist`, `/api/render`.

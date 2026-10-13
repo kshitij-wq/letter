@@ -1,7 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Collapsible } from 'radix-ui'
-import { cn } from './cn'
 
 /** A titled block that folds: title, an optional count and action, and a chevron. Spacing, not a box. */
 export function Section({ title, count, actions, defaultOpen = true, open: openProp, onOpenChange, children, className, id }: {

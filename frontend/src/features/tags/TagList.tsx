@@ -99,7 +99,7 @@ export function TagList({ items }: { items: Item[] }) {
   if (!virtual) {
     return (
       <div ref={box} role="list" aria-label="Placeholders" className="-mx-2 flex flex-col" onKeyDown={onKey}>
-        {items.map((it, i) => <div role="listitem" key={it.id}><Row it={it} selected={sel === it.id} tabbable={tabId === it.id} onFocus={() => setFocusId(it.id)} /></div>)}
+        {items.map((it) => <div role="listitem" key={it.id}><Row it={it} selected={sel === it.id} tabbable={tabId === it.id} onFocus={() => setFocusId(it.id)} /></div>)}
       </div>
     )
   }

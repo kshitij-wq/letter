@@ -1,9 +1,9 @@
-import { Check, Command, Download, Ellipsis, Redo2, Table2, Undo2 } from 'lucide-react'
+import { Check, Command, Download, Ellipsis, Redo2, Sparkles, Table2, Undo2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger, IconButton, Kbd, modKey } from '@/ui'
-import { HISTORY, downloadMapping, redo, saveStatusText, undo } from '../../engine'
+import { HISTORY, downloadMapping, redo, saveStatusText, server, undo } from '../../engine'
 import { runDownloadDocx } from './docx'
 import { THEMES, ThemeMenu } from './ThemeMenu'
 
@@ -31,6 +31,8 @@ export function Header() {
   const has = !!es.an
   const docx = useUi((s) => s.docx)
   const setPalette = useUi((s) => s.setPaletteOpen)
+  const assistant = useUi((s) => s.assistantOpen)
+  const setAssistant = useUi((s) => s.setAssistantOpen)
   const theme = useUi((s) => s.theme)
   const setTheme = useUi((s) => s.setTheme)
   // "Saved in this browser · 2 min ago" ages on its own
@@ -56,6 +58,7 @@ export function Header() {
           className="hidden text-muted min-[900px]:inline-flex">
           Search <Kbd>{modKey}</Kbd><Kbd>K</Kbd>
         </Button>
+        {has && server.ok && <Button variant={assistant ? 'primary' : 'ghost'} icon={<Sparkles aria-hidden />} aria-pressed={assistant} onClick={() => setAssistant(!assistant)} data-testid="assistant-toggle">Assistant</Button>}
         <span className="hidden min-[561px]:inline-flex"><ThemeMenu /></span>
         <IconButton label="Undo" shortcut={`${modKey}+Z`} disabled={!has || !HISTORY.undo.length} onClick={undo}><Undo2 aria-hidden /></IconButton>
         <IconButton label="Redo" shortcut={`${modKey}+Shift+Z`} disabled={!has || !HISTORY.redo.length} onClick={redo}><Redo2 aria-hidden /></IconButton>

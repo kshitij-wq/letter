@@ -7,7 +7,7 @@ import { RX_TAG } from './detect.js'
 import { notify, toast } from './events.js'
 import { parseXml, W } from './helpers.js'
 import { loadDocx } from './load.js'
-import { exportSetup, importSetup, setupReportText } from './setup.js'
+import { exportSetup, importSetup } from './setup.js'
 import { state } from './state.js'
 
 /** What the editor view shows: status is none | unsaved | saving | saved | blocked | error. */
@@ -18,7 +18,6 @@ let running = null         // the save in progress, so a second caller waits for
 
 export const registerEditor = (h) => { handle = h; if (!h) clearTimeout(saveTimer) }
 export const unregisterEditor = (h) => { if (handle === h) handle = null }
-export const editorActive =() => !!handle
 
 /** The id the editor view reloads on: it changes only when the engine's docx changed from outside the editor. */
 export function editorSourceId() {
@@ -83,6 +82,19 @@ export function missingTags(before, after) {
     if (n > 0) left.set(t, n - 1); else gone.push(t)
   }
   return gone
+}
+
+/**
+ * The engine changed the letter's own text (a reworded paragraph, text by value, an undo of those): the editor must open the
+ * letter as it is now. The source docx gets the engine's parts, and editorSourceId() then reloads the editor view.
+ */
+export async function syncEditorSource() {
+  const zip = await JSZip.loadAsync(state.srcBuf)
+  let changed = false
+  for (const { path } of state.parts) if (zip.file(path) && (await zip.file(path).async('string')) !== state.xml[path]) { zip.file(path, state.xml[path]); changed = true }
+  if (!changed) return
+  state.srcBuf = await zip.generateAsync({ type: 'arraybuffer', mimeType: `${CT}.document`, compression: 'DEFLATE' })
+  notify()
 }
 
 const setStatus = (s) => { ed.status = s; notify() }
@@ -177,7 +189,6 @@ export async function selectEditorWords(words, paraText, before) {
   return true
 }
 
-export const editorReportText =() => (ed.lastReport ? setupReportText(ed.lastReport) : '')
 
 export function editorStatusText() {
   switch (ed.status) {
