@@ -101,7 +101,9 @@ export function analyze(){
 
   // manual rows persisted in edits
   for (const [id,ed] of Object.entries(state.edits)){
-    if (!ed.manual || rows.has(id)) continue;
+    if (!ed.manual) continue;
+    if (rows.has(id) && !(ed.occ && rows.get(id).find!==ed.occ.find)) continue;   // a place the person picked wins over a detected one that starts at the same spot
+    if (rows.has(id)) rows.delete(id);
     if (ed.occ){ const p=state.an.byPid.get(ed.occ.pid); if (p && p.model.text.slice(ed.occ.s, ed.occ.e)===ed.occ.find){ const t=p.model.text; addRow({id, scope:'one', loc:{pid:ed.occ.pid, s:ed.occ.s, e:ed.occ.e}, find:ed.occ.find, label:'', kind:'Added', ctx:t.slice(Math.max(0,ed.occ.s-70), ed.occ.s), after:t.slice(ed.occ.e, ed.occ.e+30), first:p.order*1e5+ed.occ.s}); } continue; }
     const c=countInDoc(ed.find); addRow({id, scope:'all', find:ed.find, label:ed.find, kind:'Added', first:c?firstPos(ed.find):9e15});
   }
@@ -123,6 +125,17 @@ export function analyze(){
     if (cs){ r.key=cs.key; r.override=cs.override||null; r.conf=cs.conf; r.how='Claude: '+cs.reason; r.extra=''; r.format='auto'; }
     const ed=state.edits[r.id];
     if (ed){ if ('key' in ed){ r.key=ed.key; r.conf=1; r.how=''; r.extra=''; } if ('format' in ed) r.format=ed.format; if ('override' in ed) r.override=ed.override; if ('enabled' in ed) r.enabled=ed.enabled; }
+  }
+  // placeholders the person removed ("Not a placeholder") stay out of the letter, the list and the counts; they are kept to restore
+  state.removedRows=[];
+  for (const r of [...rows.values()]){ const ed=state.edits[r.id]; if (ed && ed.removed && !ed.manual){ state.removedRows.push({id:r.id, find:r.find, kind:r.kind, count:r.count}); rows.delete(r.id); } }
+  // a text tagged at one place only takes that place away from the same text tagged everywhere
+  const picked=[...rows.values()].filter(r=>r.scope==='one' && state.edits[r.id] && state.edits[r.id].occ);
+  if (picked.length) for (const g of rows.values()){
+    if (g.scope!=='all' || !g.count) continue;
+    let shadow=0;
+    for (const o of picked){ const p=state.an.byPid.get(o.loc.pid); if (!p || (g.kind==='Sample value' && state.typed.has(p.pid))) continue; for (const [s,e] of findAll(untagged(p.model.text), g.find)) if (s<o.loc.e && e>o.loc.s) shadow++; }
+    g.count=Math.max(0, g.count-shadow);
   }
   state.rows=[...rows.values()].sort((a,b)=>(a.count?0:1)-(b.count?0:1) || a.first-b.first);
   detectTables();

@@ -46,7 +46,11 @@ export function Paper() {
     const ghost = closestIn(e.target, '.cell-ghost')
     if (ghost) { firePaper('cell', { t: ghost.dataset.t as string, ri: ghost.dataset.ri as string, ci: ghost.dataset.ci as string, el: ghost }); return }
     const ph = closestIn(e.target, '.ph')
-    if (ph) { firePaper('placeholder', { id: ph.dataset.row as string, el: ph }); return }
+    if (ph) {
+      const pp = closestIn(ph, 'p.lp'), po = ph.querySelector<HTMLElement>('.tx')?.dataset.o
+      firePaper('placeholder', { id: ph.dataset.row as string, el: ph, pid: pp?.dataset.pid, offset: po != null ? +po : undefined })
+      return
+    }
     const lg = closestIn(e.target, '[data-key]')
     if (lg) { firePaper('logic', { key: lg.dataset.key as string, el: lg }); return }
     // a tag the letter already had: outside Conditions a click opens it in the Tags list (it is not words to tag)

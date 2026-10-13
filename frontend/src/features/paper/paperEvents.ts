@@ -4,8 +4,8 @@
  * Paper itself (engine clickParagraph / selectWords / closeBlockAt / placeUnplacedAt) and opens the 'selection' inspector.
  */
 export type PaperEvents = {
-  /** A placeholder in the letter (a `.ph` span). */
-  placeholder: { id: string; el: HTMLElement }
+  /** A placeholder in the letter (a `.ph` span). `pid` and `offset` say which spot of the letter was clicked. */
+  placeholder: { id: string; el: HTMLElement; pid?: string; offset?: number }
   /** The ghost chip in an empty salary-table cell. */
   cell: { t: string; ri: string; ci: string; el: HTMLElement }
   /** A yellow tag that was already in the letter (a `.tg` chip). `pid` is its paragraph, `offset` where the clicked text starts in the paragraph. */

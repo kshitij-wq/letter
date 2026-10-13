@@ -3,23 +3,24 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import { useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { cn } from '@/ui'
-import { FieldPicker, type PickerGroup } from '@/ui'
-import { ST_INFO, fieldPickerGroups, setRowKey } from '../../engine'
+import { Button, FieldPicker, IconButton, type PickerGroup } from '@/ui'
+import { X } from 'lucide-react'
+import { ST_INFO, fieldPickerGroups, removeRow, restoreRow, setRowKey } from '../../engine'
 import { STATUS_ICON } from './TagInspector'
 import { locateRow, pickRow, registerListScroller, showRow } from './locate'
 
-type Item = { id: string; find: string; status: string; field: { label: string; key: string; same: boolean } | null; custom: boolean; kindShown: string; kindTitle: string; count: number; inLetter: boolean }
+type Item = { id: string; find: string; here?: string; removed?: boolean; status: string; field: { label: string; key: string; same: boolean } | null; custom: boolean; kindShown: string; kindTitle: string; count: number; inLetter: boolean }
 type Entry = { type: 'head'; key: string; label: string; n: number; first: boolean } | { type: 'row'; key: string; it: Item }
 
-const MARK_TONE = { tagged: 'text-ok', check: 'text-warn', need: 'text-err', off: 'text-muted' } as const
+const MARK_TONE = { tagged: 'text-ok', check: 'text-warn', need: 'text-err', off: 'text-muted', removed: 'text-muted' } as const
 /** More rows than this and the list draws only the ones in view. */
 export const VIRTUAL_FROM = 80
 const ROW = 64
-const GROUPS: [string, string][] = [['need', 'Needs a tag'], ['check', 'To check'], ['tagged', 'Tagged'], ['off', 'Skipped, left as typed'], ['gone', 'Not in the letter']]
+const GROUPS: [string, string][] = [['need', 'Needs a tag'], ['check', 'To check'], ['tagged', 'Tagged'], ['off', 'Skipped, left as typed'], ['gone', 'Not in the letter'], ['removed', 'Removed, plain text again']]
 
 /** The list as headed groups: what needs a tag first, then what to check, then what is done. */
 export function groupItems(items: Item[]): Entry[] {
-  const group = (it: Item) => (!it.inLetter ? 'gone' : it.status)
+  const group = (it: Item) => (it.removed ? 'removed' : !it.inLetter ? 'gone' : it.status)
   const out: Entry[] = []
   for (const [g, label] of GROUPS) {
     const rows = items.filter((it) => group(it) === g)
@@ -31,6 +32,7 @@ export function groupItems(items: Item[]): Entry[] {
 }
 
 function Summary({ it }: { it: Item }) {
+  if (it.removed) return <span>Plain text in the letter</span>
   if (it.status === 'off') return <span>Skipped, left as typed</span>
   const f = it.field
   if (!f) return <span className={it.custom ? '' : 'text-warn'}>{it.custom ? 'Custom tag' : 'Not mapped yet'}</span>
@@ -40,17 +42,17 @@ function Summary({ it }: { it: Item }) {
 }
 
 function Row({ it, selected, tabbable, onFocus, groups }: { it: Item; selected: boolean; tabbable: boolean; onFocus: () => void; groups: PickerGroup[] }) {
-  const st = it.status as keyof typeof STATUS_ICON
+  const st = (it.removed ? 'off' : it.status) as keyof typeof STATUS_ICON
   const Mark = STATUS_ICON[st]
-  const pickable = st === 'need' && it.inLetter
+  const pickable = st === 'need' && it.inLetter && !it.removed
   return (
     <div className={cn('relative flex w-full items-center gap-1 rounded-control transition-colors duration-150 hover:bg-hairline-soft', selected && 'bg-accent-wash hover:bg-accent-wash')}>
       <button type="button" data-row-id={it.id} aria-current={selected || undefined} tabIndex={tabbable ? 0 : -1} onFocus={onFocus}
-        onClick={(e) => pickRow(it.id, e.detail === 0)}
+        onClick={(e) => { if (it.removed) restoreRow(it.id); else pickRow(it.id, e.detail === 0) }}
         className="flex min-h-[60px] min-w-0 flex-1 items-start gap-3 rounded-control px-3 py-2.5 text-left focus-visible:-outline-offset-2">
         <span title={ST_INFO[st].label} className={cn('mt-1 shrink-0', MARK_TONE[st])}><Mark aria-hidden /><span className="sr-only">{ST_INFO[st].label}. </span></span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-serif text-lg leading-snug">{it.find}</span>
+          <span className="block truncate font-serif text-lg leading-snug">{it.here ? <>{it.find}<span className="font-sans text-sm text-muted"> — {it.here} · only here</span></> : it.find}</span>
           <span className="mt-0.5 flex min-w-0 items-baseline gap-1.5 text-sm text-muted"><Summary it={it} /></span>
         </span>
         {!pickable && (
@@ -60,6 +62,10 @@ function Row({ it, selected, tabbable, onFocus, groups }: { it: Item; selected: 
           </span>
         )}
       </button>
+      {it.removed && <span className="shrink-0 pr-3"><Button size="sm" onClick={() => restoreRow(it.id)} aria-label={`Put ${it.find} back in the list`}>Put back</Button></span>}
+      {!it.removed && it.inLetter && (
+        <IconButton label={`Not a placeholder: ${it.find}`} size="sm" className={cn('shrink-0', !pickable && 'mr-2')} onClick={() => removeRow(it.id)} data-testid={`remove-${it.id}`}><X aria-hidden /></IconButton>
+      )}
       {pickable && (
         <span className="shrink-0 pr-3">
           <FieldPicker variant="button" aria-label={`Pick a field for ${it.find}`} value="" groups={groups} allowCustom placeholder="Pick field" searchPlaceholder="Search fields or type a name"

@@ -8,7 +8,8 @@ import { PATTERN_RX, isPatternKey, joinKey, keySlots, setKeyPart, setRowKey } fr
  * Typing in a picker's search box and choosing "Use ..." enters a column name that is not in the list.
  * The pattern fields (custom_schema.column_heading ...) have a word to replace: a small box under the picker takes it.
  */
-export function FieldSlots({ id, fieldKey, groups, focusFirst }: { id: string; fieldKey: string; groups: PickerGroup[]; focusFirst?: boolean }) {
+export function FieldSlots({ id, fieldKey, groups, focusFirst, onKey }: { id: string; fieldKey: string; groups: PickerGroup[]; focusFirst?: boolean; onKey?: (key: string) => void }) {
+  const setKey = (k: string) => (onKey ? onKey(k) : setRowKey(id, k))
   const slots = keySlots(fieldKey)
   const [adding, setAdding] = useState(false)
   const nameBox = useRef<HTMLInputElement>(null)
@@ -20,7 +21,7 @@ export function FieldSlots({ id, fieldKey, groups, focusFirst }: { id: string; f
 
   const change = (i: number, v: string) => {
     if (isPatternKey(v)) select.current = true
-    setRowKey(id, setKeyPart(fieldKey, i, v))
+    setKey(setKeyPart(fieldKey, i, v))
     // the picker gives focus back to itself when it closes: take it for the name box afterwards
     if (select.current) setTimeout(() => {
       const box = nameBox.current, m = box && box.value.match(PATTERN_RX)
@@ -38,20 +39,20 @@ export function FieldSlots({ id, fieldKey, groups, focusFirst }: { id: string; f
             placeholder="Pick or type a field" searchPlaceholder="Search fields or type a name" customLabel={(t) => `Use “${t}” as the field`}
             emptyText="No field matches. Keep typing to use your own name." onChange={(v) => change(i, v)} />
           {slots.length > 1 && (
-            <IconButton label={`Remove field ${i + 1}`} size="sm" onClick={() => setRowKey(id, setKeyPart(fieldKey, i, ''))}><X aria-hidden /></IconButton>
+            <IconButton label={`Remove field ${i + 1}`} size="sm" onClick={() => setKey(setKeyPart(fieldKey, i, ''))}><X aria-hidden /></IconButton>
           )}
         </div>
       ))}
       {patternAt >= 0 && (
         <label className="flex flex-col gap-1 text-sm text-muted">
           Replace the word in the name
-          <Input ref={nameBox} mono value={slots[patternAt]} onChange={(e) => setRowKey(id, setKeyPart(fieldKey, patternAt, e.target.value))} spellCheck={false} />
+          <Input ref={nameBox} mono value={slots[patternAt]} onChange={(e) => setKey(setKeyPart(fieldKey, patternAt, e.target.value))} spellCheck={false} />
         </label>
       )}
       {adding && (
         <FieldPicker defaultOpen aria-label="Another employee field" value="" groups={groups} allowCustom placeholder="Pick another field" searchPlaceholder="Search fields or type a name"
           customLabel={(t) => `Use “${t}” as the field`} onOpenChange={(o) => { if (!o) setAdding(false) }}
-          onChange={(v) => { setAdding(false); setRowKey(id, joinKey([...slots, v])) }} />
+          onChange={(v) => { setAdding(false); setKey(joinKey([...slots, v])) }} />
       )}
       {slots.length > 0 && !adding && (
         <div className="flex items-center gap-2">

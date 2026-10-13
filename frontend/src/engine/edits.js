@@ -32,7 +32,7 @@ export function sourceEdit(mutate, opts={}){
   for (const el of res.typedEls||[]){ const np=pidOfEl(el); if (np) state.typed.add(np); }
   state.logic=state.logic.map(l=>{ const np=pidMap.get(l.pid); if (np===undefined) return l; if (np===null){ lost.push(l); return null; } return {...l, pid:np}; }).filter(Boolean);
   if (lost.length) state.unplaced.push(...lost.map(l=>({...l, anchor:null, ...(l.place==='at'?atContext(l):{}), reason:'Its paragraph was replaced.'})));
-  const ne={}; for (const [id,ed] of Object.entries(state.edits)){ const m=id.match(/^o:(.+#\d+):(\d+)$/); if (m){ const np=pidMap.get(m[1]); if (np) ne[`o:${np}:${m[2]}`]=ed; } else ne[id]=ed; } state.edits=ne;
+  const ne={}; for (const [id,ed] of Object.entries(state.edits)){ const m=id.match(/^o:(.+#\d+):(\d+(?:\.\d+)?)$/); if (m){ const np=pidMap.get(m[1]); if (np) ne[`o:${np}:${m[2]}`]=ed; } else ne[id]=ed; } state.edits=ne;
   const newT=topTables(docs[state.mainPath]); const te={};
   for (const [id,ed] of Object.entries(state.tableEdits)){ const el=oldT[+id.slice(1)]; const j=el?newT.indexOf(el):-1; if (j>=0) te['t'+j]=ed; }
   state.tableEdits=te;

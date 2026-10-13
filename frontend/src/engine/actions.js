@@ -14,7 +14,7 @@ import { lsSet, norm, straightenTags } from './helpers.js'
 import { fullRefresh, loadDocx, scheduleBuild } from './load.js'
 import { addLogic, addLogicAt, afterLogicChange, logicTpl, normalizeLogicText, syncLogic } from './logic.js'
 import { batchCsv, pvMatches, refreshPreview, schedulePreview } from './pipeline.js'
-import { buildTag, edit, rowStatus } from './rows.js'
+import { buildTag, edit, onlyHere, rowPlaces, rowStatus, sameTextRow } from './rows.js'
 import { sampleDocx } from './sample.js'
 import { exportSetup, findOffset, flushAutosave, importSetup, setupReportText } from './setup.js'
 import { state } from './state.js'
@@ -141,6 +141,51 @@ export function resetRowTag(id){
   syncLogic(); scheduleBuild();
 }
 export function deleteRow(id){ recordUndo(); delete state.edits[id]; analyze(); fullRefresh(); }
+// "Not a placeholder": a detected placeholder is taken out. Its text stays in the letter as plain text, with no highlight, flag or count,
+// and it does not come back when the letter is read again. The "Removed" list brings it back. A row the person added is just deleted.
+export function removeRow(id){
+  const r=state.rows.find(x=>x.id===id); if (!r) return false;
+  recordUndo();
+  if (state.edits[id] && state.edits[id].manual) delete state.edits[id];
+  else state.edits[id]={...(state.edits[id]||{}), removed:true};
+  analyze(); fullRefresh(); toast(`“${r.find.length>40?r.find.slice(0,40)+'…':r.find}” is plain text again.`);
+  return true;
+}
+export function restoreRow(id){
+  const ed=state.edits[id]; if (!ed || !ed.removed) return false;
+  recordUndo(); const {removed, ...rest}=ed;
+  if (Object.keys(rest).length) state.edits[id]=rest; else delete state.edits[id];
+  analyze(); fullRefresh(); flashRow(id); return true;
+}
+// ---- one place only: the same text can be tagged one way at one spot and another way everywhere else ----
+// patch changes the tag of the spot {pid, s} only: a row of its own is made for the spot (it starts from the tag of the other spots),
+// the other spots keep the row's tag. One undo step. Returns the id of the spot's row.
+// the id of a row for words at one spot: o:<paragraph>:<start>, or o:<paragraph>:<start>.<end> when a detected row already starts there
+export function occId(pid, s, e, find){
+  const base=`o:${pid}:${s}`; const ex=state.rows.find(r=>r.id===base);
+  return !ex || ex.find===find ? base : `${base}.${e}`;
+}
+export function editPlace(id, place, patch){
+  const r=state.rows.find(x=>x.id===id); if (!r) return null;
+  if (r.scope!=='all' || !place) return id;
+  const pl=rowPlaces(id).find(x=>x.pid===place.pid && x.s===place.s); if (!pl) return id;
+  const oid=occId(pl.pid, pl.s, pl.e, pl.find);
+  recordUndo();
+  const e={manual:true, occ:{pid:pl.pid, s:pl.s, e:pl.e, find:pl.find}};
+  if (r.key) e.key=r.key; if (r.format && r.format!=='auto') e.format=r.format; if (r.override!=null) e.override=r.override; if (!r.enabled) e.enabled=false;
+  Object.assign(e, patch);
+  state.edits[oid]=e;
+  analyze(); fullRefresh();
+  return state.rows.some(x=>x.id===oid) ? oid : id;
+}
+export const setRowKeyAt=(id, place, v)=>editPlace(id, place, {key:String(v).trim(), override:null});
+export const setRowTagAt=(id, place, v)=>editPlace(id, place, {override:v});
+export const setRowFormatAt=(id, place, fmt)=>editPlace(id, place, {format:fmt, override:null});
+// back to the tag the other spots have: the spot's own row goes away
+export function mergePlace(id){
+  const r=state.rows.find(x=>x.id===id); if (!r || !onlyHere(r) || !sameTextRow(r)) return false;
+  recordUndo(); delete state.edits[id]; analyze(); fullRefresh(); return true;
+}
 export function acceptAllChecks(){
   const todo=state.rows.filter(r=>r.count && rowStatus(r)==='check'); if (!todo.length) return 0;
   recordUndo(); let n=0; for (const r of todo){ edit(r.id,{reviewed:true}); n++; }
@@ -156,6 +201,7 @@ export function nextReviewId(afterId){
 // text typed or selected in the letter becomes a placeholder
 export function addManual(text){
   const id='g:'+text;
+  if (state.edits[id] && state.edits[id].removed){ restoreRow(id); return; }   // it was removed: bring it back
   if (state.rows.some(r=>r.id===id)){ toast('That text is already in the list.'); flashRow(id); return; }
   recordUndo();
   state.edits[id]={manual:true, find:text};
@@ -165,7 +211,7 @@ export function addManual(text){
   flashRow(id);
 }
 // the UI shows the row (clears the filters if needed, opens it, scrolls to it)
-export function flashRow(id){ if (state.rows.some(r=>r.id===id)) emit('flashRow', {id}); }
+export function flashRow(id, place){ if (state.rows.some(r=>r.id===id)) emit('flashRow', {id, place}); }
 
 /* ---- the letter: selecting paragraphs and words ---- */
 // a click on a paragraph (shift extends the selection to a range)
@@ -237,7 +283,28 @@ export function applyInlineTag(tagText, where){
   return true;
 }
 // "Tag this text": the selected words become a placeholder
-export function tagSelectedWords(){ const t=state.sel.text; state.sel={pids:[],anchor:null,text:''}; emit('clearSelection'); notify(); addManual(t); }
+// Any words, anywhere, any number of times. Words that are already one placeholder (exactly) open that one. Words inside another
+// placeholder, or a second look at words tagged elsewhere, become a tag of their own at that spot only. Anything else tags
+// that text wherever it appears. Returns the id of the row to show.
+export function tagSelectedWords(){
+  const {text:t, range}=state.sel; state.sel={pids:[],anchor:null,text:''}; emit('clearSelection'); notify();
+  if (range && state.an && state.an.byPid.get(range.pid)){
+    const near=(state.srcMatches && state.srcMatches.get(range.pid)) || [];
+    const same=near.find(x=>x.s===range.s && x.e===range.e);
+    if (same){ flashRow(same.row.id, {pid:range.pid, s:range.s}); return same.row.id; }
+    if (near.some(x=>range.s<x.e && range.e>x.s)){
+      const base=`o:${range.pid}:${range.s}`;
+      if ((state.removedRows||[]).some(x=>x.id===base && x.find===range.text)){ restoreRow(base); return base; }   // the detected one was removed: bring it back
+      const oid=occId(range.pid, range.s, range.e, range.text);
+      recordUndo();
+      state.edits[oid]={manual:true, occ:{pid:range.pid, s:range.s, e:range.e, find:range.text}};
+      analyze(); fullRefresh();
+      if (state.rows.some(r=>r.id===oid)){ flashRow(oid); return oid; }
+      return null;
+    }
+  }
+  const id='g:'+t; addManual(t); return state.rows.some(r=>r.id===id) ? id : null;
+}
 // Advanced: one logic tag typed by hand, before/after the selected paragraphs
 export function insertLogicTag(rawText, place){
   const text=normalizeLogicText(rawText);
