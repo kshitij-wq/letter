@@ -1264,8 +1264,11 @@ class Sweep:
         await pg.get_by_test_id("combine-raw-2").fill('employee_schema.case == "none"')
         await pg.get_by_role("button", name="Move no-increase up").click()
         await pg.get_by_role("button", name="Move no-increase down").click()
-        for b in await pg.get_by_role("button", name="Show").all():
-            await b.click()
+        for _ in range(8):   # each click turns that Show into Hide, so the next one is always the first left
+            show = pg.get_by_test_id("combine-screen").get_by_role("button", name="Show", exact=True)
+            if not await show.count():
+                break
+            await show.first.click()
         await pg.get_by_label("Ignore small differences in numbers and spacing").click()
         await pg.get_by_label("Ignore small differences in numbers and spacing").click()
         await self.settle(200)
