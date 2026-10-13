@@ -1,0 +1,7 @@
+// Cloudflare Workers hosts only the built page (static). The Python server
+// features (real Jinja checks, Assistant) need Django and stay hidden there.
+{
+  "name": "letter",
+  "compatibility_date": "2026-09-01",
+  "assets": { "directory": "./renderer/frontend" }
+}
