@@ -2,12 +2,11 @@
 // The text that is the same in every version stays once; the paragraphs that differ sit side by side inside
 // {% if %} / {% elif %} / {% else %} / {% endif %} lines, one branch per group of versions that share the same text.
 import JSZip from 'jszip'
-import { tagSyntaxProblem } from './checks.js'
 import { condEnglish } from './conditions.js'
 import { unwrapMergeFields } from './docx.js'
 import { blockMatcher, caseCond, importBlocks, sourceEdit, topBlocksOf } from './edits.js'
 import { notify, toast } from './events.js'
-import { W, childW, cleanCondExpr, isW, parseXml } from './helpers.js'
+import { W, childW, isW, parseXml } from './helpers.js'
 import { loadDocx } from './load.js'
 import { setTab, setView } from './steps.js'
 import { state } from './state.js'
@@ -83,9 +82,8 @@ export function planVersions(lists, opts={}){
 }
 
 /* ---- conditions ---- */
-export function cleanField(f){ return cleanCondExpr(f||'').replace(/^\{\{\s*|\s*\}\}$/g,'').trim(); }
-// With no field chosen, every version still gets a condition of its own on this placeholder field, so the combined template is
-// valid straight away. The person changes the field later in Conditions (or adds this column to the data).
+// Every version gets a condition of its own on this placeholder field, so the combined template is valid straight away.
+// The person changes the field, or the conditions, later in Conditions (or adds this column to the data).
 export const AUTO_FIELD='custom_schema.letter_version';
 export function slugOf(label){ return String(label||'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'version'; }
 // the automatic value of every version, from its name, made unique: {versionId: 'promotion', ...}
@@ -97,76 +95,22 @@ export function autoValues(cfg){
   }
   return out;
 }
-const valuesOf=v=>String((v.cond||{}).value||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
-// a version that has no value / typed condition of its own gets the automatic one
-export function isAuto(cfg, v){
-  const c=v.cond; if (c.mode==='else') return false;
-  if (c.mode==='raw') return !cleanCondExpr(c.raw||'');
-  return !(valuesOf(v).length && cleanField(cfg.field));
-}
-export const autoCond=(cfg, v)=>caseCond(AUTO_FIELD, 'text', autoValues(cfg)[v.id]);
-// the condition of a group of versions: all "one field decides" values in one list, typed conditions joined with "or"
+// the condition of a group of versions: each version's automatic condition, joined with "or" when there are several
 export function groupCondition(cfg, versions){
-  const vs=versions.map(i=>cfg.versions[i]).filter(v=>v.cond.mode!=='else');
-  const f=cleanField(cfg.field);
-  const vals=vs.filter(v=>v.cond.mode!=='raw' && !isAuto(cfg,v)).map(v=>String(v.cond.value||'').trim()).filter(Boolean);
-  const raws=vs.filter(v=>v.cond.mode==='raw' && !isAuto(cfg,v)).map(v=>cleanCondExpr(v.cond.raw||'')).filter(Boolean);
-  const autos=vs.filter(v=>isAuto(cfg,v)).map(v=>autoCond(cfg,v));
-  const parts=[]; if (vals.length && f){ const c=caseCond(f, cfg.match||'text', vals.join(',')); if (c) parts.push(c); }
-  for (const r of raws) parts.push(r);
-  for (const r of autos) parts.push(r);
+  const vals=autoValues(cfg);
+  const parts=versions.map(i=>caseCond(AUTO_FIELD, 'text', vals[cfg.versions[i].id])).filter(Boolean);
   if (parts.length<=1) return parts[0]||'';
-  const lead=vals.length&&f?1:0;   // the value list is safe next to "or" as it is; typed conditions get brackets
-  return parts.map((p,k)=>k<lead?p:`(${p})`).join(' or ');
-}
-
-/** What stops "Combine into one template": plain sentences, each with the version it is about (when there is one). Nothing is required. */
-export function validateCombine(cfg){
-  const out=[]; const vs=cfg.versions;
-  if (vs.length<2){ out.push({text:'Add at least two versions to combine.'}); return out; }
-  const elses=vs.filter(v=>v.cond.mode==='else');
-  if (elses.length>1) out.push({text:'Only one version can be “Everything else”.', id:elses[1].id});
-  const typed=vs.some(v=>v.cond.mode==='value' && valuesOf(v).length);
-  if (typed && !cleanField(cfg.field)) out.push({text:'You typed values, but no field. Pick the field they belong to, or clear the values.'});
-  const seen=new Map();
-  for (const v of vs){
-    const c=v.cond;
-    if (c.mode==='else') continue;
-    if (c.mode==='raw'){
-      const expr=cleanCondExpr(c.raw||'');
-      if (!expr) continue;
-      const bad=tagSyntaxProblem(`{% if ${expr} %}`);
-      if (bad) out.push({text:`${v.label}: ${bad}`, id:v.id});
-      continue;
-    }
-    const vals=valuesOf(v);
-    if (!vals.length) continue;
-    if ((cfg.match||'text')==='number' && !caseCond(cleanField(cfg.field)||'x', 'number', c.value)){ out.push({text:`${v.label}: “${c.value}” isn't a number. Switch to “Match text” or fix the value.`, id:v.id}); continue; }
-    for (const x of vals){
-      if (seen.has(x) && seen.get(x)!==v.id){ const other=vs.find(o=>o.id===seen.get(x)); out.push({text:`${v.label} and ${other?other.label:'another version'} both use “${x}”. Give each version its own value.`, id:v.id}); }
-      else seen.set(x, v.id);
-    }
-  }
-  return out;
+  return parts.map(p=>`(${p})`).join(' or ');
 }
 
 /**
- * The branches of one region, in the order they are written. {kind:'if'|'elif'|'else', cond, group|null}.
- * Groups with no text need no branch, unless the "everything else" version has text there: then they get an empty branch of
- * their own, so they do not fall into the else.
+ * The branches of one region, in the order they are written. {kind:'if'|'elif', cond, group}.
+ * Groups with no text need no branch: those versions simply get nothing there.
  */
 export function regionBranches(region, cfg){
-  const elseV=cfg.versions.findIndex(v=>v.cond.mode==='else');
-  const hasElse=g=>elseV>=0 && g.versions.includes(elseV);
-  const elseG=region.groups.find(hasElse)||null;
   const out=[];
-  for (const g of region.groups) if (!g.empty && !hasElse(g)) out.push({group:g, cond:groupCondition(cfg, g.versions)});
-  if (elseG && !elseG.empty){
-    const emptyVs=region.groups.filter(g=>g.empty && !hasElse(g)).flatMap(g=>g.versions);
-    if (emptyVs.length) out.push({group:null, cond:groupCondition(cfg, emptyVs), emptyVersions:emptyVs});
-    out.push({group:elseG, cond:'', isElse:true});
-  }
-  out.forEach((b,k)=>{ b.kind=b.isElse?(k?'else':'if'):(k?'elif':'if'); if (b.kind==='if' && b.isElse) b.cond='true'; });
+  for (const g of region.groups) if (!g.empty) out.push({group:g, cond:groupCondition(cfg, g.versions)});
+  out.forEach((b,k)=>{ b.kind=k?'elif':'if'; });
   return out;
 }
 // The line for a branch. docxtpl joins a {%- … -%} line with the paragraph before / after it (so no empty paragraph is left),
@@ -178,7 +122,6 @@ export function markerText(kind, cond, before=true, after=true){
   if (kind==='elif') return `${l} elif ${cond} ${r}`;
   return `{% if ${cond} ${r}`;
 }
-export const branchLine=b=>markerText(b.kind, b.cond);
 
 /* ======================= reading the files ======================= */
 const stripExt=n=>String(n).replace(/\.docx$/i,'');
@@ -195,7 +138,7 @@ export async function readVersion(file){
   let doc; try { doc=parseXml(await zip.file(main).async('string')); } catch(e){ throw new Error(`${name} could not be read. Try saving it again from Word.`); }
   unwrapMergeFields(doc);
   const blocks=topBlocksOf(doc);
-  return {id:'v'+(++seq), name, label:stripExt(name), buf, doc, blocks, cond:{mode:'value', value:'', raw:''}};
+  return {id:'v'+(++seq), name, label:stripExt(name), buf, doc, blocks};
 }
 
 /** Reads the dropped files (kept in memory only). Starts or extends state.combine; returns {added, errors}. */
@@ -210,7 +153,7 @@ export async function loadVersions(files){
     } catch(e){ errors.push(e.message); }
   }
   if (added.length || c){
-    const cur=state.combine||{versions:[], base:0, field:'', match:'text', loose:true};
+    const cur=state.combine||{versions:[], base:0, loose:true};
     cur.versions.push(...added); cur.errors=errors; state.combine=cur;
   }
   notify();
@@ -233,14 +176,8 @@ export function combineMoveTo(id, toIndex){
   combineMove(id, Math.max(0, Math.min(c.versions.length-1, toIndex))-i);
 }
 export function combineSetBase(id){ const c=state.combine; if (!c) return; const i=c.versions.findIndex(v=>v.id===id); if (i>=0){ c.base=i; notify(); } }
-export function combineSet(key, value){ const c=state.combine; if (!c) return; c[key]=value; notify(); }
+export function combineSetLoose(on){ const c=state.combine; if (!c) return; c.loose=!!on; notify(); }
 export function combineSetLabel(id, label){ const v=combineVersion(id); if (v){ v.label=label; notify(); } }
-export function combineSetCond(id, patch){
-  const v=combineVersion(id); if (!v) return;
-  const c=state.combine;
-  if (patch.mode==='else') for (const o of c.versions) if (o!==v && o.cond.mode==='else') o.cond.mode='value';
-  Object.assign(v.cond, patch); notify();
-}
 const combineVersion=id=>state.combine && state.combine.versions.find(v=>v.id===id);
 
 /* ======================= what the screen shows ======================= */
@@ -256,23 +193,19 @@ export function combineView(){
   const c=state.combine; if (!c) return null;
   const n=c.versions.length;
   const plan=n>=2?planOf(c):{regions:[], sameCount:0, order:[], merged:[]};
-  const problems=validateCombine(c);
   const label=i=>c.versions[i].label;
   const regions=plan.regions.map((r,k)=>{
     const prev=r.prev>=0?plan.merged[r.prev]:null;
-    const branches=problems.length?null:regionBranches(r, c);
     return {
       index:k, after:prev&&prev.text?short(prev.text,60):'',
       groups:r.groups.map(g=>{
-        const cond=groupCondition(c, g.versions); const isElse=g.versions.some(i=>c.versions[i].cond.mode==='else');
-        const english=isElse?'Everything else':(cond?(condEnglish(cond)||cond):'');
-        return {versions:g.versions.map(label), english, cond, isElse, empty:g.empty, kind:g.blocks[0]?g.blocks[0].kind:'p',
+        const cond=groupCondition(c, g.versions);
+        return {versions:g.versions.map(label), english:cond?(condEnglish(cond)||cond):'', cond, empty:g.empty,
           texts:g.blocks.filter(b=>b.text).map(b=>b.text), preview:g.blocks.filter(b=>b.text).map(b=>short(b.text)).join(' ')};
       }),
-      branches:branches&&branches.map(b=>branchLine(b)),
     };
   });
-  return {problems, regions, sameCount:plan.sameCount, differ:regions.length, ready:n>=2 && !problems.length, autoField:AUTO_FIELD, autos:autoValues(c)};
+  return {regions, sameCount:plan.sameCount, differ:regions.length, ready:n>=2, autoField:AUTO_FIELD};
 }
 
 /* ======================= build the combined template ======================= */
@@ -282,7 +215,7 @@ export function combineView(){
  */
 export async function applyCombine(){
   const c=state.combine; if (!c) return false;
-  const problems=validateCombine(c); if (problems.length){ toast(problems[0].text); return false; }
+  if (c.versions.length<2){ toast('Add at least two versions to combine.'); return false; }
   const plan=planOf(c); const base=c.versions[c.base];
   if (!plan.regions.length){ toast('These versions have the same text, so there is nothing to combine.'); return false; }
   try { await loadDocx(base.buf, base.name, false); } catch(e){ console.warn(e); toast(e.message); return false; }
