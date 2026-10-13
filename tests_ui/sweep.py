@@ -369,7 +369,7 @@ class Sweep:
           const out=[]; const de=document.documentElement;
           if (de.scrollWidth>innerWidth+1) out.push('the page scrolls sideways ('+de.scrollWidth+' > '+innerWidth+')');
           for (const sel of ['[data-testid=step-panel]','#inspector .overflow-y-auto','[role=dialog]']){
-            for (const el of document.querySelectorAll(sel)){ if (el.scrollWidth>el.clientWidth+1) out.push(sel+' scrolls sideways ('+el.scrollWidth+' > '+el.clientWidth+')'); }
+            for (const el of document.querySelectorAll(sel)){ if (el.scrollWidth>el.clientWidth+1){ const r=el.getBoundingClientRect(); const wide=[...el.querySelectorAll('*')].find(c=>c.getBoundingClientRect().right>r.right+1); out.push(sel+' scrolls sideways ('+el.scrollWidth+' > '+el.clientWidth+')'+(wide?' at <'+wide.tagName.toLowerCase()+'> '+String(wide.className).slice(0,50)+' "'+(wide.textContent||'').slice(0,30)+'"':'')); } }
           }
           return out;
         }""")

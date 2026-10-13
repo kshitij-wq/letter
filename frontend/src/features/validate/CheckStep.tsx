@@ -19,9 +19,9 @@ export function CheckStep() {
   if (!v.hasLetter) return <EmptyState title="No letter yet">Open a letter in the Document step, then its problems are listed here.</EmptyState>
 
   return (
-    <div className="grid gap-8">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-8">
       <Section title="Template check" count={v.stats}>
-        <div className="grid gap-4">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" icon={<FileUp aria-hidden />} onClick={() => pickFile(LETTER_ACCEPT, openTagged)}>Check another tagged template…</Button>
             {server.ok && (
