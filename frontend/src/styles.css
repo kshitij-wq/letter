@@ -47,7 +47,7 @@
   --warn: #92400E;
   --warn-wash: #FFF4DD;
   --warn-line: #EBC27A;
-  --ok: #15803D;
+  --ok: #166534;
   --ok-wash: #E6F6EC;
   --ok-line: #A3D9B6;
   --info: #0F5F8C;
@@ -72,9 +72,9 @@
   --ground: #0F1012;
   --notesheet: #141517;
   --panel: #1A1B1E;
-  --paper: #202125;
-  --paper-ink: #E8E8EA;
-  --paper-line: #34353A;
+  --paper: #FFFFFF;
+  --paper-ink: #1B1B1B;
+  --paper-line: #E4E4E0;
   --ink: #ECECEE;
   --muted: #A1A1AA;
   --hairline: #2E2F34;
@@ -115,9 +115,9 @@
   --ground: #0F1012;
   --notesheet: #141517;
   --panel: #1A1B1E;
-  --paper: #202125;
-  --paper-ink: #E8E8EA;
-  --paper-line: #34353A;
+  --paper: #FFFFFF;
+  --paper-ink: #1B1B1B;
+  --paper-line: #E4E4E0;
   --ink: #ECECEE;
   --muted: #A1A1AA;
   --hairline: #2E2F34;
@@ -154,6 +154,72 @@
   --scrim: rgb(0 0 0 / .6);
   color-scheme: dark;
 }
+
+/* the letter is a white Word page in both themes: inside it the light values apply */
+:root[data-theme="dark"] .paper { color-scheme: light;
+  --panel: #FFFFFF;
+  --ink: #18181B;
+  --muted: #62626B;
+  --hairline: #DCDCD7;
+  --hairline-soft: #EAEAE6;
+  --accent: #3F4BC9;
+  --accent-hover: #323DB0;
+  --accent-ink: #FFFFFF;
+  --accent-wash: #EEF0FD;
+  --accent-line: #C5CAF5;
+  --tag: #6B4400;
+  --tag-bg: #FFF0BD;
+  --tag-line: #F0BE2A;
+  --hl: #FFE98A;
+  --hl-ink: #3A3000;
+  --err: #B91C1C;
+  --err-wash: #FEECEC;
+  --err-line: #F5B5B5;
+  --warn: #92400E;
+  --warn-wash: #FFF4DD;
+  --warn-line: #EBC27A;
+  --ok: #166534;
+  --ok-wash: #E6F6EC;
+  --ok-line: #A3D9B6;
+  --info: #0F5F8C;
+  --info-wash: #E8F3F9;
+  --info-line: #A8D0E6;
+  --cond: #7E22CE;
+  --cond-wash: #F5EBFF;
+  --cond-line: #DDBEF8;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .paper { color-scheme: light;
+  --panel: #FFFFFF;
+  --ink: #18181B;
+  --muted: #62626B;
+  --hairline: #DCDCD7;
+  --hairline-soft: #EAEAE6;
+  --accent: #3F4BC9;
+  --accent-hover: #323DB0;
+  --accent-ink: #FFFFFF;
+  --accent-wash: #EEF0FD;
+  --accent-line: #C5CAF5;
+  --tag: #6B4400;
+  --tag-bg: #FFF0BD;
+  --tag-line: #F0BE2A;
+  --hl: #FFE98A;
+  --hl-ink: #3A3000;
+  --err: #B91C1C;
+  --err-wash: #FEECEC;
+  --err-line: #F5B5B5;
+  --warn: #92400E;
+  --warn-wash: #FFF4DD;
+  --warn-line: #EBC27A;
+  --ok: #166534;
+  --ok-wash: #E6F6EC;
+  --ok-line: #A3D9B6;
+  --info: #0F5F8C;
+  --info-wash: #E8F3F9;
+  --info-line: #A8D0E6;
+  --cond: #7E22CE;
+  --cond-wash: #F5EBFF;
+  --cond-line: #DDBEF8;
+} }
 
 /* Tailwind names for the tokens. `inline` keeps them as var() so the dark overrides above apply. */
 @theme inline {

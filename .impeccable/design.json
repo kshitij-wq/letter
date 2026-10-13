@@ -26,19 +26,19 @@
         "role": "neutral",
         "displayName": "Paper",
         "canonical": "#FFFFFF",
-        "dark": "#202125"
+        "dark": "#FFFFFF"
       },
       "paper-ink": {
         "role": "neutral",
         "displayName": "Paper Ink",
         "canonical": "#1B1B1B",
-        "dark": "#E8E8EA"
+        "dark": "#1B1B1B"
       },
       "paper-line": {
         "role": "neutral",
         "displayName": "Paper Line",
         "canonical": "#E4E4E0",
-        "dark": "#34353A"
+        "dark": "#E4E4E0"
       },
       "ink": {
         "role": "neutral",
@@ -145,7 +145,7 @@
       "flag-green": {
         "role": "tertiary",
         "displayName": "Flag Green",
-        "canonical": "#15803D",
+        "canonical": "#166534",
         "dark": "#6FDB8C"
       },
       "flag-green-wash": {

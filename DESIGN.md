@@ -25,7 +25,7 @@ colors:
   flag-red-wash: "#FEECEC"
   flag-amber: "#92400E"
   flag-amber-wash: "#FFF4DD"
-  flag-green: "#15803D"
+  flag-green: "#166534"
   flag-green-wash: "#E6F6EC"
   flag-blue: "#0F5F8C"
   flag-blue-wash: "#E8F3F9"
@@ -275,7 +275,7 @@ A warm near-white desk with white panels and soft hairlines, near-black ink, one
 - **Flag Blue** (#2F5B86, wash #E8F0F8): notes and information, and the default notice.
 - **Flag Green** (#17784A, wash #E3F3EA): tagged, filled and resolved: tagged placeholders, completed step marks, a clean check.
 
-Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0F1012, notesheet #141517, panel #1A1B1E, ink #ECECEE, muted #A1A1AA, hairline #2E2F34, soft #232428; the accent lifts to #8E9BFF (hover #AAB4FF, text on it #0B0D2B, wash #22264F); paper #202125 with ink #E8E8EA; flags lighten for contrast on the dark panels.
+Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0F1012, notesheet #141517, panel #1A1B1E, ink #ECECEE, muted #A1A1AA, hairline #2E2F34, soft #232428; the accent lifts to #8E9BFF (hover #AAB4FF, text on it #0B0D2B, wash #22264F); paper stays white (#FFFFFF, ink #1B1B1B) with the light flag values inside it; flags lighten for contrast on the dark panels.
 
 ### Named Rules
 **The Earned Accent Rule.** The accent means "this is what you do" or "this is what you have selected". It never colours a status, a decoration or a heading. If something is accent, clicking it moves the work forward.
