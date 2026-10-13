@@ -67,6 +67,11 @@ export function LogicStep() {
         )}
         {pr.total > 0 && <p className="text-sm text-muted">Click a paragraph in the letter to show it only for some employees. Select words to add a condition inside a sentence.</p>}
         <Alerts />
+        {rows.some((e) => String(e.text).includes('custom_schema.letter_version')) && (
+          <div data-testid="placeholder-field-note"><Notice tone="info">
+            Combined versions are switched on a placeholder field, <Code className="bg-transparent px-0">custom_schema.letter_version</Code>. Click each condition and pick the real field that decides who gets which version.
+          </Notice></div>
+        )}
         {rows.length ? (
           <ol aria-label="Conditions in the letter" className="-mt-1">{rows.map((e) => <LogicItem key={e.key} e={e} />)}</ol>
         ) : (

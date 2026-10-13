@@ -84,44 +84,66 @@ export function planVersions(lists, opts={}){
 
 /* ---- conditions ---- */
 export function cleanField(f){ return cleanCondExpr(f||'').replace(/^\{\{\s*|\s*\}\}$/g,'').trim(); }
+// With no field chosen, every version still gets a condition of its own on this placeholder field, so the combined template is
+// valid straight away. The person changes the field later in Conditions (or adds this column to the data).
+export const AUTO_FIELD='custom_schema.letter_version';
+export function slugOf(label){ return String(label||'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'version'; }
+// the automatic value of every version, from its name, made unique: {versionId: 'promotion', ...}
+export function autoValues(cfg){
+  const out={}; const used=new Set();
+  for (const v of cfg.versions){
+    const base=slugOf(v.label); let s=base, k=2; while (used.has(s)) s=`${base}_${k++}`;
+    used.add(s); out[v.id]=s;
+  }
+  return out;
+}
+const valuesOf=v=>String((v.cond||{}).value||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
+// a version that has no value / typed condition of its own gets the automatic one
+export function isAuto(cfg, v){
+  const c=v.cond; if (c.mode==='else') return false;
+  if (c.mode==='raw') return !cleanCondExpr(c.raw||'');
+  return !(valuesOf(v).length && cleanField(cfg.field));
+}
+export const autoCond=(cfg, v)=>caseCond(AUTO_FIELD, 'text', autoValues(cfg)[v.id]);
 // the condition of a group of versions: all "one field decides" values in one list, typed conditions joined with "or"
 export function groupCondition(cfg, versions){
   const vs=versions.map(i=>cfg.versions[i]).filter(v=>v.cond.mode!=='else');
   const f=cleanField(cfg.field);
-  const vals=vs.filter(v=>v.cond.mode!=='raw').map(v=>String(v.cond.value||'').trim()).filter(Boolean);
-  const raws=vs.filter(v=>v.cond.mode==='raw').map(v=>cleanCondExpr(v.cond.raw||'')).filter(Boolean);
+  const vals=vs.filter(v=>v.cond.mode!=='raw' && !isAuto(cfg,v)).map(v=>String(v.cond.value||'').trim()).filter(Boolean);
+  const raws=vs.filter(v=>v.cond.mode==='raw' && !isAuto(cfg,v)).map(v=>cleanCondExpr(v.cond.raw||'')).filter(Boolean);
+  const autos=vs.filter(v=>isAuto(cfg,v)).map(v=>autoCond(cfg,v));
   const parts=[]; if (vals.length && f){ const c=caseCond(f, cfg.match||'text', vals.join(',')); if (c) parts.push(c); }
   for (const r of raws) parts.push(r);
+  for (const r of autos) parts.push(r);
   if (parts.length<=1) return parts[0]||'';
   const lead=vals.length&&f?1:0;   // the value list is safe next to "or" as it is; typed conditions get brackets
   return parts.map((p,k)=>k<lead?p:`(${p})`).join(' or ');
 }
-const valuesOf=v=>String((v.cond||{}).value||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
 
-/** What stops "Combine into one template": plain sentences, each with the version it is about (when there is one). */
+/** What stops "Combine into one template": plain sentences, each with the version it is about (when there is one). Nothing is required. */
 export function validateCombine(cfg){
   const out=[]; const vs=cfg.versions;
   if (vs.length<2){ out.push({text:'Add at least two versions to combine.'}); return out; }
   const elses=vs.filter(v=>v.cond.mode==='else');
   if (elses.length>1) out.push({text:'Only one version can be “Everything else”.', id:elses[1].id});
-  const needField=vs.some(v=>v.cond.mode==='value');
-  if (needField && !cleanField(cfg.field)) out.push({text:'Pick the field that decides which version a letter gets.'});
+  const typed=vs.some(v=>v.cond.mode==='value' && valuesOf(v).length);
+  if (typed && !cleanField(cfg.field)) out.push({text:'You typed values, but no field. Pick the field they belong to, or clear the values.'});
   const seen=new Map();
   for (const v of vs){
     const c=v.cond;
     if (c.mode==='else') continue;
     if (c.mode==='raw'){
       const expr=cleanCondExpr(c.raw||'');
-      if (!expr){ out.push({text:`Write the condition for ${v.label}.`, id:v.id}); continue; }
+      if (!expr) continue;
       const bad=tagSyntaxProblem(`{% if ${expr} %}`);
       if (bad) out.push({text:`${v.label}: ${bad}`, id:v.id});
       continue;
     }
     const vals=valuesOf(v);
-    if (!vals.length){ out.push({text:`Choose the value for ${v.label}, or mark one version “Everything else”.`, id:v.id}); continue; }
+    if (!vals.length) continue;
     if ((cfg.match||'text')==='number' && !caseCond(cleanField(cfg.field)||'x', 'number', c.value)){ out.push({text:`${v.label}: “${c.value}” isn't a number. Switch to “Match text” or fix the value.`, id:v.id}); continue; }
     for (const x of vals){
-      if (seen.has(x) && seen.get(x)!==v.id){ const other=vs.find(o=>o.id===seen.get(x)); out.push({text:`${v.label} and ${other?other.label:'another version'} use the same value “${x}”.`, id:v.id}); }
+      if (seen.has(x) && seen.get(x)!==v.id){ const other=vs.find(o=>o.id===seen.get(x)); out.push({text:`${v.label} and ${other?other.label:'another version'} both use “${x}”. Give each version its own value.`, id:v.id}); }
       else seen.set(x, v.id);
     }
   }
@@ -250,7 +272,7 @@ export function combineView(){
       branches:branches&&branches.map(b=>branchLine(b)),
     };
   });
-  return {problems, regions, sameCount:plan.sameCount, differ:regions.length, ready:n>=2 && !problems.length};
+  return {problems, regions, sameCount:plan.sameCount, differ:regions.length, ready:n>=2 && !problems.length, autoField:AUTO_FIELD, autos:autoValues(c)};
 }
 
 /* ======================= build the combined template ======================= */
@@ -314,7 +336,7 @@ export async function applyCombine(){
   return report;
 }
 export function combineToast(r){
-  let s=`Combined ${r.versions} versions: ${r.regions} place${r.regions===1?'':'s'} differ. Added ${r.added} paragraph${r.added===1?'':'s'} as if / else blocks; they are listed here.`;
+  let s=`Combined ${r.versions} versions. Each difference is an if / else block — set who sees which in Conditions.`;
   if (r.images) s+=` ${r.images} image${r.images>1?'s':''} in the other versions couldn’t be copied.`;
   if (r.lists) s+=` Numbered or bulleted paragraphs from the other versions use ${r.base}’s list styles, so check the numbering.`;
   return s;

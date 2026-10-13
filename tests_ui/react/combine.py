@@ -113,7 +113,8 @@ def main():
         expect(pg.get_by_test_id("combine-errors")).to_contain_text("emps.csv is not a .docx file.")
         for i, n in enumerate(NAMES):
             expect(pg.get_by_test_id(f"combine-label-{i}")).to_have_value(n)
-        expect(pg.get_by_test_id("combine-go")).to_be_disabled()   # no conditions yet
+        expect(pg.get_by_test_id("combine-go")).to_be_enabled()   # nothing is required: no field, no values
+        expect(pg.get_by_test_id("combine-problems")).to_have_count(0)
 
         # --- the summary and the differences
         expect(pg.get_by_test_id("combine-summary")).to_contain_text("7 parts are the same in every version")
@@ -122,7 +123,8 @@ def main():
         expect(region0).to_contain_text("variable-pay")
         expect(region0).to_contain_text("We are pleased to confirm your promotion")
 
-        # --- field and values
+        # --- field and values (optional, in a folded section)
+        pg.get_by_role("button", name="Set who gets which version (optional)").click()
         pg.get_by_role("combobox", name="Field that decides the version").click()
         pg.get_by_placeholder("Search fields").fill(FIELD)
         pg.get_by_text(f"Use “{FIELD}” as the field").click()
@@ -133,7 +135,7 @@ def main():
         # two versions with the same value are refused in words
         pg.get_by_test_id("combine-value-3").fill("variable")
         expect(pg.get_by_test_id("combine-go")).to_be_disabled()
-        expect(pg.get_by_test_id("combine-version-3")).to_contain_text("use the same value")
+        expect(pg.get_by_test_id("combine-problems")).to_contain_text("both use")
         pg.get_by_test_id("combine-value-3").fill("bonus")
         expect(pg.get_by_test_id("combine-go")).to_be_enabled()
         # reorder with the keyboard-reachable arrows: the base follows its version
@@ -147,7 +149,7 @@ def main():
         pg.get_by_test_id("combine-go").click()
         expect(pg.get_by_test_id("combine-screen")).to_have_count(0)
         expect(pg.get_by_test_id("step-logic")).to_have_attribute("aria-selected", "true")
-        expect(pg.get_by_text("Combined 4 versions: 3 places differ").first).to_be_visible()
+        expect(pg.get_by_text("Combined 4 versions. Each difference is an if / else block").first).to_be_visible()
         assert pg.evaluate("window.__lt.HISTORY.undo.length") == 1, "combining must be one undo step"
 
         # --- download the tagged template
@@ -210,6 +212,7 @@ def main():
         fc.value.set_files([str(VERS / f"{n}.docx") for n in NAMES])
         expect(pg.get_by_test_id("combine-screen")).to_be_visible()
         pg.get_by_test_id("combine-base-2").check()
+        pg.get_by_role("button", name="Set who gets which version (optional)").click()
         pg.get_by_role("combobox", name="Field that decides the version").click()
         pg.get_by_placeholder("Search fields").fill(FIELD)
         pg.get_by_text(f"Use “{FIELD}” as the field").click()
@@ -233,6 +236,31 @@ def main():
             got = doc_lines(io.BytesIO(render_docx(tagged2, {"employee_schema": {"case": val}})))
             want = doc_lines(VERS / f"{n}.docx")
             assert got == want, f"round 2, {n}: filled letter differs from the version\n got : {got}\n want: {want}"
+
+        # --- third round: no field and no values at all. Combine works right away; every version is switched on the placeholder field
+        pg.goto(url)
+        with pg.expect_file_chooser() as fc:
+            pg.get_by_test_id("combine-entry").click()
+        fc.value.set_files([str(VERS / f"{n}.docx") for n in NAMES])
+        expect(pg.get_by_test_id("combine-screen")).to_be_visible()
+        expect(pg.get_by_test_id("combine-go")).to_be_enabled()
+        expect(pg.get_by_test_id("combine-problems")).to_have_count(0)
+        pg.get_by_test_id("combine-go").click()
+        expect(pg.get_by_test_id("combine-screen")).to_have_count(0)
+        expect(pg.get_by_test_id("step-logic")).to_have_attribute("aria-selected", "true")
+        expect(pg.get_by_text("set who sees which in Conditions").first).to_be_visible()
+        expect(pg.get_by_test_id("placeholder-field-note")).to_contain_text("custom_schema.letter_version")
+        pg.get_by_test_id("step-export").click()
+        with pg.expect_download() as dl:
+            pg.click('button:has-text("Download tagged .docx")')
+        tagged3 = Path(dl.value.path()).read_bytes()
+        res = validate_docx(tagged3)
+        assert res["ok"], res["syntax"]
+        for n in NAMES:
+            slug = n.replace("-", "_")
+            got = doc_lines(io.BytesIO(render_docx(tagged3, {"custom_schema": {"letter_version": slug}})))
+            want = doc_lines(VERS / f"{n}.docx")
+            assert got == want, f"round 3, {n}: filled letter differs from the version\n got : {got}\n want: {want}"
 
         b.close()
     if errors:

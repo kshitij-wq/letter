@@ -1374,8 +1374,10 @@ class Sweep:
         await (await fc.value).set_files(files)
         await self.settle(1200)
         self.expect(await self.visible("[data-testid=combine-screen]"), "choosing the versions didn't open the Combine screen")
-        self.expect(await pg.get_by_test_id("combine-go").is_disabled(), "Combine is enabled before any version has a condition")
-        # a field and a value per version, through the page
+        self.expect(await pg.get_by_test_id("combine-go").is_enabled(), "Combine needs a field before it works (nothing should be required)")
+        self.expect(await pg.get_by_test_id("combine-problems").count() == 0, "an empty field shows an error")
+        # the optional field and a value per version, in the folded section, through the page
+        await pg.get_by_role("button", name="Set who gets which version (optional)").click()
         await pg.get_by_role("combobox", name="Field that decides the version").click()
         await pg.get_by_placeholder("Search fields").fill("employee_schema.case")
         await pg.get_by_text("Use “employee_schema.case” as the field").click()
