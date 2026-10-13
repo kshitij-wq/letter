@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it, beforeEach } from 'vitest'
 import {
-  alignVersions, applyCombine, build, cbParse, combineCancel, combineMove, combineSet, combineSetBase, combineSetCond, combineView, groupCondition, groupRegion,
+  alignVersions, applyCombine, autoValues, slugOf, build, cbParse, combineCancel, combineMove, combineSet, combineSetBase, combineSetCond, combineView, groupCondition, groupRegion,
   loadVersions, on, planVersions, regionBranches, state, undo, validateCombine,
 } from './index.js'
 
@@ -89,15 +89,24 @@ describe('conditions', () => {
     const cfg = cfgOf(2, [{ mode: 'raw', raw: 'a == 1 or b == 2' }, { mode: 'raw', raw: 'c' }])
     expect(groupCondition(cfg, [0, 1])).toBe('(a == 1 or b == 2) or (c)')
   })
-  it('validates: every version needs a condition, one may be everything else, values are unique', () => {
+  it('validates: nothing is required; only real blockers stop it', () => {
     const ok = cfgOf(3, [{ mode: 'value', value: 'a' }, { mode: 'value', value: 'b' }, { mode: 'else' }])
     expect(validateCombine(ok)).toEqual([])
-    expect(validateCombine(cfgOf(3, [{ mode: 'value', value: 'a' }, { mode: 'value', value: '' }, { mode: 'else' }])).map((p) => p.id)).toEqual(['v1'])
+    // an empty value is not an error: that version gets the automatic condition
+    expect(validateCombine(cfgOf(3, [{ mode: 'value', value: 'a' }, { mode: 'value', value: '' }, { mode: 'else' }]))).toEqual([])
+    expect(validateCombine({ ...cfgOf(3, [{ mode: 'value', value: '' }, { mode: 'value', value: '' }, { mode: 'raw', raw: '' }]), field: '' })).toEqual([])
     expect(validateCombine(cfgOf(3, [{ mode: 'else' }, { mode: 'else' }, { mode: 'value', value: 'a' }]))[0].text).toMatch(/Only one/)
-    expect(validateCombine(cfgOf(2, [{ mode: 'value', value: 'a' }, { mode: 'value', value: ' A ' }]))[0].text).toMatch(/same value/)
+    expect(validateCombine(cfgOf(2, [{ mode: 'value', value: 'a' }, { mode: 'value', value: ' A ' }]))[0].text).toMatch(/both use/)
     expect(validateCombine(cfgOf(2, [{ mode: 'raw', raw: 'a == "x' }, { mode: 'value', value: 'b' }]))[0].text).toMatch(/quote/)
-    expect(validateCombine({ ...cfgOf(2), field: '' })[0].text).toMatch(/Pick the field/)
+    expect(validateCombine({ ...cfgOf(2), field: '' })[0].text).toMatch(/no field/)
     expect(validateCombine(cfgOf(1))[0].text).toMatch(/at least two/)
+  })
+  it('with no field every version gets a condition on the placeholder field, made from its name', () => {
+    const cfg = { field: '', match: 'text', versions: ['Promotion', 'Variable pay', 'Promotion'].map((label, i) => ({ id: 'v' + i, label, cond: { mode: 'value', value: '', raw: '' } })) }
+    expect(slugOf('No increase (2024)')).toBe('no_increase_2024')
+    expect(autoValues(cfg)).toEqual({ v0: 'promotion', v1: 'variable_pay', v2: 'promotion_2' })
+    expect(groupCondition(cfg, [1])).toBe('custom_schema.letter_version | string | lower | trim == "variable_pay"')
+    expect(cbParse(groupCondition(cfg, [0, 1]))).toBeTruthy()
   })
 })
 
@@ -174,7 +183,7 @@ describe('combining the four fixture versions', () => {
     expect(xml).toContain('Your variable pay for the year')
     expect(xml).toContain('After this year')
     for (const l of state.logic.filter((x) => /^\{%-? *(if|elif)/.test(x.text))) expect(cbParse(l.text)).toBeTruthy()
-    expect(toasts.join(' ')).toMatch(/Combined 4 versions: 3 places differ/)
+    expect(toasts.join(' ')).toMatch(/Combined 4 versions. Each difference is an if \/ else block/)
     undo()
     build()
     expect(state.built.xml['word/document.xml']).not.toContain('After this year')
@@ -200,10 +209,24 @@ describe('combining the four fixture versions', () => {
     expect(state.logic.some((l) => /\{%-\s*else\s*-%\}/.test(l.text))).toBe(true)
   })
 
-  it('does not combine while a condition is missing', async () => {
-    combineSetCond(state.combine.versions[1].id, { value: '' })
+  it('combines with no field at all: each version gets the placeholder condition', async () => {
+    combineSet('field', '')
+    state.combine.versions.forEach((v) => combineSetCond(v.id, { mode: 'value', value: '' }))
+    expect(combineView().ready).toBe(true)
+    expect(combineView().problems).toEqual([])
+    const rep = await applyCombine()
+    expect(rep.regions).toBe(3)
+    const conds = state.logic.filter((x) => /^\{%-? *(if|elif)/.test(x.text)).map((x) => x.text)
+    expect(conds.length).toBeGreaterThan(0)
+    for (const c of conds) { expect(c).toContain('custom_schema.letter_version'); expect(cbParse(c)).toBeTruthy() }
+    expect(conds.join(' ')).toMatch(/== "promotion"/)
+    expect(toasts.at(-1)).toMatch(/set who sees which in Conditions/)
+  })
+
+  it('still stops on a typed condition with a mistake, in plain words', async () => {
+    combineSetCond(state.combine.versions[1].id, { mode: 'raw', raw: 'a == "x' })
     expect(combineView().ready).toBe(false)
     expect(await applyCombine()).toBe(false)
-    expect(toasts.at(-1)).toMatch(/Choose the value for variable-pay/)
+    expect(toasts.at(-1)).toMatch(/variable-pay/)
   })
 })

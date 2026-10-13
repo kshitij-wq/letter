@@ -14,7 +14,7 @@ export type DocxState = 'idle' | 'busy' | 'done'
 export type LoadError = { id: number; message: string; scope?: string } | null
 
 export const SIDE_MIN = 300
-export const SIDE_MAX = 560
+export const SIDE_MAX = 640
 
 // The host page (claude.ai) may set data-theme itself: "System" then means "whatever the host says".
 const HOST_THEME = typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : null
@@ -63,7 +63,7 @@ export const useUi = create<UiState>((set) => ({
   setTheme: (theme) => { lsSet('lt.theme', theme); applyTheme(theme); set({ theme }) },
   sideCollapsed: !!lsGet('lt.sideOff', false),
   setSideCollapsed: (sideCollapsed) => { lsSet('lt.sideOff', sideCollapsed); set({ sideCollapsed }) },
-  sideW: clampSide(+lsGet('lt.sideW', 380) || 380),
+  sideW: clampSide(+lsGet('lt.sideW', 400) || 400),
   setSideW: (px, persist) => { const sideW = clampSide(px); if (persist) lsSet('lt.sideW', sideW); set({ sideW }) },
   drawerOpen: false,
   setDrawerOpen: (drawerOpen) => set({ drawerOpen }),

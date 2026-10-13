@@ -87,10 +87,10 @@ export function ExportStep() {
     requestAnimationFrame(() => valuesRef.current?.scrollIntoView({ block: 'start', inline: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }))
   }, [wanted])
   if (!es.an) return <EmptyState title="Load a letter first">Readiness, downloads and the employee preview appear once a letter is open.</EmptyState>
-  const h = "text-base font-semibold"
+  const h = 'text-lg font-semibold'
   const valueCount = previewValues().rows.length
   return (
-    <div className={cn('grid gap-7')}>
+    <div className={cn('grid gap-9')}>
       <section aria-labelledby="ex-ready" className="grid gap-2">
         <h3 id="ex-ready" className={h}>Ready to export?</h3>
         <Readiness />

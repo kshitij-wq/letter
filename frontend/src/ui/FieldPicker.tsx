@@ -12,7 +12,9 @@ export type PickerGroup = { heading: string; options: PickerOption[] }
  * Type to filter, Up/Down to move, Enter to pick, Esc to close. With `allowCustom`, typing something that is not in the
  * list offers “Use <text>” so a custom column name can be entered.
  */
-export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a field', searchPlaceholder = 'Search fields', allowCustom, customLabel = (t) => `Use “${t}”`, emptyText = 'No field matches.', id, 'aria-label': ariaLabel, disabled, className, defaultOpen, onOpenChange }: {
+export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a field', searchPlaceholder = 'Search fields', allowCustom, customLabel = (t) => `Use “${t}”`, emptyText = 'No field matches.', id, 'aria-label': ariaLabel, disabled, className, defaultOpen, onOpenChange, variant = 'field' }: {
+  /** 'button': a small button ("Pick field") instead of the full-width field, for use inside a list row. */
+  variant?: 'field' | 'button'
   value: string; onChange: (v: string) => void; groups: PickerGroup[]; placeholder?: string; searchPlaceholder?: string
   allowCustom?: boolean; customLabel?: (text: string) => string; emptyText?: string; id?: string; 'aria-label'?: string; disabled?: boolean; className?: string
   /** Start with the list open (a picker added on request). */
@@ -33,17 +35,20 @@ export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a f
     <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setQuery(''); onOpenChange?.(o) }}>
       <PopoverTrigger asChild>
         <button type="button" id={id} role="combobox" aria-expanded={open} aria-controls={listId} aria-label={ariaLabel} disabled={disabled}
-          className={cn('inline-flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-control border border-hairline bg-panel px-2.5 text-left text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-55', className)}>
-          <span className={cn('min-w-0 flex-1 truncate', !value && 'text-muted')}>{current ? current.label : value || placeholder}</span>
-          {current?.hint && <span className="max-w-[40%] shrink-0 truncate font-mono text-xs text-muted">{current.hint}</span>}
-          <ChevronDown aria-hidden className="text-muted" />
+          className={cn(variant === 'button'
+            ? 'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-accent-line bg-accent-wash px-3 text-sm font-semibold text-accent transition-colors duration-150 hover:border-accent focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-55'
+            : 'inline-flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-control border border-hairline bg-panel px-3 text-left text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-55', className)}>
+          {variant === 'button' ? <span>{current ? current.label : value || placeholder}</span> : <>
+            <span className={cn('min-w-0 flex-1 truncate', !value && 'text-muted')}>{current ? current.label : value || placeholder}</span>
+            {current?.hint && <span className="max-w-[40%] shrink-0 truncate font-mono text-xs text-muted">{current.hint}</span>}
+            <ChevronDown aria-hidden className="text-muted" /></>}
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[min(360px,calc(100vw-16px))] p-0">
+      <PopoverContent align={variant === 'button' ? 'end' : 'start'} className="w-[min(380px,calc(100vw-16px))] p-0">
         <Command loop label={searchPlaceholder} filter={(val, search, kw) => (`${val} ${(kw || []).join(' ')}`.toLowerCase().includes(search.toLowerCase()) ? 1 : 0)}>
           <div className="border-b border-hairline-soft p-2">
             <Command.Input autoFocus value={query} onValueChange={setQuery} placeholder={searchPlaceholder} aria-label={searchPlaceholder}
-              className="h-8 w-full rounded-control bg-hairline-soft px-2.5 text-base text-ink outline-none placeholder:text-muted focus-visible:outline-2 focus-visible:outline-accent" />
+              className="h-10 w-full rounded-control bg-hairline-soft px-3 text-base text-ink outline-none placeholder:text-muted focus-visible:outline-2 focus-visible:outline-accent" />
           </div>
           <Command.List id={listId} className="max-h-[min(320px,50dvh)] overflow-y-auto overscroll-contain p-1">
             <Command.Empty className="px-3 py-6 text-center text-sm text-muted">{allowCustom && q ? '' : emptyText}</Command.Empty>
@@ -52,7 +57,7 @@ export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a f
                 className="[&_[cmdk-group-heading]]:sticky [&_[cmdk-group-heading]]:top-0 [&_[cmdk-group-heading]]:z-[1] [&_[cmdk-group-heading]]:bg-panel [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted">
                 {g.options.map((o) => (
                   <Command.Item key={o.value} value={`${o.label} ${o.value}`} keywords={o.keywords} onSelect={() => pick(o.value)}
-                    className="flex min-h-[30px] cursor-default items-center gap-2 rounded-control px-2 py-1 text-base data-[selected=true]:bg-hairline-soft">
+                    className="flex min-h-10 cursor-default items-center gap-2 rounded-control px-2.5 py-1.5 text-base data-[selected=true]:bg-hairline-soft">
                     <Check aria-hidden className={cn('text-accent', o.value === value ? 'opacity-100' : 'opacity-0')} />
                     <span className="min-w-0 flex-1 truncate">{o.label}</span>
                     {o.hint && <span className="max-w-[45%] shrink-0 truncate font-mono text-xs text-muted">{o.hint}</span>}
@@ -62,7 +67,7 @@ export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a f
             ))}
             {allowCustom && q && !known && (
               <Command.Item forceMount value={`__custom ${q}`} onSelect={() => pick(q)}
-                className="flex min-h-[30px] cursor-default items-center gap-2 rounded-control px-2 py-1 text-base data-[selected=true]:bg-hairline-soft">
+                className="flex min-h-10 cursor-default items-center gap-2 rounded-control px-2.5 py-1.5 text-base data-[selected=true]:bg-hairline-soft">
                 <span className="min-w-0 flex-1 truncate">{customLabel(q)}</span>
               </Command.Item>
             )}

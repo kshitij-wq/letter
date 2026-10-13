@@ -33,7 +33,7 @@ export function FirstRun() {
           <div className="flex flex-col items-center gap-2">
             <Upload aria-hidden className="size-6 stroke-[1.25] text-muted transition-colors group-hover:text-accent" />
             <p className="text-lg font-semibold">Drop the client's letter here</p>
-            <p className="flex items-center gap-2 text-muted">or <span className="pointer-events-none inline-flex h-8 items-center rounded-control bg-accent px-3 font-semibold text-accent-ink group-hover:bg-accent-hover">Choose a .docx file</span></p>
+            <p className="flex items-center gap-2 text-muted">or <span className="pointer-events-none inline-flex h-10 items-center rounded-control bg-accent px-3 font-semibold text-accent-ink group-hover:bg-accent-hover">Choose a .docx file</span></p>
             <p className="mt-1 text-sm text-muted">.docx (Word 2007 or later). Data: .csv, .xlsx, .xls.</p>
           </div>
         </DropZone>
@@ -56,7 +56,7 @@ export function FirstRun() {
           {csv && <p className="mt-2 flex items-center gap-1.5 text-sm text-ok"><Check aria-hidden className="size-3.5" /><span className="min-w-0 truncate text-ink">{csv.name} · {csvMetaText(csv)}</span></p>}
         </div>
         <DropZone label="Add employee data" accept={DATA_ACCEPT} onFiles={([f]) => openData(f)} className="shrink-0">
-          <span className="inline-flex h-8 items-center rounded-control border border-hairline bg-panel px-3 font-semibold hover:bg-hairline-soft">Add employee data…</span>
+          <span className="inline-flex h-10 items-center rounded-control border border-hairline bg-panel px-3 font-semibold hover:bg-hairline-soft">Add employee data…</span>
         </DropZone>
       </div>
 
@@ -77,7 +77,7 @@ export function FirstRun() {
           ))}
         </ol>
         <p className="mx-auto max-w-[58ch] text-sm text-muted">
-          Your files stay in this browser. Checks with real Jinja send the template to this tool's own server, never to anyone else. Test every employee also sends the employee values there.
+          Your files stay in this browser. The full check sends the template to this tool's own server, never to anyone else. Test every employee also sends the employee values there.
           Claude helpers, if you use them, get the letter text, column names and a few example values (such as departments), never employee rows or names.
         </p>
       </div>

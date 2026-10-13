@@ -14,11 +14,11 @@ export function StepPanel({ inDrawer }: { inDrawer?: boolean }) {
   const Body = def?.Panel
   return (
     <Tabs.Content value={id} tabIndex={-1} className="flex min-h-0 flex-1 flex-col outline-none">
-      <div className={cn('shrink-0 border-b border-hairline-soft px-5 pb-3 pt-4', inDrawer && 'pr-14')}>
-        <h2 className="text-lg font-semibold leading-tight">{STEP_NAMES[id]}</h2>
-        {def?.hint && <p className="mt-0.5 text-sm text-muted">{def.hint}</p>}
+      <div className={cn('shrink-0 px-6 pb-4 pt-6', inDrawer && 'pr-14')}>
+        <h2 className="text-xl font-semibold leading-tight tracking-tight">{STEP_NAMES[id]}</h2>
+        {def?.hint && <p className="mt-1.5 text-sm text-muted">{def.hint}</p>}
       </div>
-      <div data-testid="step-panel" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 pt-4">{Body ? <Body /> : null}</div>
+      <div data-testid="step-panel" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-10 pt-2">{Body ? <Body /> : null}</div>
     </Tabs.Content>
   )
 }

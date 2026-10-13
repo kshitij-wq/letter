@@ -9,7 +9,7 @@ import {
 } from '../../engine'
 import { useUi } from '@/store'
 import { TagInput } from './TagInput'
-import { useCollapsed } from './useCollapsed'
+import { openSection, useCollapsed } from './useCollapsed'
 
 const frames = (fn: () => void) => requestAnimationFrame(() => requestAnimationFrame(fn))
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -27,6 +27,7 @@ export function showTable(tid: string) {
 
 /** A click on a table cell in the letter: open that table and put the cursor in the cell's field. */
 export function focusCell(tid: string, ri: string | number, ci: string | number) {
+  openSection('tablesBlock')
   if (es.tColl.has(tid)) { es.tColl.delete(tid); notify() }
   const find = () => document.querySelector<HTMLElement>(`[data-cell="${cellKey(tid, ri, ci)}"]`)
   const go = () => {
@@ -35,7 +36,7 @@ export function focusCell(tid: string, ri: string | number, ci: string | number)
     el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash')
     setTimeout(() => el.querySelector<HTMLElement>('[role="combobox"]')?.focus({ preventScroll: true }), 250)
   }
-  frames(() => frames(go))
+  setTimeout(() => frames(go), 60)
 }
 
 function CellBox({ t, row, col, groups }: { t: any; row: any; col: any; groups: PickerGroup[] }) {
@@ -53,7 +54,7 @@ function CellBox({ t, row, col, groups }: { t: any; row: any; col: any; groups: 
       </div>
       <FieldPicker id={`tk-${id}`} aria-label={`${label} field`} value={v.key} groups={groups} allowCustom placeholder="Pick a field" searchPlaceholder="Search fields or type a name"
         customLabel={(x) => `Use “${x}” as the field`} onChange={(x) => typeTableCellKey(t, row, col.ci, x)} className="bg-panel" />
-      <TagInput value={v.tag} aria-label={`${label} tag text`} placeholder="Tag in the cell" className={cn('h-7 bg-panel text-xs', v.edited && 'border-accent')}
+      <TagInput value={v.tag} aria-label={`${label} tag text`} placeholder="Tag in the cell" className={cn('h-9 bg-panel text-sm', v.edited && 'border-accent')}
         onValueChange={(x) => typeTableCellTag(t, row, col.ci, x)} />
     </div>
   )
@@ -150,13 +151,13 @@ function TableCard({ t, groups }: { t: any; groups: PickerGroup[] }) {
 /** Tables with empty amount cells: each cell gets a field and a tag, with the format and row-hiding options. Shown only when the letter has such tables. */
 export function SalaryTables() {
   const rev = useEngineRev()
-  const [open, setOpen] = useCollapsed('tablesBlock', true)
+  const [open, setOpen] = useCollapsed('tablesBlock', false)
   const groups = useMemo(() => fieldPickerGroups(), [rev])
   const tables = es.tables as any[]
   if (!tables.length) return null
   const ov = tablesOverview()
   return (
-    <Section id="tablesBlock" title="Salary tables" count={`${ov.done} of ${ov.all} cells tagged`} open={open} onOpenChange={setOpen}>
+    <Section id="tablesBlock" title="Salary tables" summary={`${ov.done} of ${ov.all} cells tagged. Tables with empty amount cells.`} open={open} onOpenChange={setOpen}>
       <div className="flex flex-col gap-3">
         <p className="text-sm text-muted">Tables with empty amount cells. Click a cell here or in the letter, then pick a field, or type your own tag.</p>
         {tables.map((t) => <TableCard key={t.id} t={t} groups={groups} />)}

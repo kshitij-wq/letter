@@ -27,7 +27,7 @@ function ValueRow({ row }: { row: Row }) {
       <input ref={ref} value={text} placeholder="not set" spellCheck={false} aria-label={`Value of ${row.id}`} data-id={row.id}
         onChange={(e) => setDraft(e.target.value)} onBlur={commit}
         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit() } else if (e.key === 'Escape' && draft !== null) { e.stopPropagation(); setDraft(null) } }}
-        className="col-span-2 h-8 w-full rounded-control border border-hairline bg-panel px-2.5 font-mono text-sm text-ink transition-colors duration-150 placeholder:text-muted hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent @[420px]:order-2 @[420px]:col-span-1" />
+        className="col-span-2 h-10 w-full rounded-control border border-hairline bg-panel px-2.5 font-mono text-sm text-ink transition-colors duration-150 placeholder:text-muted hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent @[420px]:order-2 @[420px]:col-span-1" />
     </li>
   )
 }

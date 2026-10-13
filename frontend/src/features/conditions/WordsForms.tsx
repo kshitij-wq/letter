@@ -19,7 +19,7 @@ const WHERE = [
 ]
 
 /** "Tag this text": the words become a placeholder row and its tag editor opens (the row id is 'g:' + the words). */
-function tagWords() {
+export function tagWords() {
   const id = 'g:' + es.sel.text
   tagSelectedWords()
   if ((es.rows as any[]).some((r) => r.id === id)) { setTab('tags'); openInspector('tag', { id }) }

@@ -5,7 +5,7 @@ import { openIssue, runCategoryAction } from './actions'
 import { FlagLetter, LevelBadge, MSG, Places } from './parts'
 import type { CheckViewData as View, IssueItem as Item } from './types'
 
-/** One line about what the real Jinja check did. Plain, no box: only the icon carries the colour. */
+/** One line about what the full check did. Plain, no box: only the icon carries the colour. */
 export function EngineLine({ engine }: { engine: View['engine'] }) {
   if (engine.kind === 'none') return null
   const icon = engine.kind === 'passed' ? <CircleCheck aria-hidden className="text-ok" />
@@ -43,11 +43,11 @@ export function Counts({ counts }: { counts: View['counts'] }) {
 function IssueRow({ x, selected }: { x: Item; selected: boolean }) {
   return (
     <li data-issue-key={x.key} data-level={x.level} aria-current={selected || undefined}
-      className={cn('-mx-2 grid gap-2 rounded-control px-2 py-3 transition-colors duration-150', selected && 'bg-accent-wash')}>
+      className={cn('-mx-2 grid grid-cols-[minmax(0,1fr)] gap-2 rounded-control px-2 py-3 transition-colors duration-150', selected && 'bg-accent-wash')}>
       <div className="flex items-center gap-2">
         <FlagLetter letter={x.letter} level={x.level} />
         <LevelBadge level={x.level} label={x.label} />
-        {x.real && <Badge>Real Jinja</Badge>}
+        {x.real && <Badge>Full check</Badge>}
       </div>
       <p className={MSG} dangerouslySetInnerHTML={{ __html: x.html }} />
       <Places chips={x.chips} more={x.moreTags} />
@@ -65,7 +65,7 @@ function IssueRow({ x, selected }: { x: Item; selected: boolean }) {
 export function IssueGroups({ groups, selectedKey }: { groups: View['groups']; selectedKey: string | null }) {
   if (!groups.length) return null
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5">
       {groups.map((g) => (
         <section key={g.cat} aria-label={g.name} data-cat={g.cat}>
           <h3 className="flex items-center gap-2 text-base font-semibold">
@@ -86,7 +86,7 @@ export function Resolved({ items }: { items: View['resolved'] }) {
   if (!items.length) return null
   return (
     <Section title="Resolved" count={items.length} defaultOpen={false}>
-      <ul className="grid gap-2">
+      <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
         {items.map((x) => (
           <li key={x.key} className="flex items-start gap-2 text-base text-muted">
             <CircleCheck aria-hidden className="mt-0.5 text-ok" />

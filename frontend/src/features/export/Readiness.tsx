@@ -1,6 +1,7 @@
 import { ChevronRight, Circle, CircleAlert, CircleCheck, Info, TriangleAlert } from 'lucide-react'
 import { cn } from '@/ui'
 import { exportChecklist } from '../../engine'
+import { plainLine } from '../validate/plain'
 import { goToStep } from '../shell/commands'
 
 type Kind = 'ok' | 'warn' | 'err' | 'idle'
@@ -38,7 +39,9 @@ function Row({ it }: { it: Item }) {
 
 /** The readiness checklist: every line is read from the page's current state (never from clicks), and takes you to its step. */
 export function Readiness() {
-  const { items, warn } = exportChecklist() as { items: Item[]; warn: string }
+  const raw = exportChecklist() as { items: Item[]; warn: string }
+  const warn = plainLine(raw.warn)
+  const items = raw.items.map((it) => ({ ...it, label: it.label === 'Real Jinja check' ? 'Full check' : it.label, text: plainLine(it.text), sub: plainLine(it.sub) }))
   return (
     <div className="grid gap-2">
       <ul aria-label="Readiness" className="-mx-2 grid gap-0.5">{items.map((it) => <Row key={it.label} it={it} />)}</ul>

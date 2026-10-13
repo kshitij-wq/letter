@@ -101,15 +101,17 @@ async def main():
             await page.locator("[data-testid=seg-source]").click()   # letters open in the Edit letter view; #paper is the other view
             await expect(page.locator("#paper .lp").first).to_be_visible()
             await go_validate(page)
-            await expect(page.get_by_text("Real Jinja check passed")).to_be_visible(timeout=15000)
+            await expect(page.get_by_text("The full check passed")).to_be_visible(timeout=15000)
             ok(True, "real Jinja status line says passed")
             ok(await page.get_by_text("No problems found").count() == 0, "no success panel while warnings remain")
             ok(await page.get_by_role("list", name="Totals").count() == 1, "counts are shown")
 
             # ---- 2. a tagged template with two typing mistakes -----------------------------------------------------
             await open_tagged(page, "broken_tagged.docx")
-            await expect(page.get_by_text("Real Jinja check failed: 2 typing mistakes")).to_be_visible(timeout=15000)
-            ok(await page.get_by_text("Jinja syntax").count() > 0, "findings are grouped under their category")
+            await expect(page.get_by_text("The full check found 2 mistakes")).to_be_visible(timeout=15000)
+            ok(await page.get_by_text("Tags with mistakes").count() > 0, "findings are grouped under their category")
+            rows = await page.locator("[data-issue-key]").all_inner_texts()
+            ok(bool(rows) and not any(re.search(r"jinja|syntax|undefined|filter|expression", t, re.I) for t in rows), f"issue messages are in everyday words: {rows[:2]}")
             flagB = page.get_by_role("button", name="Issue B", exact=False)
             await expect(flagB.first).to_be_visible()
             ok(await page.locator("#paper .mflag").count() >= 2, "margin flags are drawn in the letter")
@@ -118,6 +120,7 @@ async def main():
             await flagB.first.click()
             await expect(page.get_by_role("complementary", name="Issue B")).to_be_visible()
             await expect(page.get_by_text("Why it matters")).to_be_visible()
+            ok(await page.get_by_test_id("issue-details").count() == 1, "the engine's own sentence is kept as technical details")
             ok(await page.locator("#paper .mflag.on").count() == 1, "the open issue's flag is ringed")
             await page.get_by_role("button", name="Locate in the letter").click()   # must not throw
 
@@ -132,7 +135,7 @@ async def main():
             await page.keyboard.press("Escape")
             await expect(page.get_by_role("complementary", name="Issue A")).to_have_count(0)
             await page.get_by_role("button", name="Change = to ==").click()
-            await expect(page.get_by_text("Real Jinja check passed")).to_be_visible(timeout=20000)
+            await expect(page.get_by_text("The full check passed")).to_be_visible(timeout=20000)
             res = page.get_by_role("button", name="Resolved", exact=False)
             if await res.count():
                 await res.first.click()
@@ -154,7 +157,7 @@ async def main():
             await go_validate(page)
             await page.get_by_role("button", name="Test 4 employees").click()
             await expect(page.get_by_text("employees tested in", exact=False)).to_be_visible(timeout=30000)
-            await expect(page.get_by_text("Real Jinja (the engine CompUp uses)", exact=False)).to_be_visible(timeout=30000)
+            await expect(page.get_by_text("The full check (the engine CompUp uses)", exact=False)).to_be_visible(timeout=30000)
             ok(True, "the employee test finishes and real Jinja reports")
             only = page.get_by_role("checkbox", name="Only employees with problems")
             if await only.count():
@@ -192,7 +195,7 @@ async def main():
             ctx, page = await new_page(browser, url)
             await page.get_by_role("button", name="Open the sample letter").click()
             await go_validate(page)
-            await expect(page.get_by_text("Real Jinja check passed")).to_be_visible(timeout=15000)
+            await expect(page.get_by_text("The full check passed")).to_be_visible(timeout=15000)
             await page.get_by_role("button", name="Ask Claude").click()
             await expect(page.get_by_text("Claude can review this letter once it's set up.")).to_be_visible()
             await expect(page.get_by_text("Set up Claude (for whoever runs this tool)")).to_be_visible()
@@ -202,12 +205,12 @@ async def main():
             ctx, page = await new_page(browser, url, host=True)
             await page.get_by_role("button", name="Open the sample letter").click()
             await go_validate(page)
-            await expect(page.get_by_text("Real Jinja check isn't available here")).to_be_visible()
+            await expect(page.get_by_text("The full check isn't available here")).to_be_visible()
             ok(await page.get_by_role("button", name="Ask Claude").count() == 0, "no Ask Claude section without the back end")
             await page.evaluate("t => window.__lt.ingestCsv(t, 'emps.csv')", csv)
             await page.get_by_role("button", name="Test 4 employees").click()
             await expect(page.get_by_text("employees tested in", exact=False)).to_be_visible(timeout=30000)
-            ok(await page.get_by_text("Real Jinja (the engine CompUp uses)", exact=False).count() == 0, "no claim about real Jinja without the back end")
+            ok(await page.get_by_text("The full check (the engine CompUp uses)", exact=False).count() == 0, "no claim about real Jinja without the back end")
             await ctx.close()
 
             await browser.close()
