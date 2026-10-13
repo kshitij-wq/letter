@@ -62,7 +62,7 @@ export function Header() {
           className="hidden text-muted min-[900px]:inline-flex">
           Search <Kbd>{modKey}</Kbd><Kbd>K</Kbd>
         </Button>
-        {server.ok && <Button variant={assistant ? 'primary' : 'ghost'} icon={<Sparkles aria-hidden />} aria-pressed={assistant} onClick={() => setAssistant(!assistant)} data-testid="assistant-toggle">Assistant</Button>}
+        {<Button variant={assistant ? 'primary' : 'ghost'} icon={<Sparkles aria-hidden />} aria-pressed={assistant} onClick={() => setAssistant(!assistant)} data-testid="assistant-toggle">Assistant</Button>}
         <span className="hidden min-[561px]:inline-flex"><ThemeMenu /></span>
         <IconButton label="Undo" shortcut={`${modKey}+Z`} disabled={!has || !HISTORY.undo.length} onClick={undo}><Undo2 aria-hidden /></IconButton>
         <IconButton label="Redo" shortcut={`${modKey}+Shift+Z`} disabled={!has || !HISTORY.redo.length} onClick={redo}><Redo2 aria-hidden /></IconButton>
