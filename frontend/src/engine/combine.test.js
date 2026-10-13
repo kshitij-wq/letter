@@ -2,16 +2,13 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it, beforeEach } from 'vitest'
 import {
-  alignVersions, applyCombine, autoValues, slugOf, build, cbParse, combineCancel, combineMove, combineSet, combineSetBase, combineSetCond, combineView, groupCondition, groupRegion,
-  loadVersions, on, planVersions, regionBranches, state, undo, validateCombine,
+  alignVersions, applyCombine, autoValues, slugOf, build, cbParse, combineCancel, combineMove, combineSetBase, combineSetLoose, combineView, groupCondition, groupRegion,
+  loadVersions, on, planVersions, regionBranches, state, undo,
 } from './index.js'
 
 const P = (text) => ({ kind: 'p', text })
 const T = (text) => ({ kind: 'tbl', text: '[table] ' + text })
-const cfgOf = (n, conds = [], extra = {}) => ({
-  field: 'employee_schema.case', match: 'text',
-  versions: Array.from({ length: n }, (_, i) => ({ id: 'v' + i, label: 'V' + i, cond: conds[i] || { mode: 'value', value: 'c' + i, raw: '' } })), ...extra,
-})
+const cfgOf = (labels) => ({ versions: labels.map((label, i) => ({ id: 'v' + i, label })) })
 
 describe('alignment', () => {
   it('keeps text that is the same in every version once and finds the places that differ', () => {
@@ -78,34 +75,16 @@ describe('grouping', () => {
 })
 
 describe('conditions', () => {
-  it('a version value becomes a readable condition; shared groups use one list', () => {
-    const cfg = cfgOf(3, [{ mode: 'value', value: 'Promotion' }, { mode: 'value', value: 'Variable' }, { mode: 'value', value: 'None' }])
-    expect(groupCondition(cfg, [0])).toBe('employee_schema.case | string | lower | trim == "promotion"')
-    expect(groupCondition(cfg, [1, 2])).toBe('employee_schema.case | string | lower | trim in ["variable", "none"]')
-    expect(cbParse(groupCondition(cfg, [1, 2]))).toBeTruthy()
-    expect(cbParse(groupCondition(cfg, [0]))).toBeTruthy()
-  })
-  it('typed conditions are bracketed when joined', () => {
-    const cfg = cfgOf(2, [{ mode: 'raw', raw: 'a == 1 or b == 2' }, { mode: 'raw', raw: 'c' }])
-    expect(groupCondition(cfg, [0, 1])).toBe('(a == 1 or b == 2) or (c)')
-  })
-  it('validates: nothing is required; only real blockers stop it', () => {
-    const ok = cfgOf(3, [{ mode: 'value', value: 'a' }, { mode: 'value', value: 'b' }, { mode: 'else' }])
-    expect(validateCombine(ok)).toEqual([])
-    // an empty value is not an error: that version gets the automatic condition
-    expect(validateCombine(cfgOf(3, [{ mode: 'value', value: 'a' }, { mode: 'value', value: '' }, { mode: 'else' }]))).toEqual([])
-    expect(validateCombine({ ...cfgOf(3, [{ mode: 'value', value: '' }, { mode: 'value', value: '' }, { mode: 'raw', raw: '' }]), field: '' })).toEqual([])
-    expect(validateCombine(cfgOf(3, [{ mode: 'else' }, { mode: 'else' }, { mode: 'value', value: 'a' }]))[0].text).toMatch(/Only one/)
-    expect(validateCombine(cfgOf(2, [{ mode: 'value', value: 'a' }, { mode: 'value', value: ' A ' }]))[0].text).toMatch(/both use/)
-    expect(validateCombine(cfgOf(2, [{ mode: 'raw', raw: 'a == "x' }, { mode: 'value', value: 'b' }]))[0].text).toMatch(/quote/)
-    expect(validateCombine({ ...cfgOf(2), field: '' })[0].text).toMatch(/no field/)
-    expect(validateCombine(cfgOf(1))[0].text).toMatch(/at least two/)
-  })
-  it('with no field every version gets a condition on the placeholder field, made from its name', () => {
-    const cfg = { field: '', match: 'text', versions: ['Promotion', 'Variable pay', 'Promotion'].map((label, i) => ({ id: 'v' + i, label, cond: { mode: 'value', value: '', raw: '' } })) }
+  it('every version gets a condition on the placeholder field, made from its name', () => {
+    const cfg = cfgOf(['Promotion', 'Variable pay', 'Promotion'])
     expect(slugOf('No increase (2024)')).toBe('no_increase_2024')
     expect(autoValues(cfg)).toEqual({ v0: 'promotion', v1: 'variable_pay', v2: 'promotion_2' })
     expect(groupCondition(cfg, [1])).toBe('custom_schema.letter_version | string | lower | trim == "variable_pay"')
+    expect(cbParse(groupCondition(cfg, [1]))).toBeTruthy()
+  })
+  it('versions that share a text are joined with "or", each in brackets, and stay readable', () => {
+    const cfg = cfgOf(['Promotion', 'Variable pay'])
+    expect(groupCondition(cfg, [0, 1])).toBe('(custom_schema.letter_version | string | lower | trim == "promotion") or (custom_schema.letter_version | string | lower | trim == "variable_pay")')
     expect(cbParse(groupCondition(cfg, [0, 1]))).toBeTruthy()
   })
 })
@@ -114,20 +93,10 @@ describe('branches', () => {
   const lists = [[P('a'), P('X'), P('z')], [P('a'), P('Y'), P('z')], [P('a'), P('z')]]
   const region = () => planVersions(lists).regions[0]
   it('writes if / elif and leaves the empty group without a branch', () => {
-    const b = regionBranches(region(), cfgOf(3))
+    const b = regionBranches(region(), cfgOf(['A', 'B', 'C']))
     expect(b.map((x) => x.kind)).toEqual(['if', 'elif'])
-  })
-  it('everything else becomes the else branch, last', () => {
-    const cfg = cfgOf(3, [{ mode: 'value', value: 'a' }, { mode: 'else' }, { mode: 'value', value: 'c' }])
-    const b = regionBranches(region(), cfg)
-    // V2 (empty, has its own value) gets an empty branch so it does not fall into the else
-    expect(b.map((x) => x.kind)).toEqual(['if', 'elif', 'else'])
-    expect(b[1].group).toBeNull()
-    expect(b[2].group.versions).toEqual([1])
-  })
-  it('an empty everything-else group needs no else', () => {
-    const cfg = cfgOf(3, [{ mode: 'value', value: 'a' }, { mode: 'value', value: 'b' }, { mode: 'else' }])
-    expect(regionBranches(region(), cfg).map((x) => x.kind)).toEqual(['if', 'elif'])
+    expect(b.map((x) => x.group.versions)).toEqual([[0], [1]])
+    expect(b[1].cond).toContain('"b"')
   })
 })
 
@@ -146,8 +115,6 @@ describe('combining the four fixture versions', () => {
   beforeEach(async () => {
     toasts.length = 0; combineCancel(); localStorage.clear()
     await loadVersions(NAMES.map(file))
-    combineSet('field', 'employee_schema.case')
-    state.combine.versions.forEach((v, i) => combineSetCond(v.id, { mode: 'value', value: ['promotion', 'variable', 'none', 'bonus'][i] }))
   })
 
   it('reads the files, reports each bad one in plain words, and summarises', async () => {
@@ -163,7 +130,8 @@ describe('combining the four fixture versions', () => {
     const v = combineView()
     const para = v.regions.find((r) => r.groups.some((g) => g.versions.length === 2 && g.texts[0] && /variable pay/.test(g.texts[0])))
     expect(para.groups.map((g) => g.versions)).toEqual([['promotion'], ['variable-pay', 'bonus-only'], ['no-increase']])
-    expect(para.groups[1].english).toMatch(/variable|bonus/i)
+    expect(para.groups[1].english).toMatch(/variable_pay/)
+    expect(para.groups[1].english).toMatch(/bonus_only/)
     const sign = v.regions.find((r) => r.groups.some((g) => g.texts[0] && /sign and return/.test(g.texts[0])))
     expect(sign.groups.find((g) => g.empty).versions).toEqual(['no-increase'])
   })
@@ -199,34 +167,41 @@ describe('combining the four fixture versions', () => {
     expect(state.built.xml['word/document.xml']).toContain('After this year')
   })
 
-  it('everything else becomes an else line; moving a version keeps the base', async () => {
+  it('moving a version keeps the base', async () => {
     const [a, , c] = state.combine.versions
     combineSetBase(c.id); combineMove(a.id, 1)
     expect(state.combine.versions[state.combine.base].id).toBe(c.id)
-    combineSetCond(c.id, { mode: 'else' })
     expect(combineView().ready).toBe(true)
     await applyCombine()
-    expect(state.logic.some((l) => /\{%-\s*else\s*-%\}/.test(l.text))).toBe(true)
+    expect(state.logic.some((l) => /\{%-\s*else/.test(l.text))).toBe(false)
   })
 
-  it('combines with no field at all: each version gets the placeholder condition', async () => {
-    combineSet('field', '')
-    state.combine.versions.forEach((v) => combineSetCond(v.id, { mode: 'value', value: '' }))
-    expect(combineView().ready).toBe(true)
-    expect(combineView().problems).toEqual([])
+  it('every version is switched on the placeholder field, made from its name', async () => {
+    const view = combineView()
+    expect(view.ready).toBe(true)
+    expect(view.autoField).toBe('custom_schema.letter_version')
     const rep = await applyCombine()
     expect(rep.regions).toBe(3)
     const conds = state.logic.filter((x) => /^\{%-? *(if|elif)/.test(x.text)).map((x) => x.text)
     expect(conds.length).toBeGreaterThan(0)
     for (const c of conds) { expect(c).toContain('custom_schema.letter_version'); expect(cbParse(c)).toBeTruthy() }
     expect(conds.join(' ')).toMatch(/== "promotion"/)
+    expect(conds.join(' ')).toMatch(/== "no_increase"/)
     expect(toasts.at(-1)).toMatch(/set who sees which in Conditions/)
   })
 
-  it('still stops on a typed condition with a mistake, in plain words', async () => {
-    combineSetCond(state.combine.versions[1].id, { mode: 'raw', raw: 'a == "x' })
+  it('the "ignore small differences" switch changes what counts as a difference', () => {
+    expect(state.combine.loose).toBe(true)
+    combineSetLoose(false)
+    expect(state.combine.loose).toBe(false)
+    expect(combineView().ready).toBe(true)
+  })
+
+  it('one version only: not ready, and Combine refuses in plain words', async () => {
+    combineCancel()
+    await loadVersions([file(NAMES[0])])
     expect(combineView().ready).toBe(false)
     expect(await applyCombine()).toBe(false)
-    expect(toasts.at(-1)).toMatch(/variable-pay/)
+    expect(toasts.at(-1)).toMatch(/at least two versions/)
   })
 })

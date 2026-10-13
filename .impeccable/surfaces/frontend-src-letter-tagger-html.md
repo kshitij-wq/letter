@@ -15,7 +15,7 @@ Must stay: every feature, every element id the JS and tests_ui/sweep.py use, doc
 
 THESIS: The letter is the correspondence; everything the tool knows about it is a numbered noting in the margin, like an office file with flagged pages. The page refuses the category's default arrangement, where the document is wedged between a long settings sidebar and a stack of cards.
 
-OWN-WORLD: Notesheet green-grey neutrals (ground #EEF1EF, notesheet layer #F6F8F6, white paper), ink #17211D, CompUp teal #0B6E5F only for primary action, selection and tagged state. Flag colours do the jobs: red error, amber check, indigo condition, blue note, green resolved. Public Sans for UI, IBM Plex Mono for tags only, Source Serif 4 for the letter. 6px controls, 8px panels, 2px paper. Hairline borders; one soft shadow, on the paper only. Authored 16px stroke icons.
+OWN-WORLD: Notesheet green-grey neutrals (ground #EEF1EF, notesheet layer #F6F8F6, white paper), ink #17211D, CompUp teal #0B6E5F only for primary action, selection and tagged state. Flag colours do the jobs: red error, amber check, indigo condition, blue note, green resolved. Calibri for UI, IBM Plex Mono for tags only, Source Serif 4 for the letter. 6px controls, 8px panels, 2px paper. Hairline borders; one soft shadow, on the paper only. Authored 16px stroke icons.
 
 STORY: The user uploads the letter, sees every placeholder flagged on the page, maps each one to a field in the inspector, adds conditions by clicking paragraphs, follows the lettered flags until Validate is clean, checks a real employee, then downloads.
 

@@ -65,7 +65,7 @@ export function Inventory() {
       <div className="flex flex-col gap-3">
         <h3 className="text-lg font-semibold">All placeholders</h3>
         <SearchInput value={q} onChange={setSearch} placeholder="Search text or field" label="Search placeholders by text or field" autoComplete="off" spellCheck={false} />
-        <div role="group" aria-label="Filter placeholders" className="no-scrollbar -mx-1 flex gap-0.5 overflow-x-auto px-1 pb-0.5">
+        <div role="group" aria-label="Filter placeholders" className="-mx-1 flex flex-wrap gap-0.5 px-1">
           {FILTERS.map(([id, label]) => (
             <FilterChip quiet key={id} pressed={f === id} onPressedChange={() => setFilter(id)} count={(stats as any)[id]}>{label}</FilterChip>
           ))}

@@ -2,10 +2,11 @@
 
     python tests_ui/react/combine.py        (set CHROMIUM_PATH if Playwright has no browser of its own)
 
-Drops the four made-up versions in tests_ui/fixtures/versions/ on the home page, picks the field and a value per version,
-combines, downloads the tagged .docx, checks it with renderer.engine.validate_docx, fills it with docxtpl once per version
-value and compares each result with that version's own text, paragraph for paragraph. Also: the preview in the page for each
-value, undo back to the base, a file that is not a .docx, and one version only.
+Drops the four made-up versions in tests_ui/fixtures/versions/ on the home page and combines them with the automatic
+custom_schema.letter_version conditions (there is nothing else to set on the screen), downloads the tagged .docx, checks it with
+renderer.engine.validate_docx, fills it with docxtpl once per version (letter_version = the version's name) and compares each
+result with that version's own text, paragraph for paragraph. Also: another base version, the preview in the page for each
+version, undo back to the base, a file that is not a .docx, one version only, and that the old who-gets-which section is gone.
 """
 import http.server
 import io
@@ -31,8 +32,8 @@ FIX = ROOT / "tests_ui" / "fixtures"
 VERS = FIX / "versions"
 PAGE = ROOT / "renderer" / "frontend" / "index.html"
 NAMES = ["promotion", "variable-pay", "no-increase", "bonus-only"]
-VALUES = {"promotion": "promotion", "variable-pay": "variable", "no-increase": "none", "bonus-only": "bonus"}
-FIELD = "employee_schema.case"
+VALUES = {n: n.replace("-", "_") for n in NAMES}   # the automatic value of each version
+FIELD = "custom_schema.letter_version"
 errors = []
 
 
@@ -123,21 +124,15 @@ def main():
         expect(region0).to_contain_text("variable-pay")
         expect(region0).to_contain_text("We are pleased to confirm your promotion")
 
-        # --- field and values (optional, in a folded section)
-        pg.get_by_role("button", name="Set who gets which version (optional)").click()
-        pg.get_by_role("combobox", name="Field that decides the version").click()
-        pg.get_by_placeholder("Search fields").fill(FIELD)
-        pg.get_by_text(f"Use “{FIELD}” as the field").click()
-        for i, n in enumerate(NAMES):
-            pg.get_by_test_id(f"combine-value-{i}").fill(VALUES[n])
-        expect(pg.get_by_test_id("combine-go")).to_be_enabled()
+        # --- nothing to set: the old "who gets which version" section is gone, the conditions are automatic
+        expect(pg.get_by_role("button", name="Set who gets which version (optional)")).to_have_count(0)
+        expect(pg.get_by_role("combobox", name="Field that decides the version")).to_have_count(0)
+        expect(pg.get_by_test_id("combine-value-0")).to_have_count(0)
+        expect(pg.get_by_test_id("combine-raw-0")).to_have_count(0)
+        expect(pg.get_by_test_id("combine-screen")).not_to_contain_text("Everything else")
+        expect(pg.get_by_test_id("combine-screen")).to_contain_text(FIELD)
         expect(region0).to_contain_text("When")
-        # two versions with the same value are refused in words
-        pg.get_by_test_id("combine-value-3").fill("variable")
-        expect(pg.get_by_test_id("combine-go")).to_be_disabled()
-        expect(pg.get_by_test_id("combine-problems")).to_contain_text("both use")
-        pg.get_by_test_id("combine-value-3").fill("bonus")
-        expect(pg.get_by_test_id("combine-go")).to_be_enabled()
+        expect(region0).to_contain_text("variable_pay")
         # reorder with the keyboard-reachable arrows: the base follows its version
         pg.get_by_role("button", name="Move bonus-only up").click()
         expect(pg.get_by_test_id("combine-label-2")).to_have_value("bonus-only")
@@ -162,12 +157,12 @@ def main():
         res = validate_docx(tagged)
         assert res["ok"], res["syntax"]
         for n in NAMES:
-            out = render_docx(tagged, {"employee_schema": {"case": VALUES[n]}})
+            out = render_docx(tagged, {"custom_schema": {"letter_version": VALUES[n]}})
             got = doc_lines(io.BytesIO(out))
             want = doc_lines(VERS / f"{n}.docx")
             assert got == want, f"{n}: filled letter differs from the version\n got : {got}\n want: {want}"
         # a value nobody has: only the text that is the same everywhere
-        other = doc_lines(io.BytesIO(render_docx(tagged, {"employee_schema": {"case": "zzz"}})))
+        other = doc_lines(io.BytesIO(render_docx(tagged, {"custom_schema": {"letter_version": "zzz"}})))
         assert "Dear Asha Rao," in other and not any("variable pay" in x for x in other), other
 
         # --- undo restores the base letter in one step; redo brings the combined template back
@@ -205,24 +200,13 @@ def main():
                 assert "After this year's review" not in text
         pg.get_by_role("button", name="Back to tagged template").click()
 
-        # --- second round: another base, one typed condition and one "Everything else"
+        # --- second round: another base version, the same automatic conditions
         pg.goto(url)
         with pg.expect_file_chooser() as fc:
             pg.get_by_test_id("combine-entry").click()
         fc.value.set_files([str(VERS / f"{n}.docx") for n in NAMES])
         expect(pg.get_by_test_id("combine-screen")).to_be_visible()
         pg.get_by_test_id("combine-base-2").check()
-        pg.get_by_role("button", name="Set who gets which version (optional)").click()
-        pg.get_by_role("combobox", name="Field that decides the version").click()
-        pg.get_by_placeholder("Search fields").fill(FIELD)
-        pg.get_by_text(f"Use “{FIELD}” as the field").click()
-        pg.get_by_test_id("combine-value-0").fill("promotion")
-        pg.get_by_role("combobox", name="When does variable-pay apply").click()
-        pg.get_by_role("option", name="Typed condition").click()
-        pg.get_by_test_id("combine-raw-1").fill(f'{FIELD} == "variable"')
-        pg.get_by_test_id("combine-value-2").fill("none")
-        pg.get_by_role("combobox", name="When does bonus-only apply").click()
-        pg.get_by_role("option", name="Everything else").click()
         expect(pg.get_by_test_id("combine-go")).to_be_enabled()
         pg.get_by_test_id("combine-go").click()
         expect(pg.get_by_test_id("combine-screen")).to_have_count(0)
@@ -232,12 +216,12 @@ def main():
         tagged2 = Path(dl.value.path()).read_bytes()
         res = validate_docx(tagged2)
         assert res["ok"], res["syntax"]
-        for n, val in [("promotion", "promotion"), ("variable-pay", "variable"), ("no-increase", "none"), ("bonus-only", "zzz")]:
-            got = doc_lines(io.BytesIO(render_docx(tagged2, {"employee_schema": {"case": val}})))
+        for n in NAMES:
+            got = doc_lines(io.BytesIO(render_docx(tagged2, {"custom_schema": {"letter_version": VALUES[n]}})))
             want = doc_lines(VERS / f"{n}.docx")
-            assert got == want, f"round 2, {n}: filled letter differs from the version\n got : {got}\n want: {want}"
+            assert got == want, f"round 2 (base no-increase), {n}: filled letter differs from the version\n got : {got}\n want: {want}"
 
-        # --- third round: no field and no values at all. Combine works right away; every version is switched on the placeholder field
+        # --- third round: Combine works right away; every version is switched on the placeholder field, and the Conditions step says so
         pg.goto(url)
         with pg.expect_file_chooser() as fc:
             pg.get_by_test_id("combine-entry").click()

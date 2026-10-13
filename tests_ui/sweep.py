@@ -1374,23 +1374,13 @@ class Sweep:
         await (await fc.value).set_files(files)
         await self.settle(1200)
         self.expect(await self.visible("[data-testid=combine-screen]"), "choosing the versions didn't open the Combine screen")
-        self.expect(await pg.get_by_test_id("combine-go").is_enabled(), "Combine needs a field before it works (nothing should be required)")
-        self.expect(await pg.get_by_test_id("combine-problems").count() == 0, "an empty field shows an error")
-        # the optional field and a value per version, in the folded section, through the page
-        await pg.get_by_role("button", name="Set who gets which version (optional)").click()
-        await pg.get_by_role("combobox", name="Field that decides the version").click()
-        await pg.get_by_placeholder("Search fields").fill("employee_schema.case")
-        await pg.get_by_text("Use “employee_schema.case” as the field").click()
-        for i, v in enumerate(["promotion", "variable", "none", "bonus"]):
-            await pg.get_by_test_id(f"combine-value-{i}").fill(v)
-        await self.settle(300)
-        self.expect(await pg.get_by_test_id("combine-go").is_enabled(), "Combine stays off with every version set")
-        # the typed-condition and everything-else choices, the reorder arrows, the Show buttons, the checkbox
-        await pg.get_by_role("combobox", name="When does bonus-only apply").click()
-        await pg.get_by_role("option", name="Everything else").click()
-        await pg.get_by_role("combobox", name="When does no-increase apply").click()
-        await pg.get_by_role("option", name="Typed condition").click()
-        await pg.get_by_test_id("combine-raw-2").fill('employee_schema.case == "none"')
+        self.expect(await pg.get_by_test_id("combine-go").is_enabled(), "Combine needs setup before it works (nothing should be required)")
+        # no "who gets which version" section any more: every version gets the automatic condition, changed later in Conditions
+        self.expect(await pg.get_by_role("button", name="Set who gets which version (optional)").count() == 0, "the old who-gets-which section is still on the Combine screen")
+        self.expect(await pg.get_by_role("combobox", name="Field that decides the version").count() == 0, "the field picker is still on the Combine screen")
+        self.expect(await pg.get_by_test_id("combine-value-0").count() == 0, "a per-version value box is still on the Combine screen")
+        self.expect(await pg.get_by_test_id("combine-problems").count() == 0, "the Combine screen shows an error with nothing wrong")
+        # the reorder arrows, the Show buttons, the checkbox
         await pg.get_by_role("button", name="Move no-increase up").click()
         await pg.get_by_role("button", name="Move no-increase down").click()
         for _ in range(8):   # each click turns that Show into Hide, so the next one is always the first left
@@ -1421,7 +1411,7 @@ class Sweep:
         self.expect(await self.ev("()=>window.__lt.state.tab") == "logic", "after combining the page isn't on the Conditions step")
         n = await self.ev("()=>window.__lt.state.logic.filter(l=>l.mg).length")
         self.expect(n >= 6, f"combining added only {n} if / else lines")
-        self.expect(await self.ev("()=>window.__lt.state.logic.some(l=>/-?%}$/.test(l.text) && /else/.test(l.text))"), "no else line for the Everything else version")
+        self.expect(await self.ev("()=>{const c=window.__lt.state.logic.filter(l=>/^\\{%-? *(if|elif)/.test(l.text)); return c.length>=3 && c.every(l=>l.text.includes('custom_schema.letter_version'))}"), "the combined if / elif lines are not on custom_schema.letter_version")
         await self.ev("()=>window.__lt.undo()")
         await self.settle(500)
         self.expect(await self.ev("()=>window.__lt.state.logic.length") == 0, "undo after combining left logic lines behind")

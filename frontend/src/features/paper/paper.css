@@ -39,13 +39,13 @@
 
 /* header, footer and text boxes: quiet tinted areas, labelled */
 .paper .part { position: relative; margin: 0 0 18px; padding: 8px 10px 2px; border-radius: 4px; background: color-mix(in srgb, var(--paper-ink) 4%, transparent); }
-.paper .part-label, .paper .tbx-label { display: block; margin-bottom: 4px; font-family: var(--f-ui); font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.paper .part-label, .paper .tbx-label { display: block; margin-bottom: 4px; font-family: var(--f-ui); font-size: 12.5px; font-weight: 600; color: var(--muted); }
 .paper .tbx { margin: .3em 0 .8em; padding: 6px 8px; border-radius: 4px; background: color-mix(in srgb, var(--paper-ink) 4%, transparent); }
 
 /* a page break is a real gap between two sheets */
 .paper .page-div {
   display: flex; align-items: center; justify-content: center; height: 28px; margin: 48px calc(var(--pad-x) * -1);
-  background: var(--ground); color: var(--muted); font-family: var(--f-ui); font-size: 11.5px; font-weight: 500;
+  background: var(--ground); color: var(--muted); font-family: var(--f-ui); font-size: 12.5px; font-weight: 500;
   box-shadow: inset 0 7px 7px -7px rgb(0 0 0 / .14), inset 0 -7px 7px -7px rgb(0 0 0 / .14);
 }
 
@@ -71,14 +71,14 @@
 .cell-ghost.blank { color: var(--warn); border-color: var(--warn); background: var(--warn-wash); }
 
 /* conditions: lines between paragraphs, and a bracket in the margin */
-.paper .lg-line { display: flex; align-items: center; gap: 8px; margin: .35em 0; padding: 2px 4px 2px calc(var(--d, 0) * 10px); font-family: var(--f-ui); font-size: 12px; line-height: 1.35; color: var(--paper-ink); cursor: pointer; border-radius: 3px; transition: background-color 150ms; }
+.paper .lg-line { display: flex; align-items: center; gap: 8px; margin: .35em 0; padding: 2px 4px 2px calc(var(--d, 0) * 10px); font-family: var(--f-ui); font-size: 13px; line-height: 1.35; color: var(--paper-ink); cursor: pointer; border-radius: 3px; transition: background-color 150ms; }
 .paper .lg-line:hover { background: var(--cond-wash); }
 .paper .lg-line:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .paper .lg-line::after { content: ""; flex: 1; min-width: 12px; border-top: 1px solid var(--paper-line); }
-.paper .lg-line .badge { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.5; background: var(--cond-wash); color: var(--cond); }
+.paper .lg-line .badge { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 4px; font-size: 12px; font-weight: 600; line-height: 1.5; background: var(--cond-wash); color: var(--cond); }
 .paper .lg-line .lg-en-t { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
 .paper .lg-line code { flex: 0 1 auto; min-width: 0; padding: 0 5px; border-radius: 3px; background: var(--cond-wash); color: var(--cond); font-family: var(--f-mono); font-size: 11.5px; white-space: pre-wrap; word-break: break-word; }
-.paper .lg-line .lg-meta { display: inline-flex; align-items: center; gap: 4px; flex: none; padding: 0 6px; border-radius: 4px; background: var(--err-wash); color: var(--err); font-size: 11px; font-weight: 600; }
+.paper .lg-line .lg-meta { display: inline-flex; align-items: center; gap: 4px; flex: none; padding: 0 6px; border-radius: 4px; background: var(--err-wash); color: var(--err); font-size: 12px; font-weight: 600; }
 .paper .lg-line .lg-meta:empty { display: none; }
 .paper .lg-line .ic { width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .paper .lg-line.st-open code, .paper .lg-line.st-stray code, .paper .lg-line.st-cells code { background: var(--err-wash); color: var(--err); }
@@ -101,7 +101,7 @@
 .flag-layer { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
 .mflag { position: absolute; pointer-events: auto; width: 20px; height: 18px; margin: 0; padding: 0; border: 0; background: none; color: var(--panel); cursor: pointer; user-select: none; -webkit-user-select: none; font-family: var(--f-ui); }
 .mflag::before { content: ""; position: absolute; inset: -2px; }
-.mflag .fl { display: block; width: 100%; height: 100%; padding-right: 4px; text-align: center; font: 700 11px/18px var(--f-ui); clip-path: polygon(0 0, 76% 0, 100% 50%, 76% 100%, 0 100%); transition: filter 150ms; }
+.mflag .fl { display: block; width: 100%; height: 100%; padding-right: 4px; text-align: center; font: 700 12px/18px var(--f-ui); clip-path: polygon(0 0, 76% 0, 100% 50%, 76% 100%, 0 100%); transition: filter 150ms; }
 .mflag.lvl-error .fl { background: var(--err); }
 .mflag.lvl-warn .fl { background: var(--warn); }
 .mflag.lvl-quiet .fl { background: var(--muted); }

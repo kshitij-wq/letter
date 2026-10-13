@@ -18,7 +18,7 @@ export function FlagLetter({ letter, level, quiet, className }: { letter: string
   if (!letter) return null
   return (
     <b role="img" aria-label={`Flag ${letter}${quiet ? ', resolved' : ''}`}
-      className={cn('grid h-[16px] min-w-[18px] shrink-0 place-items-center pl-1 pr-[7px] text-[10.5px] font-bold leading-none text-panel [clip-path:polygon(0_0,76%_0,100%_50%,76%_100%,0_100%)]',
+      className={cn('grid h-[16px] min-w-[18px] shrink-0 place-items-center pl-1 pr-[7px] text-[11.5px] font-bold leading-none text-panel [clip-path:polygon(0_0,76%_0,100%_50%,76%_100%,0_100%)]',
         quiet ? 'bg-muted' : level === 'error' ? 'bg-err' : 'bg-warn', className)}>
       {letter}
     </b>
