@@ -100,6 +100,7 @@ export function condRowIds(){
 }
 export function rowSearchText(r){ const f=rowField(r); return [r.find, r.label, r.key, f&&f.label, finalTag(r)].filter(Boolean).join('\n').toLowerCase(); }
 export function listRows(){
+  if (state.filter==='removed') return [];   // the removed ones are not rows any more: see removedItems()
   const f=state.filter, q=(state.q||'').trim().toLowerCase(); const cond=f==='cond' ? condRowIds() : null;
   return state.rows.filter(r=>{
     if (f==='unused'){ if (r.count) return false; }
@@ -157,23 +158,52 @@ export function tagProblem(tag){
 
 /* ======================= data for the Tags & fields screen (new: pure helpers, no DOM) ======================= */
 // the filter chips, in order
-export const FILTERS=[['all','All'],['need','Needs a tag'],['check','To check'],['tagged','Tagged'],['cond','In a condition'],['unused','Not in letter']];
+export const FILTERS=[['all','All'],['need','Needs a tag'],['check','To check'],['tagged','Tagged'],['cond','In a condition'],['unused','Not in letter'],['removed','Removed']];
 // the numbers behind the chips and the headline ("12 of 20 tagged"); inDoc = placeholders that are in the letter
 export function inventoryStats(){
   const inDoc=state.rows.filter(r=>r.count);
   const by=s=>inDoc.filter(r=>rowStatus(r)===s).length;
   const cond=condRowIds();
   return {all:state.rows.length, inDoc:inDoc.length, need:by('need'), check:by('check'), tagged:by('tagged'), off:by('off'),
-    cond:inDoc.filter(r=>cond.has(r.id)).length, unused:state.rows.length-inDoc.length};
+    cond:inDoc.filter(r=>cond.has(r.id)).length, unused:state.rows.length-inDoc.length, removed:(state.removedRows||[]).length};
 }
 // one placeholder as the list shows it
 export function rowItem(r){
   const f=rowField(r);
   return {id:r.id, find:r.find, status:rowStatus(r), field:f, custom:!f && !!r.override, kind:r.kind, kindShown:KIND_SHOW[r.kind]||r.kind, kindTitle:KIND_TITLE[r.kind]||r.kind,
-    count: r.count && r.scope==='all' && r.count>1 ? r.count : 0, inLetter:r.count>0};
+    count: r.count && r.scope==='all' && r.count>1 ? r.count : 0, inLetter:r.count>0, here: onlyHere(r) ? placeLabel(r) : ''};
+}
+// the removed placeholders as list items (the "Removed" filter), searched like the others
+export function removedItems(){
+  const q=(state.q||'').trim().toLowerCase();
+  return (state.removedRows||[]).filter(x=>!q || x.find.toLowerCase().includes(q)).map(x=>({id:x.id, find:x.find, status:'removed', field:null, custom:false, kind:x.kind, kindShown:KIND_SHOW[x.kind]||x.kind, kindTitle:KIND_TITLE[x.kind]||x.kind, count:x.count>1?x.count:0, inLetter:true, here:'', removed:true}));
 }
 // the list the filters and the search leave
-export function inventoryItems(){ return listRows().map(rowItem); }
+export function inventoryItems(){ return state.filter==='removed' ? removedItems() : listRows().map(rowItem); }
+
+/* ---- places: the same text can sit in several spots of the letter; one spot can be tagged on its own ---- */
+// every spot of a placeholder in the letter, in letter order: {pid, s, e, find, before, after}
+export function rowPlaces(id){
+  const out=[]; if (!state.an || !state.srcMatches) return out;
+  for (const p of state.an.paras){
+    const sp=state.srcMatches.get(p.pid); if (!sp) continue; const t=p.model.text;
+    for (const m of sp) if (m.row.id===id) out.push({pid:p.pid, s:m.s, e:m.e, find:t.slice(m.s,m.e), before:t.slice(Math.max(0,m.s-40),m.s), after:t.slice(m.e,m.e+30)});
+  }
+  return out;
+}
+// the spot of this placeholder that holds the letter offset (pid, o), or null
+export function placeAt(id, pid, o){ return rowPlaces(id).find(x=>x.pid===pid && o>=x.s && o<x.e) || null; }
+// "Dear Name,": the spot with a few words around it
+export function placeLabel(x){
+  if (x.find!=null && x.before==null && x.ctx!=null) x={find:x.find, before:x.ctx||'', after:x.after||''};
+  let b=String(x.before||'').slice(-14); if (String(x.before||'').length>14) b=b.replace(/^\S*\s+/,'');
+  let a=String(x.after||'').slice(0,8); if (String(x.after||'').length>8) a=a.replace(/\s+\S*$/,'');
+  return (b+x.find+a).replace(/\s+/g,' ').trim();
+}
+// a text tagged at one spot of the letter by the person (so it can go back to the tag of the other spots)
+export function onlyHere(r){ const ed=state.edits[r.id]; return !!(r && r.scope==='one' && ed && ed.manual && ed.occ); }
+// the row for the same text tagged everywhere, if there is one: the other spots' tag
+export function sameTextRow(r){ return state.rows.find(x=>x.scope==='all' && x.find===r.find && x.id!==r.id) || null; }
 // the choices for a field picker, grouped (CSV columns, team library, CompUp tags, patterns). formulas=false leaves the "fx:" formulas out.
 export function fieldPickerGroups(formulas=true){
   const groups=[]; const byName=new Map();
@@ -222,9 +252,18 @@ export function tagOpParts(op){
 // "Custom tag" switch in the tag editor: custom cycle columns live under custom_schema. in CompUp.
 const CUSTOM = 'custom_schema.';
 function plainKey(k){ return /^[A-Za-z_][\w]*$/.test(k); }   // a bare field name (not fx:, not already in a schema, not an expression)
+const FULL_NAME='first_name + last_name';
 export function isCustomKey(key){ const parts=keyParts(key); return parts.length>0 && parts.some(k=>k.startsWith(CUSTOM)) && parts.every(k=>k.startsWith(CUSTOM) || !plainKey(k)); }
-export function canBeCustom(key){ return keyParts(key).some(k=>k.startsWith(CUSTOM) || plainKey(k)); }
+export function canBeCustom(key){ return key==='fx:full_name' || keyParts(key).some(k=>k.startsWith(CUSTOM) || plainKey(k)); }
+// why the switch can't apply to this field (shown next to the disabled switch), or ''
+export function customReason(key){
+  if (!key || canBeCustom(key)) return '';
+  if (/\{\{|\{%/.test(key)) return "This is a tag you wrote yourself, so there is no field to move.";
+  if (String(key).startsWith('fx:')) return 'This is a built-in formula, not a plain field.';
+  return 'This field already has its own group, so it can not be custom.';
+}
 export function setCustomKey(key, on){
+  if (key==='fx:full_name') key=FULL_NAME;   // the full name is first + last name: the switch works on the two fields
   if (!key || /\{\{|\{%/.test(key)) return key;
   return keyParts(key).map(k=> on ? (plainKey(k) ? CUSTOM+k : k) : (k.startsWith(CUSTOM) ? k.slice(CUSTOM.length) : k)).join(' + ');
 }

@@ -768,6 +768,50 @@ class Sweep:
                 self.expect(await self.visible("#inspector[data-kind=tag]") or await self.ev("()=>window.__lt.state.rows.length") >= rows, "Tag this text on the floating toolbar did nothing")
         await self.close_overlays()
 
+    async def tag_fix_flows(self):
+        """The step badge matches what the panel shows; a detected placeholder can be removed (highlight, flag and count go, undo and the
+        Removed list bring it back); the Custom tag switch is there for a CompUp field. (More in tests_ui/react/tagfix.py.)"""
+        pg = self.pg
+        self.doing = "Tags: badge, Not a placeholder, Custom tag"
+        await self.load_letter("letterA.docx")
+        await self.view("source")
+        await self.tab("tags")
+        todo = await self.ev("()=>window.__lt.tagsTodo()")
+        badge = (await pg.get_by_test_id("step-tags").get_by_test_id("step-count").inner_text()).strip() if await pg.get_by_test_id("step-tags").get_by_test_id("step-count").count() else "0"
+        self.expect(badge == str(todo["total"]), f"the Tags & fields badge says {badge!r} but the page counts {todo['total']}")
+        stats = await self.ev("()=>window.__lt.inventoryStats()")
+        self.expect(todo["rows"] == stats["need"] + stats["check"], "the badge's placeholder part differs from the list's Needs a tag + To check")
+        if todo["cells"]:
+            self.expect(await self.visible("[data-testid=tables-todo]"), "the badge counts table cells but the list has no Salary tables row")
+        rid = await self.ev("()=>{const r=window.__lt.state.rows.find(x=>x.count>0 && x.scope==='all'); return r ? r.id : null}")
+        if not rid:
+            return
+        find = await self.ev("(i)=>window.__lt.state.rows.find(x=>x.id===i).find", rid)
+        n0 = await self.ev("()=>window.__lt.tagsTodo().total")
+        needs = await self.ev("(i)=>['need','check'].includes(window.__lt.rowStatus(window.__lt.state.rows.find(x=>x.id===i)))", rid)
+        row = pg.locator(f'[data-row-id="{rid}"]')
+        await row.click()
+        await self.settle(400)
+        self.expect(await self.visible("[data-testid=insp-remove]"), "the placeholder panel has no 'Not a placeholder, remove'")
+        await pg.get_by_test_id("insp-remove").click()
+        await self.settle(500)
+        self.expect(await self.ev("(i)=>!window.__lt.state.rows.some(x=>x.id===i)", rid), "Not a placeholder left the row in the list")
+        self.expect(await pg.locator(f'#paper .ph[data-row="{rid}"]').count() == 0, "Not a placeholder left the highlight in the letter")
+        n1 = await self.ev("()=>window.__lt.tagsTodo().total")
+        self.expect(n1 == (n0 - 1 if needs else n0), f"the step count went from {n0} to {n1} after removing a row that {'needed' if needs else 'did not need'} a tag")
+        self.expect(await self.ev("(f)=>document.querySelector('#paper').innerText.includes(f)", find), f"the words {find!r} left the letter")
+        await self.ev("()=>window.__lt.undo()")
+        await self.settle(500)
+        self.expect(await self.ev("(i)=>window.__lt.state.rows.some(x=>x.id===i)", rid), "undo didn't bring the removed row back")
+        self.expect(await self.ev("()=>window.__lt.tagsTodo().total") == n0, "undo didn't restore the step count")
+        # the Custom tag switch for a CompUp field
+        await self.ev("(i)=>window.__lt.setRowKey(i,'first_name')", rid)
+        await pg.locator(f'[data-row-id="{rid}"]').click()
+        await self.settle(400)
+        tog = pg.locator("#inspector").get_by_role("switch", name=re.compile("^Custom tag"))
+        self.expect(await tog.count() == 1 and await tog.is_visible(), "no Custom tag switch for first_name")
+        await self.close_overlays()
+
     async def tag_editor_flows(self):
         """The placeholder editor: field picker, custom tag switch, several fields, format, the written tag, include, confirm, delete."""
         pg = self.pg
@@ -2017,7 +2061,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab and 3 letters")
     ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags nexttag tables shell conditions export validate downloads letters replace drop oldtags existing roundtrip editor merge combine assistant mailmerge tagged bad narrow team nobackend")
+    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags nexttag tables shell conditions export validate downloads letters replace drop oldtags existing roundtrip editor merge combine assistant mailmerge tagged bad narrow nexttag tagfix team nobackend")
     ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
@@ -2078,7 +2122,7 @@ async def main():
 
             stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("shell", sw.shell_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
                       ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("drop", sw.drop_and_restore), ("oldtags", sw.old_tags_flow), ("existing", sw.existing_tags_flow), ("roundtrip", sw.condition_roundtrip),
-                      ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("combine", sw.combine_flows), ("assistant", sw.assistant_flows), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow), ("nexttag", sw.next_to_tag_flows),
+                      ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("combine", sw.combine_flows), ("assistant", sw.assistant_flows), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow), ("nexttag", sw.next_to_tag_flows), ("tagfix", sw.tag_fix_flows),
                       ("team", lambda: team_library(browser, url, sw)), ("nobackend", lambda: no_backend(browser, url, sw))]
             for name, run in stages:
                 if args.only and name not in args.only:

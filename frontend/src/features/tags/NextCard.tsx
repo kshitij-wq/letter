@@ -1,8 +1,8 @@
-import { CircleCheck, SkipForward } from 'lucide-react'
+import { CircleCheck, SkipForward, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Button, FieldPicker } from '@/ui'
-import { confirmRow, fieldPickerGroups, inventoryStats, rowContext, rowStatus, setFilter, setRowKey, setTab } from '../../engine'
+import { confirmRow, fieldPickerGroups, inventoryStats, removeRow, rowContext, rowStatus, setFilter, setRowKey, setTab, tagsTodo } from '../../engine'
 import { CustomToggle } from './CustomToggle'
 import { locateRow, showRow } from './locate'
 
@@ -34,7 +34,7 @@ export function NextCard() {
           <CircleCheck aria-hidden className="mt-0.5 size-6 shrink-0 text-ok" />
           <div>
             <h3 className="text-lg font-semibold text-ink">Everything has a tag</h3>
-            <p className="mt-0.5 text-base text-muted">Look over the list once more, or go on to the conditions.</p>
+            <p className="mt-0.5 text-base text-muted">{tagsTodo().cells > 0 ? `The list is done. ${tagsTodo().cells} salary table cell${tagsTodo().cells === 1 ? ' still needs' : 's still need'} a tag.` : 'Look over the list once more, or go on to the conditions.'}</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -62,6 +62,12 @@ export function NextCard() {
     if (!key) return
     const next = nextAfter(r.id, skipped)
     if (picked && picked !== r.key) setRowKey(r.id, picked); else if (status === 'check') confirmRow(r.id)
+    setDraft(null)
+    go(next?.id)
+  }
+  const notPlaceholder = () => {
+    const next = nextAfter(r.id, skipped)
+    removeRow(r.id)
     setDraft(null)
     go(next?.id)
   }
@@ -97,6 +103,7 @@ export function NextCard() {
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="primary" disabled={!key} onClick={tagIt} data-testid="next-tag">{status === 'check' && !picked ? 'Looks right' : 'Tag it'}</Button>
         <Button icon={<SkipForward aria-hidden />} variant="ghost" onClick={skip} disabled={list.length < 2} data-testid="next-skip">Skip</Button>
+        <Button icon={<X aria-hidden />} variant="ghost" onClick={notPlaceholder} data-testid="next-remove" title="Take it out of the list. The words stay in the letter as plain text.">Not a placeholder</Button>
       </div>
     </section>
   )

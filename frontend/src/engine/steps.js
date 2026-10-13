@@ -7,7 +7,7 @@ import { PV_MAX, previewPicker, refreshPreview, templateIdentifiers } from './pi
 import { rowStatus } from './rows.js'
 import { server } from './server.js'
 import { state } from './state.js'
-import { tableCounts } from './tables.js'
+import { tableCellsTodo, tableCounts } from './tables.js'
 
 /* ======================= steps ======================= */
 export const STEPS=['doc','tags','logic','check','export'];
@@ -47,9 +47,15 @@ export function setTab(t, opts){
 
 // what the step badges and the export checklist read: counts and "done" per step, from what the page can see
 // (never from clicks or navigation). Same rules as the old updateTabBadges().
+// what the Tags & fields badge counts, in two parts the panel shows as well: placeholders that need a tag or a check, and empty table cells
+export function tagsTodo(){
+  const rows=state.rows.filter(r=>r.count && ['need','check'].includes(rowStatus(r))).length;
+  const t=tableCellsTodo();
+  return {rows, cells:t.todo, tables:t.tables, total:rows+t.todo};
+}
 export function stepInfo(){
   const inDoc=state.rows.filter(r=>r.count);
-  const need=inDoc.filter(r=>['need','check'].includes(rowStatus(r))).length + state.tables.reduce((s,t)=>{ if (!t.enabled) return s; const c=tableCounts(t); return s+c.all-c.done; },0);
+  const need=tagsTodo().total;
   const taggedAny=inDoc.some(r=>rowStatus(r)==='tagged') || state.tables.some(t=>t.enabled && tableCounts(t).done>0);
   const {lg, bad, errs, warns}=readiness();
   const hasCond=lg.some(e=>e.kw==='if');

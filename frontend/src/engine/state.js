@@ -4,7 +4,7 @@ import { lsGet } from './helpers.js'
 /* ======================= state ======================= */
 export const state = {
   fileName:'', srcBuf:null, xml:{}, parts:[], isSample:false, comments:false, mainPath:'word/document.xml',
-  an:null, rows:[], edits:{}, csv:null, csvAlias:new Map(), extraKeys:new Set(),
+  an:null, rows:[], removedRows:[], edits:{}, csv:null, csvAlias:new Map(), extraKeys:new Set(),
   settings:{ money:'indian', spaced:true, guard:false, removeHl:true },
   logic:[], lg:[], lgRails:new Map(), closing:null, sel:{pids:[], anchor:null, text:''}, view:'source', filter:'all', built:null, learned: lsGet('lt.learned', {}),
   tables:[], tableEdits:{}, ghostMap:new Map(), learnedCells: lsGet('lt.cells', {}), csvHeaders:[],
