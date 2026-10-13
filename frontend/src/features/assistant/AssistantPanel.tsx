@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { Button, Chip, IconButton, Notice, Spinner, Switch, Textarea, cn } from '@/ui'
-import { agentState, aiReady, canUndoCard, clearConversation, decide, sendMessage, setAutoApply, stopAgent, undoCard } from '../../engine'
+import { agentState, aiReady, server, canUndoCard, clearConversation, decide, sendMessage, setAutoApply, stopAgent, undoCard } from '../../engine'
 import { useIsCompact } from '../shell/useMedia'
 
 const STARTERS = [
@@ -91,7 +91,8 @@ export function AssistantPanel() {
         <IconButton label="Close the assistant" size="sm" onClick={() => close(false)}><X aria-hidden /></IconButton>
       </div>
       {aiReady() && !es.an && <div className="px-4 pb-2"><Notice tone="info">Open a letter first. The assistant works on the letter you have open.</Notice></div>}
-      {!aiReady() && <div className="px-4 pb-2"><Notice tone="warn">Claude isn't set up yet. Add ANTHROPIC_API_KEY to the .env file next to manage.py and restart the server.</Notice></div>}
+      {!server.ok && <div className="px-4 pb-2"><Notice tone="warn">The assistant needs the Letter Studio server, which this copy of the page doesn't have. Run it with python run_local.py to use it.</Notice></div>}
+      {server.ok && !aiReady() && <div className="px-4 pb-2"><Notice tone="warn">Claude isn't set up yet. Add ANTHROPIC_API_KEY to the .env file next to manage.py and restart the server.</Notice></div>}
       {(
         <>
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 py-3" data-testid="assistant-log">
