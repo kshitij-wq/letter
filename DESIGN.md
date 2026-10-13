@@ -34,32 +34,32 @@ colors:
 typography:
   headline:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "18px"
+    fontSize: "21px"
     fontWeight: 600
     lineHeight: 1.3
   title:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "15px"
+    fontSize: "16px"
     fontWeight: 600
     lineHeight: 1.45
   subtitle:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "13.5px"
+    fontSize: "15px"
     fontWeight: 600
     lineHeight: 1.45
   body:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "13.5px"
+    fontSize: "15px"
     fontWeight: 400
     lineHeight: 1.45
   body-small:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "12.5px"
+    fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.45
   label:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "11px"
+    fontSize: "12px"
     fontWeight: 600
     lineHeight: 1.5
     fontFeature: "tnum"
@@ -287,19 +287,19 @@ Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0
 ## Typography
 
 **UI Font:** Calibri, falling back to Carlito (bundled, metric-compatible, OFL) and then system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif. Carlito ships 400, 700 and 400 italic, so 500 renders as 400 and 600 as 700.
-**UI scale:** Calibri has a smaller x-height than Public Sans, so the app scale is 14 / 15 / 16 / 18 / 21px (xs / sm / base / lg / xl) and body is 16px: every UI size listed below is about 1px larger in the built page than the number printed here.
+**UI scale:** Calibri has a smaller x-height than Public Sans, so the app scale is 14 / 15 / 16 / 18 / 21px (xs / sm / base / lg / xl) (page default 16px). The styles below use that scale.
 **Tag Font:** IBM Plex Mono (with ui-monospace, SFMono-Regular, Menlo, Consolas), weights 400, 500
 **Letter Font:** Source Serif 4 (with Georgia, Times New Roman, serif), optical size 8-60, weights 400, 600
 
 **Character:** A plain humanist sans for the tool, a typewriter-flavoured mono for anything that is code, and a bookish serif so the letter reads as correspondence rather than data. The three never trade jobs, which lets a reader tell the document, the machinery and the instructions apart at a glance.
 
 ### Hierarchy
-- **Headline** (600, 18px, 1.3): the first-run heading only, centred and balanced.
-- **Title** (600, 15px, 1.45): the product name "Letter Tagger" in the header, dialog titles, the "all clear" statement in the issue inspector, drop-zone titles.
-- **Subtitle** (600, 13.5px, 1.45): panel block heads, inspector section heads, step labels, buttons.
-- **Body** (400, 13.5px, 1.45): all running UI text, inputs, list items. Panel copy stays near 40-60 characters per line because the side panel is 380px.
-- **Body Small** (400, 12.5px, 1.45; also 11.5px for metadata): hints, counts, row summaries, notices, chips.
-- **Label** (600, 11px, 1.5, tabular figures): badge text, count pills, flag letters. Numbers always use tabular figures.
+- **Headline** (600, 21px, 1.3): the first-run heading only, centred and balanced.
+- **Title** (600, 16px, 1.45): the product name "Letter Tagger" in the header, dialog titles, the "all clear" statement in the issue inspector, drop-zone titles.
+- **Subtitle** (600, 15px, 1.45): panel block heads, inspector section heads, step labels, buttons.
+- **Body** (400, 15px, 1.45): all running UI text, inputs, list items. Panel copy stays near 40-60 characters per line because the side panel is 380px.
+- **Body Small** (400, 14px, 1.45; also 12.5px for metadata): hints, counts, row summaries, notices, chips.
+- **Label** (600, 12px, 1.5, tabular figures): badge text, count pills, flag letters. Numbers always use tabular figures.
 - **Tag** (400, 12.5px, 1.55 in the inspector; 12px or 0.82em inline; 11.5px in condition lines): every Jinja tag, field name and expression.
 - **Letter** (400, 15px, 1.55): the paper, and the "text in the letter" quote and value preview in the inspector (16px and 15px).
 
