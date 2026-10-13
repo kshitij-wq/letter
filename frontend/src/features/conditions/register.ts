@@ -1,5 +1,5 @@
 import { createElement } from 'react'
-import { GitBranch, Layers } from 'lucide-react'
+import { GitBranch } from 'lucide-react'
 import { es } from '@/hooks/useEngine'
 import {
   cancelCondEdit, cancelPicking, cancelSwitch, clearSelection, condEnglish, lgInfo, on, setTab, setView, startClosing, startCondEdit,
@@ -53,8 +53,6 @@ registerCommands(() => {
     out.push({ id: `lg.edit.${e.key}`, group: 'Conditions', label: `Change condition: ${en || e.expr.slice(0, 50)}`, keywords: ['condition', 'if', 'edit', lgInfo(e).en || ''], icon: createElement(GitBranch, { 'aria-hidden': true }),
       run: () => { setTab('logic', { open: true }); startCondEdit(e.key); flashLogicItem(e.key) } })
   }
-  out.push({ id: 'lg.merge', group: 'Conditions', label: 'Combine two versions of the letter…', keywords: ['merge', 'letter b', 'compare'], icon: createElement(Layers, { 'aria-hidden': true }),
-    run: () => { setTab('logic', { open: true }); requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-dropzone][aria-label^="Letter B"]')?.scrollIntoView({ block: 'center' })) } })
   if (es.view !== 'source') out.push({ id: 'lg.letter', group: 'View', label: 'Show the client letter to add a condition', keywords: ['conditions'], run: () => setView('source') })
   return out
 })

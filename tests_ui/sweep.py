@@ -1205,29 +1205,6 @@ class Sweep:
                 await self.settle(300)
         # (when the setup logic could still be placed there is nothing unplaced; the engine's parity test covers that path)
 
-        self.doing = "combine two versions"
-        await self.load_letter("letterA.docx")
-        await self.tab("logic")
-        await pg.get_by_text("Combine two versions").click()
-        await self.settle(200)
-        await self.choose(pg.get_by_label("Letter B (.docx): drop or click").click, "letterB.docx")
-        await self.settle(1200)
-        has = await self.ev("()=>!!window.__lt.state.mergeB")
-        self.expect(has, "Letter B wasn't read")
-        if has:
-            if await pg.locator("#mgCond").count():
-                await pg.locator("#mgCond").fill('employee_schema.promotion_needed | lower | trim == "yes"')
-                await self.settle(200)
-                before = len(await self.logic_tags())
-                if await pg.locator("#mgApply").is_enabled():
-                    await pg.locator("#mgApply").click()
-                    await self.settle(900)
-                    self.expect(len(await self.logic_tags()) > before or await self.ev("()=>!!window.__lt.state.mergeB.done"), "Merge into this letter did nothing")
-            if await pg.locator("#mgClear").count():
-                await pg.locator("#mgClear").first.click()
-                await self.settle(300)
-        await self.close_overlays()
-
     # ------------------------------------------------------------------------------------------------ the assistant
     async def assistant_flows(self):
         """The Assistant panel with a faked agent: every control, then one proposed change applied and undone."""
