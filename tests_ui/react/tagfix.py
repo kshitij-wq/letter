@@ -19,7 +19,7 @@ from pathlib import Path
 
 import docx
 from docx.enum.text import WD_COLOR_INDEX
-from playwright.sync_api import expect, sync_playwright
+from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
