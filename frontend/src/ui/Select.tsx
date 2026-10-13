@@ -14,7 +14,7 @@ export function Select({ value, onValueChange, options, placeholder, 'aria-label
   return (
     <S.Root value={value} onValueChange={onValueChange} disabled={disabled}>
       <S.Trigger id={id} aria-label={ariaLabel}
-        className={cn('inline-flex w-full min-w-0 items-center justify-between gap-2 rounded-control border border-hairline bg-panel px-2.5 text-left text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-55 data-[placeholder]:text-muted', size === 'sm' ? 'h-7 text-sm' : 'h-8', className)}>
+        className={cn('inline-flex w-full min-w-0 items-center justify-between gap-2 rounded-control border border-hairline bg-panel px-3 text-left text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-55 data-[placeholder]:text-muted', size === 'sm' ? 'h-8 text-sm' : 'h-10', className)}>
         <span className="min-w-0 truncate"><S.Value placeholder={placeholder} /></span>
         <S.Icon><ChevronDown aria-hidden className="text-muted" /></S.Icon>
       </S.Trigger>

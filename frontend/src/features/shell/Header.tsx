@@ -44,12 +44,12 @@ export function Header() {
   useEffect(() => { const t = setInterval(() => tick((n) => n + 1), 30000); return () => clearInterval(t) }, [])
 
   return (
-    <header className="@container flex h-[52px] shrink-0 items-center gap-3 bg-panel px-4">
+    <header className="@container flex h-16 shrink-0 items-center gap-3 bg-panel px-5 @max-[520px]:px-3">
       <div className="flex min-w-0 items-center gap-2.5">
         <Mark />
         <span className="hidden text-lg font-bold leading-none tracking-tight text-brand-ink min-[640px]:inline">CompUp</span>
         <span aria-hidden className="hidden h-[18px] w-px bg-hairline min-[640px]:block" />
-        <span className="text-lg font-semibold leading-none">Letter Tagger</span>
+        <span className="whitespace-nowrap text-lg font-semibold leading-none max-[480px]:hidden">Letter Tagger</span>
       </div>
       {has && (
         <div className="ml-2 hidden min-w-0 flex-1 flex-col justify-center leading-tight min-[640px]:flex">
@@ -62,12 +62,12 @@ export function Header() {
           className="hidden text-muted min-[900px]:inline-flex">
           Search <Kbd>{modKey}</Kbd><Kbd>K</Kbd>
         </Button>
-        {<Button variant={assistant ? 'primary' : 'ghost'} icon={<Sparkles aria-hidden />} aria-pressed={assistant} onClick={() => setAssistant(!assistant)} data-testid="assistant-toggle">Assistant</Button>}
+        {<Button variant={assistant ? 'primary' : 'ghost'} icon={<Sparkles aria-hidden />} aria-pressed={assistant} onClick={() => setAssistant(!assistant)} data-testid="assistant-toggle"><span className="max-[560px]:sr-only">Assistant</span></Button>}
         <span className="hidden min-[561px]:inline-flex"><ThemeMenu /></span>
         <IconButton label="Undo" shortcut={`${modKey}+Z`} disabled={!has || !HISTORY.undo.length} onClick={undo}><Undo2 aria-hidden /></IconButton>
         <IconButton label="Redo" shortcut={`${modKey}+Shift+Z`} disabled={!has || !HISTORY.redo.length} onClick={redo}><Redo2 aria-hidden /></IconButton>
         <Button className="ml-2 hidden min-[561px]:inline-flex" disabled={!has} icon={<Table2 aria-hidden />} onClick={() => downloadMapping()}>Export mapping CSV</Button>
-        <Button variant="primary" className="ml-1 max-[560px]:size-8 max-[560px]:px-0" disabled={!has} loading={docx === 'busy'}
+        <Button variant="primary" className="ml-1 max-[560px]:size-10 max-[560px]:px-0" disabled={!has} loading={docx === 'busy'}
           aria-label={docx === 'busy' ? 'Building the tagged .docx' : 'Download tagged .docx'}
           icon={docx === 'done' ? <Check aria-hidden /> : <Download aria-hidden />} onClick={() => runDownloadDocx()}>
           <span className="max-[560px]:sr-only"><DocxLabel /></span>

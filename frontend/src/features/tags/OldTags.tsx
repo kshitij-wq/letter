@@ -50,7 +50,7 @@ function NameRow({ n, picked, onPick }: { n: any; picked: boolean; onPick: (on: 
 /** Clean up an older template: rename the tags it already has, add a prefix, rewrite amount tags in one format, find and replace inside tags. */
 export function OldTags() {
   useEngineRev()
-  const [open, setOpen] = useCollapsed('oldTagsBlock', true)
+  const [open, setOpen] = useCollapsed('oldTagsBlock', false)
   const [picked, setPicked] = useState<Set<string>>(new Set())
   const [all, setAll] = useState(false)
   const [prefix, setPrefix] = useState('custom_schema.')
@@ -67,7 +67,7 @@ export function OldTags() {
   const tools = 'flex flex-col gap-1.5'
 
   return (
-    <Section title="Tags already in the letter" count={`${plural(info.total, 'tag')} · ${plural(names.length, 'name')}`} open={open} onOpenChange={setOpen}>
+    <Section title="Tags already in the letter" summary={`${plural(info.total, 'tag')}, ${plural(names.length, 'name')}. Rename, add a prefix or rewrite them.`} open={open} onOpenChange={setOpen}>
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted">Clean up an older template: rename tags, add a prefix such as <code className="font-mono text-xs">custom_schema.</code>, or rewrite amount tags in one go. Changes apply to the tags that were already in the uploaded letter.</p>
         <ul className="divide-y divide-hairline-soft">

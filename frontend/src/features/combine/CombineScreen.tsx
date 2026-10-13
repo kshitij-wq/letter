@@ -54,11 +54,11 @@ function VersionRow({ v, i, n, isBase, problems, dragId, setDragId }: {
           onValueChange={(m) => combineSetCond(v.id, { mode: m })} />
         {v.cond.mode === 'value' && (
           <Input aria-label={`Value for ${v.label}`} data-testid={`combine-value-${i}`} value={value} placeholder="e.g. promotion" invalid={bad} aria-describedby={bad ? errId : undefined}
-            className="h-7 min-w-0 flex-1 basis-40 text-sm" onChange={(e) => { setValue(e.target.value); combineSetCond(v.id, { value: e.target.value }) }} />
+            className="h-9 min-w-0 flex-1 basis-40 text-sm" onChange={(e) => { setValue(e.target.value); combineSetCond(v.id, { value: e.target.value }) }} />
         )}
         {v.cond.mode === 'raw' && (
           <Input mono aria-label={`Condition for ${v.label}`} data-testid={`combine-raw-${i}`} value={raw} placeholder={'e.g. employee_schema.rating | float >= 4'} spellCheck={false} invalid={bad} aria-describedby={bad ? errId : undefined}
-            className="h-7 min-w-0 flex-1 basis-56" onChange={(e) => { setRaw(e.target.value); combineSetCond(v.id, { raw: e.target.value }) }} />
+            className="h-9 min-w-0 flex-1 basis-56" onChange={(e) => { setRaw(e.target.value); combineSetCond(v.id, { raw: e.target.value }) }} />
         )}
         {v.cond.mode === 'else' && <span className="text-sm text-muted">Used when no other version applies.</span>}
       </div>
@@ -130,7 +130,7 @@ export function CombineScreen() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id="combine-versions" className="text-base font-semibold">Versions <span className="font-normal text-muted">({n})</span></h2>
           <DropZone multiple label="Add more versions (.docx)" accept={LETTER_ACCEPT} onFiles={(f) => { void openVersions(f) }} className="shrink-0">
-            <span data-testid="combine-add" className="inline-flex h-8 items-center gap-1.5 rounded-control border border-hairline bg-panel px-3 font-semibold hover:bg-hairline-soft"><FilePlus2 aria-hidden />Add versions…</span>
+            <span data-testid="combine-add" className="inline-flex h-10 items-center gap-1.5 rounded-control border border-hairline bg-panel px-3 font-semibold hover:bg-hairline-soft"><FilePlus2 aria-hidden />Add versions…</span>
           </DropZone>
         </div>
         {n === 0 ? <p className="text-sm text-muted">No versions yet.</p> : (

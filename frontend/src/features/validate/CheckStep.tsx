@@ -19,7 +19,7 @@ export function CheckStep() {
   if (!v.hasLetter) return <EmptyState title="No letter yet">Open a letter in the Document step, then its problems are listed here.</EmptyState>
 
   return (
-    <div className="grid gap-7">
+    <div className="grid gap-8">
       <Section title="Template check" count={v.stats}>
         <div className="grid gap-4">
           <div className="flex flex-wrap items-center gap-2">

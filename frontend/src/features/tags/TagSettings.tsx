@@ -3,7 +3,7 @@ import { Checkbox, Section, Select } from '@/ui'
 import { changeSettings } from '../../engine'
 import { useCollapsed } from './useCollapsed'
 
-const MONEY = [
+export const MONEY = [
   { value: 'indian', label: 'Indian commas', hint: '{{ ctc | indian_comma }}' },
   { value: 'indian_round', label: 'Indian commas, whole number' },
   { value: 'dec0', label: 'No decimals', hint: "'{:.0f}'.format(…)" },
@@ -20,7 +20,7 @@ export function TagSettings() {
   const [open, setOpen] = useCollapsed('settingsBox', false)
   const s = es.settings
   return (
-    <Section title="Tag settings" open={open} onOpenChange={setOpen}>
+    <Section title="Tag settings" summary={`${MONEY.find((m) => m.value === s.money)?.label ?? 'Money format'} · ${s.spaced ? '{{ first_name }}' : '{{first_name}}'}`} open={open} onOpenChange={setOpen}>
       <div className="flex flex-col gap-3.5">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="set-money" className="text-sm font-medium">Money format</label>

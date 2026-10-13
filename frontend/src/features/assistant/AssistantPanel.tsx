@@ -84,22 +84,22 @@ export function AssistantPanel() {
 
   return (
     <aside id="assistant" data-testid="assistant-panel" aria-label="Assistant"
-      className={cn('enter-right z-40 flex shrink-0 flex-col bg-panel', compact ? 'absolute inset-y-0 right-0 w-[min(380px,100%)] shadow-pop' : 'w-[380px] border-l border-hairline-soft')}>
-      <div className="flex h-12 shrink-0 items-center gap-2 pl-4 pr-2">
+      className={cn('enter-right z-40 flex shrink-0 flex-col bg-panel', compact ? 'absolute inset-y-0 right-0 w-[min(420px,100%)] shadow-pop' : 'w-[420px] border-l border-hairline-soft')}>
+      <div className="flex h-14 shrink-0 items-center gap-2 pl-6 pr-3">
         <h2 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-semibold"><Sparkles aria-hidden className="text-accent" />Assistant</h2>
         <IconButton label="Clear the conversation" size="sm" disabled={!items.length || a.busy} onClick={clearConversation}><Trash2 aria-hidden /></IconButton>
         <IconButton label="Close the assistant" size="sm" onClick={() => close(false)}><X aria-hidden /></IconButton>
       </div>
-      {aiReady() && !es.an && <div className="px-4 pb-2"><Notice tone="info">Open a letter first. The assistant works on the letter you have open.</Notice></div>}
-      {!server.ok && <div className="px-4 pb-2"><Notice tone="warn">The assistant needs the Letter Studio server, which this copy of the page doesn't have. Run it with python run_local.py to use it.</Notice></div>}
-      {server.ok && !aiReady() && <div className="px-4 pb-2"><Notice tone="warn">Claude isn't set up yet. Add ANTHROPIC_API_KEY to the .env file next to manage.py and restart the server.</Notice></div>}
+      {aiReady() && !es.an && <div className="px-6 pb-3"><Notice tone="info">Open a letter first. The assistant works on the letter you have open.</Notice></div>}
+      {!server.ok && <div className="px-6 pb-3"><Notice tone="warn">The assistant needs the Letter Studio server, which this copy of the page doesn't have. Run it with python run_local.py to use it.</Notice></div>}
+      {server.ok && !aiReady() && <div className="px-6 pb-3"><Notice tone="warn">Claude isn't set up yet. Add ANTHROPIC_API_KEY to the .env file next to manage.py and restart the server.</Notice></div>}
       {(
         <>
-          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 py-3" data-testid="assistant-log">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-6 py-4" data-testid="assistant-log">
             {!items.length && (
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-muted">Ask about this letter. Claude reads it and proposes changes; nothing changes until you press Apply.</p>
-                <div className="flex flex-wrap gap-1.5">{STARTERS.map((s) => <button key={s} type="button" disabled={!ready} onClick={() => send(s)} className="disabled:cursor-not-allowed disabled:opacity-50 rounded-control border border-hairline px-2.5 py-1 text-left text-sm transition-colors hover:bg-hairline-soft">{s}</button>)}</div>
+                <div className="flex flex-wrap gap-1.5">{STARTERS.map((s) => <button key={s} type="button" disabled={!ready} onClick={() => send(s)} className="disabled:cursor-not-allowed disabled:opacity-50 rounded-control border border-hairline px-3 py-2 text-left text-sm transition-colors hover:bg-hairline-soft">{s}</button>)}</div>
               </div>
             )}
             {items.map((it) => <Row key={it.id} it={it} />)}
@@ -107,7 +107,7 @@ export function AssistantPanel() {
             {a.error && <Notice tone="err">{a.error}</Notice>}
             <div ref={end} />
           </div>
-          <div className="flex shrink-0 flex-col gap-2 border-t border-hairline-soft px-4 py-3">
+          <div className="flex shrink-0 flex-col gap-2 border-t border-hairline-soft px-6 py-4">
             <Switch checked={a.autoApply} onCheckedChange={setAutoApply} className="text-sm">Apply small edits without asking</Switch>
             {using && <div className="text-sm text-muted" data-testid="assistant-using">Using: <Chip>{using}</Chip></div>}
             <Textarea value={text} rows={2} placeholder="Ask Claude about this letter" aria-label="Message to Claude" data-testid="assistant-input" disabled={!ready} onChange={(e) => setText(e.target.value)}

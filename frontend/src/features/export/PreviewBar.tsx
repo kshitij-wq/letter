@@ -23,7 +23,7 @@ function EmployeePick({ info }: { info: Info }) {
   return (
     <div className="relative min-w-0 flex-1 basis-40">
       <select id={id} aria-label="Employee" value={shown.length ? cur : ''} disabled={!shown.length} onChange={(e) => setPvIdx(+e.target.value)}
-        className="h-8 w-full appearance-none rounded-control border border-hairline bg-panel pl-2.5 pr-8 text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:opacity-55">
+        className="h-10 w-full appearance-none rounded-control border border-hairline bg-panel pl-2.5 pr-8 text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:opacity-55">
         {!shown.length && <option value="">No employee matches</option>}
         {labels.map(([i, l]) => <option key={i} value={i}>{l}</option>)}
         {shown.length > 0 && !hasCur && <option value={cur}>{empLabel(cur)}</option>}

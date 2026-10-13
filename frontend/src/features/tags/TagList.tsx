@@ -1,45 +1,77 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { cn } from '@/ui'
-import { ST_INFO } from '../../engine'
+import { FieldPicker, type PickerGroup } from '@/ui'
+import { ST_INFO, fieldPickerGroups, setRowKey } from '../../engine'
 import { STATUS_ICON } from './TagInspector'
 import { pickRow, registerListScroller } from './locate'
 
 type Item = { id: string; find: string; status: string; field: { label: string; key: string; same: boolean } | null; custom: boolean; kindShown: string; kindTitle: string; count: number; inLetter: boolean }
+type Entry = { type: 'head'; key: string; label: string; n: number; first: boolean } | { type: 'row'; key: string; it: Item }
 
 const MARK_TONE = { tagged: 'text-ok', check: 'text-warn', need: 'text-err', off: 'text-muted' } as const
 /** More rows than this and the list draws only the ones in view. */
 export const VIRTUAL_FROM = 80
-const ROW = 54
+const ROW = 64
+const GROUPS: [string, string][] = [['need', 'Needs a tag'], ['check', 'To check'], ['tagged', 'Tagged'], ['off', 'Skipped, left as typed'], ['gone', 'Not in the letter']]
+
+/** The list as headed groups: what needs a tag first, then what to check, then what is done. */
+export function groupItems(items: Item[]): Entry[] {
+  const group = (it: Item) => (!it.inLetter ? 'gone' : it.status)
+  const out: Entry[] = []
+  for (const [g, label] of GROUPS) {
+    const rows = items.filter((it) => group(it) === g)
+    if (!rows.length) continue
+    out.push({ type: 'head', key: `h:${g}`, label, n: rows.length, first: out.length === 0 })
+    for (const it of rows) out.push({ type: 'row', key: it.id, it })
+  }
+  return out
+}
 
 function Summary({ it }: { it: Item }) {
   if (it.status === 'off') return <span>Skipped, left as typed</span>
   const f = it.field
-  if (!f) return <span className={it.custom ? '' : 'text-warn'}>{it.custom ? 'Custom tag' : 'Not mapped'}</span>
+  if (!f) return <span className={it.custom ? '' : 'text-warn'}>{it.custom ? 'Custom tag' : 'Not mapped yet'}</span>
   return f.same
-    ? <code className="truncate font-mono text-xs">{f.key}</code>
-    : <><span className="max-w-[55%] shrink-0 truncate">{f.label}</span><code className="min-w-0 truncate font-mono text-xs opacity-80">{f.key}</code></>
+    ? <code className="truncate font-mono text-sm">{f.key}</code>
+    : <><span className="max-w-[55%] shrink-0 truncate">{f.label}</span><code className="min-w-0 truncate font-mono text-sm opacity-80">{f.key}</code></>
 }
 
-function Row({ it, selected, tabbable, onFocus }: { it: Item; selected: boolean; tabbable: boolean; onFocus: () => void }) {
+function Row({ it, selected, tabbable, onFocus, groups }: { it: Item; selected: boolean; tabbable: boolean; onFocus: () => void; groups: PickerGroup[] }) {
   const st = it.status as keyof typeof STATUS_ICON
   const Mark = STATUS_ICON[st]
+  const pickable = st === 'need' && it.inLetter
   return (
-    <button type="button" data-row-id={it.id} aria-current={selected || undefined} tabIndex={tabbable ? 0 : -1} onFocus={onFocus}
-      onClick={(e) => pickRow(it.id, e.detail === 0)}
-      className={cn('relative flex w-full items-start gap-2.5 rounded-control px-2 py-2 text-left transition-colors duration-150 hover:bg-hairline-soft focus-visible:-outline-offset-2', selected && 'bg-accent-wash hover:bg-accent-wash')}>
-      <span title={ST_INFO[st].label} className={cn('mt-[3px] shrink-0', MARK_TONE[st])}><Mark aria-hidden /><span className="sr-only">{ST_INFO[st].label}. </span></span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate font-serif text-lg leading-snug">{it.find}</span>
-        <span className="mt-px flex min-w-0 items-baseline gap-1.5 text-sm text-muted"><Summary it={it} /></span>
-      </span>
-      <span className="flex shrink-0 flex-col items-end gap-px pt-0.5 text-xs text-muted">
-        <span title={it.kindTitle}>{it.kindShown}</span>
-        {!it.inLetter ? <span>Not in letter</span> : it.count > 1 ? <span className="tnum" title={`${it.count} times in the letter`}>×{it.count}<span className="sr-only"> times in the letter</span></span> : null}
-      </span>
-    </button>
+    <div className={cn('relative flex w-full items-center gap-1 rounded-control transition-colors duration-150 hover:bg-hairline-soft', selected && 'bg-accent-wash hover:bg-accent-wash')}>
+      <button type="button" data-row-id={it.id} aria-current={selected || undefined} tabIndex={tabbable ? 0 : -1} onFocus={onFocus}
+        onClick={(e) => pickRow(it.id, e.detail === 0)}
+        className="flex min-h-[60px] min-w-0 flex-1 items-start gap-3 rounded-control px-3 py-2.5 text-left focus-visible:-outline-offset-2">
+        <span title={ST_INFO[st].label} className={cn('mt-1 shrink-0', MARK_TONE[st])}><Mark aria-hidden /><span className="sr-only">{ST_INFO[st].label}. </span></span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-serif text-lg leading-snug">{it.find}</span>
+          <span className="mt-0.5 flex min-w-0 items-baseline gap-1.5 text-sm text-muted"><Summary it={it} /></span>
+        </span>
+        {!pickable && (
+          <span className="flex shrink-0 flex-col items-end gap-px pt-0.5 text-sm text-muted">
+            <span title={it.kindTitle}>{it.kindShown}</span>
+            {!it.inLetter ? <span>Not in letter</span> : it.count > 1 ? <span className="tnum" title={`${it.count} times in the letter`}>×{it.count}<span className="sr-only"> times in the letter</span></span> : null}
+          </span>
+        )}
+      </button>
+      {pickable && (
+        <span className="shrink-0 pr-3">
+          <FieldPicker variant="button" aria-label={`Pick a field for ${it.find}`} value="" groups={groups} allowCustom placeholder="Pick field" searchPlaceholder="Search fields or type a name"
+            customLabel={(t) => `Use “${t}” as the field`} emptyText="No field matches. Keep typing to use your own name." onChange={(v) => setRowKey(it.id, v)} />
+        </span>
+      )}
+    </div>
   )
+}
+
+function Head({ label, n, first }: { label: string; n: number; first: boolean }) {
+  return <h3 className={cn('flex items-baseline gap-2 px-3 pb-1.5 text-sm font-semibold text-ink', first ? 'pt-1' : 'pt-6')}>{label}<span className="tnum font-medium text-muted">{n}</span></h3>
 }
 
 /** The nearest ancestor that scrolls. */
@@ -49,28 +81,34 @@ function scrollParent(el: HTMLElement | null): HTMLElement | null {
 }
 
 /**
- * One compact line per placeholder: status mark, the text from the letter, its field, kind and how many times it appears.
- * Arrow keys move between rows (Home and End jump); Enter opens one. A long list draws only the rows in view.
+ * The placeholders in headed groups (needs a tag, to check, tagged ...): status mark, the text from the letter, its field, kind and
+ * how many times it appears, and a "Pick field" button on the ones with no tag. Arrow keys move between rows (Home and End jump);
+ * Enter opens one. A long list draws only the rows in view.
  */
 export function TagList({ items }: { items: Item[] }) {
+  const rev = useEngineRev()
+  const groups = useMemo(() => fieldPickerGroups(), [rev])
   const sel = useUi((s) => (s.inspector?.kind === 'tag' ? String(s.inspector.args.id) : null))
   const [focusId, setFocusId] = useState<string | null>(null)
   const box = useRef<HTMLDivElement>(null)
+  const entries = useMemo(() => groupItems(items), [items])
+  const rows = useMemo(() => entries.flatMap((e) => (e.type === 'row' ? [e.it] : [])), [entries])
   const virtual = items.length > VIRTUAL_FROM
-  const v = useVirtualizer({ count: virtual ? items.length : 0, getScrollElement: () => box.current, estimateSize: () => ROW, overscan: 8, getItemKey: (i) => items[i].id })
+  const v = useVirtualizer({ count: virtual ? entries.length : 0, getScrollElement: () => box.current, estimateSize: (i) => (entries[i].type === 'head' ? 40 : ROW), overscan: 8, getItemKey: (i) => entries[i].key })
 
-  const idx = (id: string) => items.findIndex((x) => x.id === id)
+  const idx = (id: string) => rows.findIndex((x) => x.id === id)
+  const entryIdx = (id: string) => entries.findIndex((e) => e.key === id)
   const focusRow = useCallback((i: number) => {
-    const id = items[i]?.id; if (!id) return
+    const id = rows[i]?.id; if (!id) return
     setFocusId(id)
-    if (virtual) v.scrollToIndex(i, { align: 'auto' })
+    if (virtual) v.scrollToIndex(entries.findIndex((e) => e.key === id), { align: 'auto' })
     requestAnimationFrame(() => requestAnimationFrame(() => box.current?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(id)}"]`)?.focus()))
-  }, [items, virtual, v])
+  }, [rows, entries, virtual, v])
 
   // the letter, the review buttons or the palette picked a row: bring it into view
   useEffect(() => {
     registerListScroller((id) => {
-      const i = idx(id); if (i < 0) return
+      const i = entryIdx(id); if (i < 0) return
       if (virtual) v.scrollToIndex(i, { align: 'auto' })
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const el = box.current?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(id)}"]`); if (!el) return
@@ -90,30 +128,30 @@ export function TagList({ items }: { items: Item[] }) {
     const cur = (e.target as HTMLElement).closest<HTMLElement>('[data-row-id]'); if (!cur) return
     e.preventDefault()
     const i = idx(cur.dataset.rowId as string)
-    focusRow(e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : Math.max(0, Math.min(items.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1))))
+    focusRow(e.key === 'Home' ? 0 : e.key === 'End' ? rows.length - 1 : Math.max(0, Math.min(rows.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1))))
   }
 
   // one row is in the tab order: the one that has focus, else the open one, else the first
-  const tabId = focusId && idx(focusId) >= 0 ? focusId : sel && idx(sel) >= 0 ? sel : items[0]?.id
+  const tabId = focusId && idx(focusId) >= 0 ? focusId : sel && idx(sel) >= 0 ? sel : rows[0]?.id
+  const draw = (e: Entry) => (e.type === 'head'
+    ? <Head label={e.label} n={e.n} first={e.first} />
+    : <Row it={e.it} selected={sel === e.it.id} tabbable={tabId === e.it.id} onFocus={() => setFocusId(e.it.id)} groups={groups} />)
 
   if (!virtual) {
     return (
-      <div ref={box} role="list" aria-label="Placeholders" className="-mx-2 flex flex-col" onKeyDown={onKey}>
-        {items.map((it) => <div role="listitem" key={it.id}><Row it={it} selected={sel === it.id} tabbable={tabId === it.id} onFocus={() => setFocusId(it.id)} /></div>)}
+      <div ref={box} role="list" aria-label="Placeholders" className="-mx-3 flex flex-col" onKeyDown={onKey}>
+        {entries.map((e) => <div role="listitem" key={e.key}>{draw(e)}</div>)}
       </div>
     )
   }
   return (
-    <div ref={box} role="list" aria-label="Placeholders" onKeyDown={onKey} className="-mx-2 max-h-[min(560px,62dvh)] min-h-0 overflow-y-auto overscroll-contain">
+    <div ref={box} role="list" aria-label="Placeholders" onKeyDown={onKey} className="-mx-3 max-h-[min(640px,66dvh)] min-h-0 overflow-y-auto overscroll-contain">
       <div style={{ height: v.getTotalSize(), position: 'relative', width: '100%' }}>
-        {v.getVirtualItems().map((row) => {
-          const it = items[row.index]
-          return (
-            <div key={row.key} role="listitem" ref={v.measureElement} data-index={row.index} style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${row.start}px)` }}>
-              <Row it={it} selected={sel === it.id} tabbable={tabId === it.id} onFocus={() => setFocusId(it.id)} />
-            </div>
-          )
-        })}
+        {v.getVirtualItems().map((row) => (
+          <div key={row.key} role="listitem" ref={v.measureElement} data-index={row.index} style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${row.start}px)` }}>
+            {draw(entries[row.index])}
+          </div>
+        ))}
       </div>
     </div>
   )

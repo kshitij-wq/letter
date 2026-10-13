@@ -12,7 +12,7 @@ export function SegmentedControl<T extends string>({ value, onValueChange, items
       {items.map((it) => (
         <ToggleGroup.Item key={it.value} value={it.value} aria-label={it.ariaLabel} data-testid={`seg-${it.value}`}
           className={cn('inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[4px] font-medium text-muted transition-colors duration-150 hover:text-ink data-[state=on]:bg-panel data-[state=on]:text-ink data-[state=on]:shadow-key',
-            size === 'sm' ? 'h-6 px-2.5 text-sm' : 'h-7 px-3 text-base')}>
+            size === 'sm' ? 'h-8 px-3 text-sm' : 'h-9 px-4 text-base')}>
           {it.icon}{it.label}
         </ToggleGroup.Item>
       ))}

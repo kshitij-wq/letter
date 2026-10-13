@@ -8,6 +8,7 @@ import { LETTER_ACCEPT, openLetter, pickFile } from '../shell/openFile'
 import { canvasSlots } from '../shell/registry'
 import { Legend } from './Legend'
 import { Paper } from './Paper'
+import { SelectionToolbar } from './SelectionToolbar'
 import { EditorView } from '../editor/EditorView'
 import { paperScroller, scrollBehavior } from './navigate'
 
@@ -29,8 +30,8 @@ export function Canvas() {
 
   return (
     <main id="main" className="@container flex min-w-0 flex-1 flex-col bg-ground">
-      <div className="flex h-12 shrink-0 items-center gap-3 px-6 @max-[520px]:px-3">
-        <SegmentedControl<View> label="View of the letter" value={es.view} onValueChange={setView} items={VIEWS} size="sm" />
+      <div className="flex h-14 shrink-0 items-center gap-3 px-6 @max-[520px]:px-3">
+        <SegmentedControl<View> label="View of the letter" value={es.view} onValueChange={setView} items={VIEWS} />
         {es.view !== 'edit' && <Legend />}
         <IconButton label="Back to top of letter" size="sm" className="@max-[520px]:hidden"
           onClick={() => paperScroller()?.scrollTo({ top: 0, behavior: scrollBehavior() })}><ArrowUp aria-hidden /></IconButton>
@@ -53,6 +54,7 @@ export function Canvas() {
       {es.view === 'edit'
         ? <div id="editor-scroll" className="min-h-0 flex-1 px-6 @max-[520px]:px-3"><EditorView /></div>
         : <div id="paper-scroll" className="paper-scroll min-h-0 flex-1" tabIndex={-1}><Paper /></div>}
+      <SelectionToolbar />
     </main>
   )
 }

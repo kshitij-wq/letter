@@ -71,7 +71,7 @@ export function LogicStep() {
           <ol aria-label="Conditions in the letter" className="-mt-1">{rows.map((e) => <LogicItem key={e.key} e={e} />)}</ol>
         ) : (
           <EmptyState icon={<GitBranch aria-hidden />} title="No conditions yet"
-            action={<Button id="lgStart" onClick={firstText}>Select a paragraph</Button>}>
+            action={<Button id="lgStart" variant="primary" onClick={firstText}>Select a paragraph</Button>}>
             Pick a paragraph in the letter, then choose who should see it.
           </EmptyState>
         )}

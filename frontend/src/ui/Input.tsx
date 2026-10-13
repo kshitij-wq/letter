@@ -8,7 +8,7 @@ type InputProps = InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean; m
 
 /** A single-line field, 32px high. `invalid` turns the border red (say why in the text under it). */
 export function Input({ invalid, mono, className, ref, ...rest }: InputProps) {
-  return <input ref={ref} aria-invalid={invalid || undefined} className={cn(field, 'h-8 px-2.5', mono && 'font-mono text-sm', className)} {...rest} />
+  return <input ref={ref} aria-invalid={invalid || undefined} className={cn(field, 'h-10 px-3', mono && 'font-mono text-sm', className)} {...rest} />
 }
 
 /** A search field with a magnifier and a clear button; Escape clears it first. */
