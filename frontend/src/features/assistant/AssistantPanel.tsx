@@ -62,7 +62,7 @@ function Proposal({ it }: { it: Item }) {
 }
 
 function Row({ it }: { it: Item }) {
-  if (it.kind === 'user') return <p className="ml-6 self-end rounded-panel bg-accent-wash px-3 py-2 text-base leading-snug" data-testid="msg-user">{it.text}</p>
+  if (it.kind === 'user') return <p className="ml-6 self-end rounded-panel border border-accent-line bg-accent-wash px-3 py-2 text-base leading-snug" data-testid="msg-user">{it.text}</p>
   if (it.kind === 'assistant') return <p className="mr-6 whitespace-pre-wrap text-base leading-snug" data-testid="msg-assistant">{it.text}</p>
   if (it.kind === 'proposal') return <Proposal it={it} />
   return <p className={cn('text-sm', it.failed ? 'text-err' : 'text-muted')} data-testid="msg-work">{it.text}</p>

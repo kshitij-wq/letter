@@ -9,7 +9,7 @@
 .editor-host .presentation-editor__viewport { position: relative; }
 .tag-chips { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
 .tag-chip { position: absolute; box-sizing: border-box; border-radius: 3px; }
-.tag-chip-var, .tag-chip-custom { background: rgba(255,200,90,.32); border: 1px solid #EDCB8A; }
-.tag-chip-block { background: rgba(100,105,210,.16); border: 1px solid #9FA2D6; }
+.tag-chip-var, .tag-chip-custom { background: rgba(250,183,5,.30); border: 1px solid #F0BE2A; }
+.tag-chip-block { background: rgba(67,56,202,.14); border: 1px solid #A9A4EE; }
 .tag-chip-bad { background: rgba(180,35,24,.14); border: 1px solid #B42318; }
-.tag-chip-label { position: absolute; right: 0; top: -10px; font: 600 9px/1 var(--f-ui, sans-serif); color: #7A4300; background: #FFF2D9; border: 1px solid #EDCB8A; border-radius: 3px; padding: 1px 3px; }
+.tag-chip-label { position: absolute; right: 0; top: -10px; font: 600 9px/1 var(--f-ui, sans-serif); color: #6B4400; background: #FFF0BD; border: 1px solid #F0BE2A; border-radius: 3px; padding: 1px 3px; }

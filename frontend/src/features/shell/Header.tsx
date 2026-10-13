@@ -1,5 +1,5 @@
 import { Check, Command, Download, Ellipsis, Redo2, Sparkles, Table2, Undo2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger, IconButton, Kbd, modKey } from '@/ui'
@@ -7,12 +7,16 @@ import { HISTORY, downloadMapping, redo, saveStatusText, server, undo } from '..
 import { runDownloadDocx } from './docx'
 import { THEMES, ThemeMenu } from './ThemeMenu'
 
-/** The CompUp mark: a rounded square in the accent with the C. */
+/** The CompUp mark: navy square, orange and yellow rounded shapes, white where they overlap (drawn from the logo). */
 export function Mark({ className }: { className?: string }) {
+  const id = useId()
   return (
-    <svg viewBox="0 0 18 18" aria-hidden className={className ?? 'size-[18px] shrink-0'}>
-      <rect width="18" height="18" rx="4" fill="var(--accent)" />
-      <path d="M12.25 6.4a4.1 4.1 0 1 0 0 5.2" fill="none" stroke="var(--accent-ink)" strokeWidth="1.8" strokeLinecap="round" />
+    <svg viewBox="0 0 100 100" aria-hidden className={className ?? 'size-6 shrink-0'}>
+      <defs><clipPath id={id}><path d="M12 57a18 18 0 0 1 18-18h20a14 14 0 0 1 14 14v36a2 2 0 0 1-2 2H30a18 18 0 0 1-18-18z" /></clipPath></defs>
+      <rect width="100" height="100" rx="20" fill="#071F40" stroke="#5B7BB5" strokeOpacity=".45" strokeWidth="3" />
+      <path d="M39 15a4 4 0 0 1 4-4h41a4 4 0 0 1 4 4v34a16 16 0 0 1-16 16H55a16 16 0 0 1-16-16z" fill="#F75908" />
+      <path d="M12 57a18 18 0 0 1 18-18h20a14 14 0 0 1 14 14v36a2 2 0 0 1-2 2H30a18 18 0 0 1-18-18z" fill="#FAB705" />
+      <path d="M39 15a4 4 0 0 1 4-4h41a4 4 0 0 1 4 4v34a16 16 0 0 1-16 16H55a16 16 0 0 1-16-16z" fill="#FFFFFF" clipPath={`url(#${id})`} />
     </svg>
   )
 }
@@ -43,7 +47,7 @@ export function Header() {
     <header className="@container flex h-[52px] shrink-0 items-center gap-3 bg-panel px-4">
       <div className="flex min-w-0 items-center gap-2.5">
         <Mark />
-        <span className="hidden font-semibold text-muted min-[640px]:inline">CompUp</span>
+        <span className="hidden text-lg font-bold leading-none tracking-tight text-brand-ink min-[640px]:inline">CompUp</span>
         <span aria-hidden className="hidden h-[18px] w-px bg-hairline min-[640px]:block" />
         <span className="text-lg font-semibold leading-none">Letter Tagger</span>
       </div>

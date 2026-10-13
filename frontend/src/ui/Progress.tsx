@@ -6,7 +6,7 @@ export function Progress({ value, label, className }: { value: number; label: st
   const v = Math.max(0, Math.min(100, value))
   return (
     <P.Root value={v} aria-label={label} className={cn('h-1.5 w-full overflow-hidden rounded-full bg-hairline', className)}>
-      <P.Indicator className="h-full rounded-full bg-accent transition-[width] duration-200" style={{ width: `${v}%` }} />
+      <P.Indicator className="h-full rounded-full bg-blue transition-[width] duration-200" style={{ width: `${v}%` }} />
     </P.Root>
   )
 }
