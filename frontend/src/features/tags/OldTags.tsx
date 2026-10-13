@@ -67,7 +67,7 @@ export function OldTags() {
   const tools = 'flex flex-col gap-1.5'
 
   return (
-    <Section title="Tags already in the letter" summary={`${plural(info.total, 'tag')}, ${plural(names.length, 'name')}. Rename, add a prefix or rewrite them.`} open={open} onOpenChange={setOpen}>
+    <Section title="Tags already in the letter" summary={`${plural(info.total, 'tag')}, ${plural(names.length, 'name')}. Rename or clean up the tags it came with.`} open={open} onOpenChange={setOpen}>
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted">Clean up an older template: rename tags, add a prefix such as <code className="font-mono text-xs">custom_schema.</code>, or rewrite amount tags in one go. Changes apply to the tags that were already in the uploaded letter.</p>
         <ul className="divide-y divide-hairline-soft">

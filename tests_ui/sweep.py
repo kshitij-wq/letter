@@ -344,6 +344,17 @@ class Sweep:
             await loc.first.click()
         await self.settle(600 if v == "filled" else 250)
 
+    async def open_section(self, title):
+        """Unfold a folded section of the step panel (the less-used parts of Tags & fields start folded)."""
+        head = self.pg.locator(PANEL).get_by_role("button", name=re.compile(rf"^{title}"))
+        if await head.count() and await head.first.get_attribute("aria-expanded") == "false":
+            await head.first.click()
+            await self.settle(300)
+
+    async def add_box(self):
+        await self.open_section("Other text to tag")
+        return self.pg.get_by_label("Other text to tag")
+
     async def tab(self, t):
         await self.close_overlays()
         self.doing = f"step {t}"
@@ -501,6 +512,17 @@ class Sweep:
             else:
                 self.expect(bool(sel["text"]) and " " not in sel["text"].strip(), f"{t}: a click should select one word, got {json.dumps(sel)[:120]}")
                 self.expect(await self.pg.locator("#selTag").count() == 1, f"{t}: a click on a word didn't offer Tag this text")
+                # the inspector opening narrows the letter and can push the word out of view: bring it back, the bar follows
+                await self.ev("()=>{const s=getSelection(); if (s.rangeCount) s.getRangeAt(0).startContainer.parentElement.scrollIntoView({block:'center'})}")
+                await self.settle(400)
+                tb = self.pg.locator("[data-testid=sel-toolbar]")
+                self.expect(await tb.count() == 1 and await tb.is_visible(), f"{t}: no floating toolbar next to the selected word")
+                if await tb.count():
+                    self.expect(await tb.get_by_role("button", name="Tag this text").count() == 1, f"{t}: the floating toolbar has no Tag this text")
+                    self.expect(await tb.get_by_role("button", name=re.compile("^Show only when")).count() == 1, f"{t}: the floating toolbar has no Show only when")
+                    box = await tb.bounding_box()
+                    vp = self.pg.viewport_size
+                    self.expect(bool(box) and box["x"] >= 0 and box["y"] >= 0 and box["x"] + box["width"] <= vp["width"] and box["y"] + box["height"] <= vp["height"], f"{t}: the floating toolbar is off the screen {box} {vp}")
             await self.close_overlays()
             await self.tab(t)
             await self.close_overlays()
@@ -557,6 +579,110 @@ class Sweep:
 
     async def row_key(self, rid):
         return await self.ev("(id)=>{const r=window.__lt.state.rows.find(x=>x.id===id); return r ? (r.key||'') : null}", rid)
+
+    async def next_to_tag_flows(self):
+        """Tags & fields: the progress line, the Next-to-tag card (pick a field, Tag it, Skip), the inline Pick field on a row,
+        the floating toolbar next to selected words, and the folded sections below the list."""
+        pg = self.pg
+        self.doing = "Tags: Next to tag card"
+        await self.load_letter("letterA.docx")
+        await self.view("source")
+        await self.tab("tags")
+        panel = pg.locator(PANEL)
+        self.expect(await panel.get_by_text(re.compile(r"of \d+ tagged")).count() >= 1, "Tags & fields shows no 'N of M tagged' line")
+        self.expect(await panel.get_by_role("progressbar").count() >= 1, "Tags & fields shows no progress bar")
+        # three words from the letter that are not placeholders yet become "Needs a tag" rows
+        words = await self.ev("""()=>{
+          const L=window.__lt, have=new Set(L.state.rows.map(r=>r.find)), out=[];
+          for (const p of L.state.an.paras){ for (const w of p.model.text.split(/[^A-Za-z]+/)){ if (w.length>=6 && !have.has(w) && !out.includes(w) && out.length<3) out.push(w); } }
+          return out; }""")
+        if len(words) < 3:
+            return
+        box = await self.add_box()
+        for w in words:
+            await box.fill(w)
+            await box.press("Enter")
+            await self.settle(500)
+        await self.ev("()=>window.__ltUi.useUi.getState().closeInspector && window.__ltUi.useUi.getState().closeInspector()")
+        await self.close_overlays()
+        await self.tab("tags")
+        card = pg.locator("[data-testid=next-card]")
+        self.expect(await card.count() == 1 and await card.is_visible(), "no Next to tag card while placeholders need a tag")
+        if not await card.count():
+            return
+        self.expect("Next to tag" in await card.inner_text(), "the card isn't headed 'Next to tag'")
+        tag_it = card.get_by_role("button", name="Tag it")
+        self.expect(await tag_it.is_disabled(), "Tag it is enabled before a field is chosen")
+        shown = (await card.locator("button.font-serif").inner_text()).strip()
+        left0 = await self.ev("()=>window.__lt.inventoryStats().need")
+        await card.locator("#next-field").click()
+        await pg.keyboard.type("first_name")
+        await self.settle(250)
+        await pg.keyboard.press("Enter")
+        await self.settle(300)
+        self.expect(not await tag_it.is_disabled(), "Tag it stayed disabled after a field was chosen")
+        await tag_it.click()
+        await self.settle(600)
+        key = await self.ev("(f)=>{const r=window.__lt.state.rows.find(x=>x.find===f); return r ? r.key : null}", shown)
+        self.expect(key == "first_name", f"Tag it didn't tag the shown text (key {key!r})")
+        self.expect(await self.ev("()=>window.__lt.inventoryStats().need") == left0 - 1, "Tag it didn't take one off 'Needs a tag'")
+        nxt = (await card.locator("button.font-serif").inner_text()).strip() if await card.count() else ""
+        self.expect(nxt != shown, "the card didn't move on to the next placeholder")
+        # Skip moves on without tagging
+        need = await self.ev("()=>window.__lt.inventoryStats().need")
+        await card.get_by_role("button", name="Skip").click()
+        await self.settle(400)
+        self.expect(await self.ev("()=>window.__lt.inventoryStats().need") == need, "Skip changed a tag")
+        self.expect((await card.locator("button.font-serif").inner_text()).strip() != nxt, "Skip didn't show another placeholder")
+        # the list is grouped, and a row with no tag has its own Pick field
+        self.expect(await panel.get_by_role("heading", name=re.compile("^Needs a tag")).count() == 1, "the list has no 'Needs a tag' group")
+        pick = panel.get_by_role("combobox", name=re.compile("^Pick a field for ")).first
+        self.expect(await pick.count() == 1, "an untagged row has no inline Pick field")
+        if await pick.count():
+            who = (await pick.get_attribute("aria-label"))[len("Pick a field for "):]
+            await pick.evaluate("e=>e.scrollIntoView({block:'center'})")
+            await pick.click()
+            await pg.keyboard.type("first_name")
+            await self.settle(250)
+            await pg.keyboard.press("Enter")
+            await self.settle(500)
+            key = await self.ev("(f)=>{const r=window.__lt.state.rows.find(x=>x.find===f); return r ? r.key : null}", who)
+            self.expect(key == "first_name", f"the inline Pick field didn't tag its row (key {key!r})")
+        # tag whatever is left: the card turns into the success state
+        await self.ev("()=>{const L=window.__lt; L.state.rows.filter(r=>r.count && !L.rowStatus(r).startsWith('t') && L.rowStatus(r)!=='off').forEach(r=>{ if(!r.key) L.setRowKey(r.id,'first_name'); else L.confirmRow(r.id)})}")
+        await self.settle(500)
+        done = pg.locator("[data-testid=next-done]")
+        self.expect(await done.count() == 1, "no 'Everything has a tag' card once everything is tagged")
+        if await done.count():
+            self.expect(await done.get_by_role("button", name="Review all").count() == 1, "the success card has no Review all")
+            await done.get_by_role("button", name="Review all").click()
+            await self.settle(400)
+            self.expect(await self.visible("#inspector[data-kind=tag]"), "Review all didn't open the first placeholder")
+        await self.close_overlays()
+        # the folded sections below the list each have a one-line summary
+        for title in ["Other text to tag", "Tag settings"]:
+            head = panel.get_by_role("button", name=re.compile(f"^{title}"))
+            self.expect(await head.count() == 1, f"no '{title}' section below the list")
+            if await head.count():
+                self.expect(len((await head.inner_text()).strip().splitlines()) >= 2, f"'{title}' has no summary line")
+        # the toolbar's own buttons: Tag this text adds a row, Show only when opens the condition form
+        await self.close_overlays()
+        sel = await self.click_word(1)
+        tb = pg.locator("[data-testid=sel-toolbar]")
+        if sel and await tb.count():
+            await tb.get_by_role("button", name="Show only when…").click()
+            await self.settle(400)
+            self.expect(await self.visible("#cbf-0") or await self.visible("#inspector"), "Show only when… on the floating toolbar opened nothing")
+            await self.close_overlays()
+            await self.tab("tags")
+            sel = await self.click_word(2)
+            tb = pg.locator("[data-testid=sel-toolbar]")
+            if sel and await tb.count():
+                rows = await self.ev("()=>window.__lt.state.rows.length")
+                await tb.get_by_role("button", name="Tag this text").click()
+                await self.settle(500)
+                self.expect(await self.visible("#inspector[data-kind=tag]") or await self.ev("()=>window.__lt.state.rows.length") >= rows, "Tag this text on the floating toolbar did nothing")
+        await self.close_overlays()
 
     async def tag_editor_flows(self):
         """The placeholder editor: field picker, custom tag switch, several fields, format, the written tag, include, confirm, delete."""
@@ -645,7 +771,7 @@ class Sweep:
         self.expect(not await self.visible("#inspector"), "Done left the editor open")
         # a text added by hand can be deleted again (with a confirmation)
         await self.view("source")
-        box = pg.get_by_label("Other text to tag")
+        box = await self.add_box()
         await box.fill("Annexure 1")
         await box.press("Enter")
         await self.settle(600)
@@ -674,6 +800,7 @@ class Sweep:
         self.doing = "Tags: salary tables"
         await self.view("source")
         await self.tab("tags")
+        await self.open_section("Salary tables")
         cells = pg.locator(f"{PANEL} [data-cell]", has_text="Needs a tag")
         if not await cells.count():
             return
@@ -801,7 +928,7 @@ class Sweep:
         self.doing = "restore the work kept in this browser"
         await self.load_letter("letterA.docx")
         await self.tab("tags")
-        box = pg.get_by_label("Other text to tag")
+        box = await self.add_box()
         await box.fill("Annexure 1")
         await box.press("Enter")
         await self.settle(600)
@@ -1480,7 +1607,7 @@ class Sweep:
             if await chip.count():
                 await chip.first.click()
                 await self.settle(120)
-        box = pg.get_by_label("Other text to tag")
+        box = await self.add_box()
         if await box.count():
             await box.fill("Annexure 1")
             await box.press("Enter")
@@ -1814,7 +1941,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab and 3 letters")
     ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags tables shell conditions export validate downloads letters replace drop oldtags roundtrip editor merge combine assistant mailmerge tagged bad narrow team nobackend")
+    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags nexttag tables shell conditions export validate downloads letters replace drop oldtags roundtrip editor merge combine assistant mailmerge tagged bad narrow team nobackend")
     ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
@@ -1873,7 +2000,7 @@ async def main():
                     for letter in letters[:3]:
                         await sw.load_letter(letter, keep_edit=True)
 
-            stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("shell", sw.shell_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
+            stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("nexttag", sw.next_to_tag_flows), ("tables", sw.tables_flows), ("shell", sw.shell_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
                       ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("drop", sw.drop_and_restore), ("oldtags", sw.old_tags_flow), ("roundtrip", sw.condition_roundtrip),
                       ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("combine", sw.combine_flows), ("assistant", sw.assistant_flows), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow),
                       ("team", lambda: team_library(browser, url, sw)), ("nobackend", lambda: no_backend(browser, url, sw))]

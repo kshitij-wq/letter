@@ -48,7 +48,7 @@ export function SelectionToolbar() {
   return createPortal(
     <div ref={bar} role="toolbar" aria-label="Selected words" data-testid="sel-toolbar" onMouseDown={(e) => e.preventDefault()}
       style={{ left: pos?.left ?? -9999, top: pos?.top ?? -9999, transform: 'translateX(-50%)' }}
-      className="enter-fade fixed z-[60] flex items-center gap-1 rounded-panel border border-hairline bg-panel p-1.5 shadow-pop">
+      className="enter-fade fixed z-[60] flex w-max max-w-[calc(100vw-16px)] items-center gap-1 rounded-panel border border-hairline bg-panel p-1.5 shadow-pop">
       <Button variant="primary" icon={<Tag aria-hidden />} onClick={tagWords} data-testid="sel-tag">Tag this text</Button>
       {s.range && (
         <>
