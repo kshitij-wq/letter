@@ -52,9 +52,9 @@ function Result({ done }: { done: Done }) {
   const toggleOnly = (on: boolean) => { es.batchOnlyBad = on; notify() }
   const rerun = <Button size="sm" onClick={() => runBatch()}>Run again</Button>
   return (
-    <div className="grid gap-4" data-batch="done">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4" data-batch="done">
       {done.stale && <Notice tone="warn" action={rerun}>The template changed after this test. Run it again for the current result.</Notice>}
-      <div className="grid gap-1.5">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
         <p className="text-sm text-muted">
           {pl(done.total, 'employee')} tested in {done.seconds.toFixed(1)} s{done.cancelled ? ' (stopped early)' : ''}.
         </p>
@@ -73,7 +73,7 @@ function Result({ done }: { done: Done }) {
         </Notice>
       )}
       {done.hasProblems ? (
-        <div className="grid gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-base font-semibold">Employees</h3>
             <Checkbox checked={done.only} onCheckedChange={toggleOnly} className="text-sm">Only employees with problems</Checkbox>
@@ -84,11 +84,11 @@ function Result({ done }: { done: Done }) {
         <Section title={`Show all ${done.total} employees`} defaultOpen={false}><EmployeeTable done={done} /></Section>
       )}
       {done.groups.length > 0 && (
-        <div className="grid gap-1">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-1">
           <h3 className="text-base font-semibold">What went wrong</h3>
           <ul className="divide-y divide-hairline-soft">
             {done.groups.map((g, i) => (
-              <li key={i} data-level={g.level} className="grid gap-2 py-3">
+              <li key={i} data-level={g.level} className="grid grid-cols-[minmax(0,1fr)] gap-2 py-3">
                 <div className="flex items-center gap-2">
                   <LevelBadge level={g.level} label={g.label} />
                   {g.real && <Badge>Real Jinja</Badge>}
@@ -114,7 +114,7 @@ export function BatchSection() {
   const loadData = () => setTab('doc', { open: true })
   return (
     <Section title="Test every employee" count={v.stats}>
-      <div className="grid gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         <p className="text-sm text-muted">Fills the letter for every employee in your data file and lists what would come out wrong: empty values, text where a number is needed, wrong date formats, placeholders left in, or a file Word can't open.</p>
         {!v.rows ? (
           <EmptyState icon={<Table2 aria-hidden />} title="No employee data loaded" className="rounded-panel border border-dashed border-hairline py-6"
@@ -136,7 +136,7 @@ export function BatchSection() {
               {v.status === 'done' && v.done?.canDownload && <Button icon={<Download aria-hidden />} onClick={() => downloadBatchResults()}>Download results (.csv)</Button>}
             </div>
             {running && (
-              <div className="grid gap-1" data-batch="running">
+              <div className="grid grid-cols-[minmax(0,1fr)] gap-1" data-batch="running">
                 <Progress value={v.progress.pct} label="Testing employees" />
                 <p aria-live="off" className="tnum text-sm text-muted">{v.progress.done} of {v.progress.total}</p>
               </div>

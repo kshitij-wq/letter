@@ -86,7 +86,7 @@ export function Resolved({ items }: { items: View['resolved'] }) {
   if (!items.length) return null
   return (
     <Section title="Resolved" count={items.length} defaultOpen={false}>
-      <ul className="grid gap-2">
+      <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
         {items.map((x) => (
           <li key={x.key} className="flex items-start gap-2 text-base text-muted">
             <CircleCheck aria-hidden className="mt-0.5 text-ok" />
