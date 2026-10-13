@@ -1,67 +1,64 @@
 ---
 name: Letter Tagger
-description: A cool-white office file where the letter sits on paper and every finding is a lettered flag in its margin.
+description: A warm-white office file where the letter sits on paper and every finding is a lettered flag in its margin.
 colors:
-  ground: "#F1F4F8"
-  notesheet: "#F9FAFB"
+  ground: "#F4F4F1"
+  notesheet: "#FAFAF8"
   panel: "#FFFFFF"
   paper: "#FFFFFF"
   paper-ink: "#1B1B1B"
-  paper-line: "#DFE3E8"
-  ink: "#212B36"
-  muted: "#576575"
-  hairline: "#D5DBE2"
-  hairline-soft: "#E8ECF0"
-  navy: "#20335B"
-  navy-deep: "#172441"
-  blue-wash: "#EEF4FF"
-  on-navy: "#FFFFFF"
-  blue: "#387DFF"
-  link: "#0B52D6"
-  orange: "#FF6C40"
+  paper-line: "#E4E4E0"
+  ink: "#18181B"
+  muted: "#62626B"
+  hairline: "#DCDCD7"
+  hairline-soft: "#EAEAE6"
+  accent: "#3F4BC9"
+  accent-deep: "#323DB0"
+  accent-wash: "#EEF0FD"
+  on-accent: "#FFFFFF"
   tag-ink: "#6B4400"
   tag-wash: "#FFF0BD"
   tag-line: "#F0BE2A"
   highlighter: "#FFE98A"
   highlighter-ink: "#3A3000"
-  flag-red: "#C21B32"
-  flag-red-wash: "#FADEE1"
-  flag-amber: "#8A5F00"
-  flag-amber-wash: "#FFF7CD"
-  flag-green: "#08660D"
-  flag-green-wash: "#E9FCD4"
-  flag-blue: "#0A6A8C"
-  flag-blue-wash: "#E0F5FB"
-  flag-indigo: "#5B3FD6"
-  flag-indigo-wash: "#F0ECFF"
+  flag-red: "#B91C1C"
+  flag-red-wash: "#FEECEC"
+  flag-amber: "#92400E"
+  flag-amber-wash: "#FFF4DD"
+  flag-green: "#15803D"
+  flag-green-wash: "#E6F6EC"
+  flag-blue: "#0F5F8C"
+  flag-blue-wash: "#E8F3F9"
+  flag-indigo: "#7E22CE"
+  flag-indigo-wash: "#F5EBFF"
 typography:
   headline:
-    fontFamily: "Source Sans 3, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "18px"
     fontWeight: 600
     lineHeight: 1.3
   title:
-    fontFamily: "Source Sans 3, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "15px"
     fontWeight: 600
     lineHeight: 1.45
   subtitle:
-    fontFamily: "Source Sans 3, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "13.5px"
     fontWeight: 600
     lineHeight: 1.45
   body:
-    fontFamily: "Source Sans 3, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "13.5px"
     fontWeight: 400
     lineHeight: 1.45
   body-small:
-    fontFamily: "Source Sans 3, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "12.5px"
     fontWeight: 400
     lineHeight: 1.45
   label:
-    fontFamily: "Source Sans 3, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontFamily: "Public Sans, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "11px"
     fontWeight: 600
     lineHeight: 1.5
@@ -92,15 +89,15 @@ spacing:
   xxl: "32px"
 components:
   button-primary:
-    backgroundColor: "{colors.navy}"
-    textColor: "{colors.on-navy}"
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.on-accent}"
     rounded: "{rounded.control}"
     typography: "{typography.subtitle}"
     padding: "5px 12px"
     height: "32px"
   button-primary-hover:
-    backgroundColor: "{colors.navy-deep}"
-    textColor: "{colors.on-navy}"
+    backgroundColor: "{colors.accent-deep}"
+    textColor: "{colors.on-accent}"
   button-secondary:
     backgroundColor: "{colors.panel}"
     textColor: "{colors.ink}"
@@ -138,8 +135,8 @@ components:
     padding: "0 10px"
     height: "28px"
   chip-selected:
-    backgroundColor: "{colors.blue-wash}"
-    textColor: "{colors.navy}"
+    backgroundColor: "{colors.accent-wash}"
+    textColor: "{colors.accent}"
   badge:
     backgroundColor: "{colors.hairline-soft}"
     textColor: "{colors.muted}"
@@ -193,7 +190,7 @@ components:
     padding: "6px 8px"
     height: "48px"
   placeholder-row-selected:
-    backgroundColor: "{colors.blue-wash}"
+    backgroundColor: "{colors.accent-wash}"
     textColor: "{colors.ink}"
   tag-chip:
     backgroundColor: "{colors.tag-wash}"
@@ -240,27 +237,25 @@ components:
 
 The letter is the correspondence, and everything the tool knows about it is a lettered noting in its margin, like flagged pages in a government file. The page is built as a desk: a pale green-grey ground, a slightly lighter notesheet layer for the steps and the current step's panel, and the letter itself on white paper in the middle. The category's usual arrangement, a document wedged between a long settings sidebar and a stack of cards, is refused. The left panel holds only the current step; the right inspector appears only when something is selected; the findings live on the paper.
 
-The mood is quiet, clerical and exact: hairline rules instead of boxes, one confident navy (with CompUp blue for focus and selection) reserved for the action you take, and a small set of flag colours that each mean one thing. It is a tool for HR and compensation people who open it a few times a cycle, so every surface says what is wrong, where, and the one action that fixes it, in short plain sentences.
+The mood is quiet, clerical and exact: hairline rules instead of boxes, one quiet indigo reserved for the action you take, and a small set of flag colours that each mean one thing. It is a tool for HR and compensation people who open it a few times a cycle, so every surface says what is wrong, where, and the one action that fixes it, in short plain sentences.
 
-Dark mode keeps the same world: the desk goes to deep navy-black, the notesheet lifts one step, and the paper itself darkens, so the letter never glares against its ground.
+Dark mode keeps the same world: the desk goes to deep neutral black, the notesheet lifts one step, and the paper itself darkens, so the letter never glares against its ground.
 
 **Key Characteristics:**
 - Three tonal layers (ground, notesheet, white) separated by 1px hairlines, not shadows.
-- Navy #0B6E5F marks the primary action, selection and focus, and nothing else.
+- Accent #0B6E5F marks the primary action, selection and focus, and nothing else.
 - Five flag colours with fixed jobs: red error, amber to-check, indigo condition, blue note, green tagged or resolved.
-- Three type voices that never swap: Source Sans 3 for the tool, IBM Plex Mono for tags, Source Serif 4 for the letter.
+- Three type voices that never swap: Public Sans for the tool, IBM Plex Mono for tags, Source Serif 4 for the letter.
 - Margin flags are lettered pennants (A, B, C) that match the lettered items in the Validate list.
 - Status restyles a row; it never reflows it. Resolved items stay visible as Resolved.
 - 6px controls, 8px panels, 2px paper.
 
 ## Colors
 
-A cool near-white desk with white panels and clear hairlines, one navy primary (CompUp's own #20335B) with CompUp blue (#387DFF) for focus, links and selection, and one flag colour per job. The CompUp mark's orange appears once, as the selected step's underline; its yellow is the tag colour. The values follow CompUp's product theme.
+A warm near-white desk with white panels and soft hairlines, near-black ink, one indigo accent, and one muted flag colour per job. Neutrals do the work; the CompUp mark (navy, orange, yellow) appears only in the header and the favicon.
 
 ### Primary
-- **CompUp Navy** (#20335B): the primary. Fills the primary button (Download tagged .docx; shadow 0 8px 16px rgba(56,125,255,.24)) and the selected step's number; the selected step label and chip text. Hover is **Deep Navy** (#172441). Text on navy is white.
-- **CompUp Blue** (#387DFF, link text #0B52D6): focus ring, caret, checked boxes and switches, progress, links. **Blue Wash** (#EEF4FF, line #C6DAFF) is the selected-row, selected-chip, drop-target and text-selection tint.
-- **CompUp Orange** (#FF6C40): the selected step's underline only.
+- **Accent Indigo** (#3F4BC9): the single accent. Fills the primary button (Download tagged .docx), the selected step's number and underline, selected rows and chips (as text and 1px border), the focus ring, links, checked boxes and switches, the progress fill, and the caret. Hover is **Deep Indigo** (#323DB0). Text on it is white. **Accent Wash** (#EEF0FD, line #C5CAF5) is the selected-row, selected-chip, drop-target and text-selection tint.
 
 ### Neutral
 - **Desk Ground** (#EEF1EF): the page behind the letter, and the track under the segmented view switch's hairlines.
@@ -280,18 +275,18 @@ A cool near-white desk with white panels and clear hairlines, one navy primary (
 - **Flag Blue** (#2F5B86, wash #E8F0F8): notes and information, and the default notice.
 - **Flag Green** (#17784A, wash #E3F3EA): tagged, filled and resolved: tagged placeholders, completed step marks, a clean check.
 
-Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0E131A, notesheet #141A22, panel #1B232D, ink #E8EDF3, muted #A0ADBB, hairline #323E4B, soft #27313C; the primary and the blue lift to #71A3FF (hover #9ABDFF, text on it #0A1730, wash #1A2B4A, link #8DB5FF); paper #212B36 with ink #E8ECF2; flags lighten for contrast on the dark panels.
+Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0F1012, notesheet #141517, panel #1A1B1E, ink #ECECEE, muted #A1A1AA, hairline #2E2F34, soft #232428; the accent lifts to #8E9BFF (hover #AAB4FF, text on it #0B0D2B, wash #22264F); paper #202125 with ink #E8E8EA; flags lighten for contrast on the dark panels.
 
 ### Named Rules
-**The Earned Navy Rule.** Navy and blue mean "this is what you do" or "this is what you have selected". It never colours a status, a decoration or a heading. If something is navy, clicking it moves the work forward.
+**The Earned Accent Rule.** The accent means "this is what you do" or "this is what you have selected". It never colours a status, a decoration or a heading. If something is accent, clicking it moves the work forward.
 
-**The One Job Per Flag Rule.** Red, amber, indigo, blue and green each keep one meaning on every surface. A condition is never amber; a note is never red; a success is never blue.
+**The One Job Per Flag Rule.** Red, amber, indigo, blue and green each keep one meaning on every surface. A condition is never amber; a note is never red; a success is never indigo.
 
 **The Notesheet Layering Rule.** Depth between regions comes from the ground, notesheet and white steps plus a hairline, in that order from the edge of the screen inward.
 
 ## Typography
 
-**UI Font:** Source Sans 3 (with system-ui, -apple-system, Segoe UI, sans-serif), weights 400, 500, 600, 700
+**UI Font:** Public Sans (with system-ui, -apple-system, Segoe UI, sans-serif), weights 400, 500, 600, 700
 **Tag Font:** IBM Plex Mono (with ui-monospace, SFMono-Regular, Menlo, Consolas), weights 400, 500
 **Letter Font:** Source Serif 4 (with Georgia, Times New Roman, serif), optical size 8-60, weights 400, 600
 
@@ -345,16 +340,16 @@ Quiet and legible: buttons and chips are outlined, status is carried by tint and
 
 ### Buttons
 - **Shape:** 6px corners, 32px high (28px small, 32px square for icon-only), 5px 12px padding, weight 600, 6px gap to an icon.
-- **Primary:** Navy fill with white text and a matching 1px border; one per view (Download tagged .docx). Hover goes to Deep Navy.
+- **Primary:** Accent fill with white text and a matching 1px border; one per view (Download tagged .docx). Hover goes to Deep Indigo.
 - **Secondary (default):** Panel white with a hairline border and ink text. Hover tints to Hairline Soft and darkens the border to Filing Grey.
 - **Ghost:** Transparent with muted text, ink and a soft wash on hover; for undo/redo and quiet tools.
 - **Danger:** Red text and red border on white; hover fills with the red wash.
 - **Press and busy:** 0.5px downward nudge on press; a 12px spinner replaces the icon while busy. Disabled drops to 45% opacity.
-- **Focus:** a 2px navy outline at 2px offset on every focusable element (inside fields it is inset).
+- **Focus:** a 2px accent outline at 2px offset on every focusable element (inside fields it is inset).
 
 ### Chips and filters
 - **Style:** 28px high, 6px corners, white with a hairline border and 12.5px text at weight 500; an optional count in muted semibold.
-- **State:** Selected turns Blue Wash with navy text and a navy border. Pressed toggles in the validate summary go dashed and muted when switched off.
+- **State:** Selected turns Accent Wash with accent text and a accent border. Pressed toggles in the validate summary go dashed and muted when switched off.
 
 ### Badges and notices
 - **Badge:** 11px semibold, 4px corners, 0 6px padding, tint plus matching ink from the flag set (Fix and Error red, Check amber, Note blue, Tagged and Resolved green, Condition indigo, plain grey default). Count pills on step tabs are fully round.
@@ -362,17 +357,17 @@ Quiet and legible: buttons and chips are outlined, status is carried by tint and
 
 ### Inputs / Fields
 - **Style:** 32px high, 1px hairline border, 6px corners, white ground, 5px 8px padding; selects take a drawn 16px chevron; text areas start at 60px.
-- **Focus:** the 2px navy outline, inset by one pixel, with the border turning navy.
+- **Focus:** the 2px accent outline, inset by one pixel, with the border turning accent.
 - **Error / Disabled:** the Jinja editor turns its border red when invalid; disabled fields drop to 55% opacity.
 - **Combobox:** a field list in an 8px-radius popover with sticky group heads, 30px options, and a mono code on the right in muted type.
 
 ### Navigation (step bar)
 - **Style:** a 44px strip on the header's white surface, with one hairline under it. Each step is a 20px round mark (number, or a green check when done), a 13.5px semibold label and an optional count pill (amber for to-do, solid red for errors). No connecting rules: the marks carry the sequence.
-- **States:** Unselected is Filing Grey; hover and selected go to ink; the selected mark turns ink and the label gets a 2px navy bar under it. Arrow keys move between steps. On phones the list scrolls sideways.
+- **States:** Unselected is Filing Grey; hover and selected go to ink; the selected mark turns ink and the label gets a 2px accent bar under it. Arrow keys move between steps. On phones the list scrolls sideways.
 
 ### Placeholder rows (list)
 - **Style:** 48px grid of a 24px status mark, the found text and field summary, a right-aligned count, and a chevron. Status is a mark tint only (green tagged, amber to check, yellow needs a tag, grey otherwise) so the row never changes size.
-- **State:** hover washes Hairline Soft; selected is Blue Wash with a 1px navy inset ring; a 1.2 second navy wash flash marks a row you were just sent to.
+- **State:** hover washes Hairline Soft; selected is Accent Wash with a 1px accent inset ring; a 1.2 second accent wash flash marks a row you were just sent to.
 
 ### Inspector
 - **Style:** a 380px white column with a 48px head (title, close), hairline separators, 16px section padding and 16px gaps. It keeps the inventory context: the quote from the letter, then mapping, format, live preview of the real value and the written tag, with a sticky foot of Include, previous/next and a primary Done.
@@ -388,10 +383,10 @@ A condition is shown as a bracket, not a box. Paragraphs inside an if-block get 
 Each finding on the Check view is a pennant in the paper's left margin level with its paragraph: 20 by 18px (16px on phones), red for an error, amber for a warning, white bold letter A, B, C in order. The same letter heads the matching item in the Validate list. Hover or focus outlines the paragraph in the flag colour; the open flag gets a 2px ink ring. When fixed, the flag goes quiet grey and the item moves to a Resolved group that stays visible. More flags than the margin fits stack downward.
 
 ### Paper
-The letter is white, 2px corners, with the Paper lift shadow, set in Source Serif 4. Letter parts such as header and footer are dashed boxes; tables keep the letter's own 1px paper-line borders; a page break is a full-bleed desk-coloured strip with the page number. Hovering a paragraph washes it; selecting one gives it a Blue Wash ground and a 1px navy outline.
+The letter is white, 2px corners, with the Paper lift shadow, set in Source Serif 4. Letter parts such as header and footer are dashed boxes; tables keep the letter's own 1px paper-line borders; a page break is a full-bleed desk-coloured strip with the page number. Hovering a paragraph washes it; selecting one gives it a Accent Wash ground and a 1px accent outline.
 
 ### Motion
-Colour, background and border changes take 150ms ease; drawers slide in 200ms; tooltips wait 150ms; the where-you-landed flash fades a navy wash over 1.2 seconds. Spinners are 0.7 to 0.8 seconds. All of it drops to a near-zero duration under `prefers-reduced-motion`.
+Colour, background and border changes take 150ms ease; drawers slide in 200ms; tooltips wait 150ms; the where-you-landed flash fades a accent wash over 1.2 seconds. Spinners are 0.7 to 0.8 seconds. All of it drops to a near-zero duration under `prefers-reduced-motion`.
 
 ## Do's and Don'ts
 
@@ -400,7 +395,7 @@ Colour, background and border changes take 150ms ease; drawers slide in 200ms; t
 - **Do** mark every finding on the paper as a lettered pennant and give the matching Validate item the same letter.
 - **Do** let status change colour and mark only: a row, step or flag keeps its size and position when its status changes.
 - **Do** keep resolved items on screen, labelled Resolved, in a collapsible group.
-- **Do** use navy for the one primary action, selection and focus; use the flag colours only for their one job each.
+- **Do** use accent for the one primary action, selection and focus; use the flag colours only for their one job each.
 - **Do** separate regions with a 1px Hairline or a tone change, with 6px controls and 8px panels.
 - **Do** write tags in IBM Plex Mono at their size and quotes from the letter in Source Serif 4.
 - **Do** label sample values as sample (dotted underline, amber "Sample" badge) and never style them like real data.
@@ -408,7 +403,7 @@ Colour, background and border changes take 150ms ease; drawers slide in 200ms; t
 
 ### Don't:
 - **Don't** put the letter in a card inside a stack of cards or beside a long settings sidebar; the current step is a single panel and the inspector appears only on demand.
-- **Don't** colour a status, heading or decoration navy.
+- **Don't** colour a status, heading or decoration accent.
 - **Don't** give panels, rows, cards or buttons a resting shadow; only the paper has one, and floating layers take the Pop shadow.
 - **Don't** add small uppercase, letter-spaced labels above headings; section titles are sentence-case semibold.
 - **Don't** put a coloured stripe on a card, row or notice; the only stripe in the system is the condition bracket in the letter's margin.

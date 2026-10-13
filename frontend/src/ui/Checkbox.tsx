@@ -9,7 +9,7 @@ export function Checkbox({ checked, onCheckedChange, children, disabled, classNa
   return (
     <div className={cn('flex items-start gap-2', className)}>
       <C.Root id={id} checked={checked} disabled={disabled} onCheckedChange={(v) => onCheckedChange(v === true)}
-        className="mt-px grid size-4 shrink-0 place-items-center rounded-[4px] border border-muted/70 bg-panel text-accent-ink transition-colors duration-150 hover:border-blue data-[state=checked]:border-blue data-[state=checked]:bg-blue disabled:opacity-45">
+        className="mt-px grid size-4 shrink-0 place-items-center rounded-[4px] border border-muted/70 bg-panel text-accent-ink transition-colors duration-150 hover:border-accent data-[state=checked]:border-accent data-[state=checked]:bg-accent disabled:opacity-45">
         <C.Indicator><Check aria-hidden className="size-3 stroke-[2.5]" /></C.Indicator>
       </C.Root>
       <label htmlFor={id} className={cn('text-base leading-snug', disabled && 'opacity-55')}>{children}</label>

@@ -89,7 +89,7 @@ export function PreviewBar() {
         <Status info={info} />
         {info.hasIssues && (
           <button type="button" aria-expanded={info.open} aria-controls={issuesId} disabled={!!info.error} onClick={togglePvIssues}
-            className="rounded-control px-1 text-sm text-link underline underline-offset-2 hover:text-accent-hover disabled:text-muted disabled:no-underline">
+            className="rounded-control px-1 text-sm text-accent underline underline-offset-2 hover:text-accent-hover disabled:text-muted disabled:no-underline">
             {info.open ? 'Hide' : 'Show'} problems
           </button>
         )}

@@ -6,11 +6,11 @@ import { Spinner } from './Spinner'
 import { Tooltip } from './Tooltip'
 
 const button = cva(
-  'inline-flex shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-control border font-bold leading-tight transition-colors duration-150 active:translate-y-px disabled:pointer-events-none disabled:opacity-45 aria-busy:pointer-events-none',
+  'inline-flex shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-control border font-semibold leading-tight transition-colors duration-150 active:translate-y-px disabled:pointer-events-none disabled:opacity-45 aria-busy:pointer-events-none',
   {
     variants: {
       variant: {
-        primary: 'border-accent bg-accent text-accent-ink shadow-[0_8px_16px_rgb(56_125_255/.24)] hover:border-accent-hover hover:bg-accent-hover disabled:opacity-60 disabled:shadow-none',
+        primary: 'border-accent bg-accent text-accent-ink shadow-key hover:border-accent-hover hover:bg-accent-hover disabled:opacity-60 disabled:shadow-none',
         secondary: 'border-hairline bg-panel text-ink shadow-key hover:border-accent-line hover:bg-accent-wash hover:text-accent',
         ghost: 'border-transparent bg-transparent text-muted hover:bg-accent-wash hover:text-accent',
         danger: 'border-err-line bg-panel text-err hover:border-err hover:bg-err-wash',

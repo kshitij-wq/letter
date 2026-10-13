@@ -57,7 +57,7 @@ export function StepBar() {
                   <span aria-hidden data-testid="step-count" className={cn('tnum grid h-[18px] min-w-[18px] place-items-center rounded-full px-1.5 text-xs font-semibold',
                     it.err ? 'bg-err text-panel' : 'bg-warn-wash text-warn ring-1 ring-inset ring-warn-line')}>{it.n}</span>
                 )}
-                <span aria-hidden className={cn('absolute inset-x-2.5 bottom-0 h-0.5 rounded-full bg-cta transition-opacity duration-150', on ? 'opacity-100' : 'opacity-0')} />
+                <span aria-hidden className={cn('absolute inset-x-2.5 bottom-0 h-0.5 rounded-full bg-accent transition-opacity duration-150', on ? 'opacity-100' : 'opacity-0')} />
               </Tabs.Trigger>
             </Tooltip>
           )
