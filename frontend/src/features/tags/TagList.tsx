@@ -6,7 +6,7 @@ import { cn } from '@/ui'
 import { FieldPicker, type PickerGroup } from '@/ui'
 import { ST_INFO, fieldPickerGroups, setRowKey } from '../../engine'
 import { STATUS_ICON } from './TagInspector'
-import { pickRow, registerListScroller } from './locate'
+import { locateRow, pickRow, registerListScroller, showRow } from './locate'
 
 type Item = { id: string; find: string; status: string; field: { label: string; key: string; same: boolean } | null; custom: boolean; kindShown: string; kindTitle: string; count: number; inLetter: boolean }
 type Entry = { type: 'head'; key: string; label: string; n: number; first: boolean } | { type: 'row'; key: string; it: Item }
@@ -63,7 +63,7 @@ function Row({ it, selected, tabbable, onFocus, groups }: { it: Item; selected: 
       {pickable && (
         <span className="shrink-0 pr-3">
           <FieldPicker variant="button" aria-label={`Pick a field for ${it.find}`} value="" groups={groups} allowCustom placeholder="Pick field" searchPlaceholder="Search fields or type a name"
-            customLabel={(t) => `Use “${t}” as the field`} emptyText="No field matches. Keep typing to use your own name." onChange={(v) => setRowKey(it.id, v)} />
+            customLabel={(t) => `Use “${t}” as the field`} emptyText="No field matches. Keep typing to use your own name." onChange={(v) => { setRowKey(it.id, v); if (showRow(it.id)) locateRow(it.id, false) }} />
         </span>
       )}
     </div>

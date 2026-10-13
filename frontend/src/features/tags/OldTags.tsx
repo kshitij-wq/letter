@@ -5,6 +5,7 @@ import { Button, Checkbox, IconButton, Input, Section, Select, cn } from '@/ui'
 import { addPrefixToTags, fieldLabel, oldTagNames, renameTag, renameTagTyped, replaceInTags, rewriteAmountTags, squash, tagOpParts, undoTagOp } from '../../engine'
 import { scrollBehavior } from '../paper/navigate'
 import { plainLine } from '../validate/plain'
+import { CustomToggle } from './CustomToggle'
 import { getPicked, locateTag, setPicked, useOpenTag, usePicked, useTagPos } from './existing'
 import { useCollapsed } from './useCollapsed'
 
@@ -61,6 +62,7 @@ export function NameRow({ n }: { n: any }) {
         <span>{label && label.toLowerCase() !== n.id.toLowerCase() ? <span className="text-ink">{label} · </span> : null}{st.text}{n.suggestion ? <> · did you mean <code className="font-mono">{n.suggestion}</code>?</> : null}{pos ? <span className="text-muted"> · showing {pos.index + 1} of {pos.count}</span> : null}</span>
         {n.suggestion && <Button size="sm" variant="ghost" className="-my-1 h-6 px-1.5 text-xs" onClick={() => renameTag(n.id, n.suggestion)}>Use {n.suggestion}</Button>}
       </p>
+      <CustomToggle fieldKey={n.id} compact className="ml-6 mt-1" onChange={(k) => renameTagTyped(n.id, k)} />
       {problems.map((p) => <p key={p} className="ml-6 text-xs text-err" data-testid="old-tag-problem">{p}</p>)}
       {editing && (
         <form onSubmit={submit} className="ml-6 mt-1.5 flex gap-2">

@@ -616,6 +616,23 @@ class Sweep:
                     await loc.click()
                     await self.settle(500)
                     self.expect(await row.get_by_text(re.compile(rf"showing 2 of {top['places']}")).count() == 1, f"{name}: a second Locate didn't move on to place 2 of {top['places']}")
+            # a plain name (basic) can be switched to custom_schema.basic and back with the Custom tag switch on its row
+            plain = await self.ev("()=>{const n=window.__lt.oldTagNames().names.find(n=>/^[a-z_]+$/.test(n.id) && !window.__lt.isCompUpKey(n.id)); return n?n.id:null}")
+            if plain:
+                prow = panel.locator(f"[data-testid='old-tag-{plain}']")
+                if await prow.count() == 0:
+                    await panel.get_by_role("button", name=re.compile(r"^Show all \d+ tags")).click()
+                    await self.settle(200)
+                ptog = prow.get_by_role("switch", name=re.compile("^Custom tag"))
+                if self.expect(await ptog.count() == 1, f"{name}: no Custom tag switch on the row of {plain}"):
+                    await ptog.click()
+                    await self.settle(500)
+                    self.expect(await self.ev("(id)=>window.__lt.oldTagNames().names.some(n=>n.id==='custom_schema.'+id)", plain), f"{name}: the Custom tag switch didn't rename {plain} to custom_schema.{plain}")
+                    back = panel.locator(f"[data-testid='old-tag-custom_schema.{plain}']").get_by_role("switch", name=re.compile("^Custom tag"))
+                    if await back.count():
+                        await back.click()
+                        await self.settle(500)
+                        self.expect(await self.ev("(id)=>window.__lt.oldTagNames().names.some(n=>n.id===id)", plain), f"{name}: turning Custom tag off didn't take custom_schema. off {plain} again")
             # a click on a yellow tag in the letter opens that tag's row
             await self.ev("()=>window.__ltUi.useUi.getState().closeInspector && window.__ltUi.useUi.getState().closeInspector()")
             await self.tab("doc")
@@ -670,15 +687,28 @@ class Sweep:
         shown = (await card.locator("button.font-serif").inner_text()).strip()
         left0 = await self.ev("()=>window.__lt.inventoryStats().need")
         await card.locator("#next-field").click()
-        await pg.keyboard.type("first_name")
+        await pg.keyboard.type("bonus_pct")
         await self.settle(250)
         await pg.keyboard.press("Enter")
         await self.settle(300)
         self.expect(not await tag_it.is_disabled(), "Tag it stayed disabled after a field was chosen")
+        # the Custom tag switch sits next to the field picker, off by default, and adds custom_schema. to the chosen field
+        tog = card.get_by_role("switch", name=re.compile("^Custom tag"))
+        if self.expect(await tog.count() == 1 and await tog.is_visible(), "the Next to tag card has no visible Custom tag switch"):
+            self.expect(await tog.get_attribute("aria-checked") == "false", "the Custom tag switch in the card isn't off by default")
+            await tog.click()
+            await self.settle(250)
+            self.expect(await tog.get_attribute("aria-checked") == "true", "the Custom tag switch in the card didn't turn on")
+            self.expect("custom_schema.bonus_pct" in await card.inner_text(), "turning Custom tag on didn't show custom_schema.bonus_pct in the card's field")
+            await tog.click()
+            await self.settle(250)
+            self.expect(await tog.get_attribute("aria-checked") == "false", "the Custom tag switch in the card didn't turn off")
+            await tog.click()
+            await self.settle(250)
         await tag_it.click()
         await self.settle(600)
         key = await self.ev("(f)=>{const r=window.__lt.state.rows.find(x=>x.find===f); return r ? r.key : null}", shown)
-        self.expect(key == "first_name", f"Tag it didn't tag the shown text (key {key!r})")
+        self.expect(key == "custom_schema.bonus_pct", f"Tag it didn't tag the shown text with the custom tag (key {key!r})")
         self.expect(await self.ev("()=>window.__lt.inventoryStats().need") == left0 - 1, "Tag it didn't take one off 'Needs a tag'")
         nxt = (await card.locator("button.font-serif").inner_text()).strip() if await card.count() else ""
         self.expect(nxt != shown, "the card didn't move on to the next placeholder")

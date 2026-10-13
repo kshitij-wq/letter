@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Button, FieldPicker } from '@/ui'
 import { confirmRow, fieldPickerGroups, inventoryStats, rowContext, rowStatus, setFilter, setRowKey, setTab } from '../../engine'
+import { CustomToggle } from './CustomToggle'
 import { locateRow, showRow } from './locate'
 
 /** The placeholders in the letter still waiting for a tag, then the ones with a suggestion to check. */
@@ -91,6 +92,7 @@ export function NextCard() {
         <span id="next-field-label" className="text-sm font-medium text-ink">{status === 'check' ? 'Suggested field' : 'Which employee field is this?'}</span>
         <FieldPicker id="next-field" aria-label="Employee field for the next placeholder" value={key} groups={groups} allowCustom placeholder="Pick or type a field" searchPlaceholder="Search fields or type a name"
           customLabel={(t) => `Use “${t}” as the field`} emptyText="No field matches. Keep typing to use your own name." onChange={(v) => setDraft({ id: r.id, key: v })} />
+        <CustomToggle fieldKey={key} compact className="mt-1" onChange={(k) => setDraft({ id: r.id, key: k })} />
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="primary" disabled={!key} onClick={tagIt} data-testid="next-tag">{status === 'check' && !picked ? 'Looks right' : 'Tag it'}</Button>
