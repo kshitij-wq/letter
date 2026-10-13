@@ -1925,13 +1925,13 @@ async def no_backend(browser, url, sw):
     await page.wait_for_function("window.__lt.state.built", timeout=30000)
     await sw.tab("check")
     await sw.settle(800)
-    sw.expect(await page.get_by_text("Real Jinja check isn't available here").count() == 1, "without the back end the Validate step doesn't say the real Jinja check is unavailable")
+    sw.expect(await page.get_by_text("The full check isn't available here").count() == 1, "without the back end the Validate step doesn't say the real Jinja check is unavailable")
     sw.expect(await page.get_by_role("button", name="Ask Claude").count() == 0, "an Ask Claude section shows without a back end")
     await sw.click_all(PANEL, limit=20)
     await sw.ev("""async()=>{ window.__lt.ingestCsv('first_name,rating\\nAsha,A\\nMeera,B','e.csv'); }""")
     await sw.settle(500)
     if await sw.run_batch(30000):
-        sw.expect(await page.get_by_text("Real Jinja (the engine CompUp uses)", exact=False).count() == 0, "a claim about real Jinja without a back end")
+        sw.expect(await page.get_by_text("The full check (the engine CompUp uses)", exact=False).count() == 0, "a claim about real Jinja without a back end")
     sw.api_404_ok = False
     await ctx.close()
 

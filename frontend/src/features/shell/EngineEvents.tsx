@@ -4,6 +4,7 @@ import { useUi } from '@/store'
 import { toast } from '@/ui'
 import { on, redo, undo } from '../../engine'
 import { showPid } from '../paper/navigate'
+import { plainLine } from '../validate/plain'
 import { closeInspector, openInspector } from './inspector'
 import { isNarrowNow } from './useMedia'
 import { revealSide } from './StepBar'
@@ -22,10 +23,10 @@ const sideIsOpen = () => { const ui = useUi.getState(); return isNarrowNow() ? u
 export function EngineEvents() {
   useEffect(() => {
     const offs = [
-      on('toast', (m: string) => toast(String(m))),
+      on('toast', (m: string) => toast(plainLine(String(m)))),
       on('error', (e: { message: string; scope?: string }) => {
         useUi.getState().setError({ id: Date.now(), message: e.message, scope: e.scope })
-        if (es.an && !(es.tab === 'doc' && sideIsOpen())) toast.error(e.message)
+        if (es.an && !(es.tab === 'doc' && sideIsOpen())) toast.error(plainLine(e.message))
       }),
       on('show', (e: { pid: string }) => showPid(e.pid)),
       on('reveal', (e: { panel?: string }) => { if (e.panel === 'selTools') openInspector('selection') }),

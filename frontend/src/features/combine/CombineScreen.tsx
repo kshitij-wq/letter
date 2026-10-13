@@ -4,6 +4,7 @@ import { es, useEngineRev } from '@/hooks/useEngine'
 import { Badge, Button, Checkbox, DropZone, FieldPicker, IconButton, Input, Notice, Section, Select, cn } from '@/ui'
 import { combineCancel, combineMove, combineMoveTo, combineRemove, combineSet, combineSetBase, combineSetCond, combineSetLabel, combineView } from '../../engine'
 import { useFieldGroups, useSyncedText } from '../conditions/hooks'
+import { plainLine } from '../validate/plain'
 import { LETTER_ACCEPT, combineNow, openVersions } from '../shell/openFile'
 
 type Ver = { id: string; name: string; label: string; blocks: unknown[]; cond: { mode: 'value' | 'raw' | 'else'; value: string; raw: string } }
@@ -71,8 +72,8 @@ function CondRow({ v, i, auto, problems }: { v: Ver; i: number; auto: string; pr
         )}
         {v.cond.mode === 'else' && <span className="text-sm text-muted">Used when no other version applies.</span>}
       </div>
-      {bad && <p id={errId} className="text-sm text-err sm:pl-[68px]">{mine.map((p) => p.text).join(' ')}</p>}
-      {bad && <p id={errId} className="text-sm text-err">{mine.map((p) => p.text).join(' ')}</p>}
+      {bad && <p id={errId} className="text-sm text-err sm:pl-[68px]">{mine.map((p) => plainLine(p.text)).join(' ')}</p>}
+      {bad && <p id={errId} className="text-sm text-err">{mine.map((p) => plainLine(p.text)).join(' ')}</p>}
     </li>
   )
 }
@@ -183,7 +184,7 @@ export function CombineScreen() {
         </>
       )}
 
-      {view.problems.length > 0 && <Notice tone="warn"><ul data-testid="combine-problems" className="grid gap-0.5">{view.problems.map((p, k) => <li key={k}>{p.text}</li>)}</ul></Notice>}
+      {view.problems.length > 0 && <Notice tone="warn"><ul data-testid="combine-problems" className="grid gap-0.5">{view.problems.map((p, k) => <li key={k}>{plainLine(p.text)}</li>)}</ul></Notice>}
 
       <div className="sticky bottom-0 -mx-5 flex flex-wrap items-center gap-3 border-t border-hairline-soft bg-ground px-5 py-3 max-[480px]:-mx-4 max-[480px]:px-4">
         <Button variant="primary" data-testid="combine-go" disabled={!view.ready || busy} loading={busy}

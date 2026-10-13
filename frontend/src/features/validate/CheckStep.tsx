@@ -9,7 +9,7 @@ import { BatchSection } from './BatchSection'
 import { Counts, EngineLine, IssueGroups, Resolved } from './IssueList'
 import { checkView } from './types'
 
-/** Validate: the template's problems (the page's own checks and real Jinja's), then the test of every employee, then Claude. */
+/** Validate: the template's problems (the page's own checks and the full check's), then the test of every employee, then Claude. */
 export function CheckStep() {
   useEngineRev()
   const v = checkView()
@@ -25,7 +25,7 @@ export function CheckStep() {
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" icon={<FileUp aria-hidden />} onClick={() => pickFile(LETTER_ACCEPT, openTagged)}>Check another tagged template…</Button>
             {server.ok && (
-              <IconButton label="Re-check with real Jinja" size="sm" className="ml-auto" loading={server.checking} onClick={() => realCheck()}><RefreshCw aria-hidden /></IconButton>
+              <IconButton label="Run the full check again" size="sm" className="ml-auto" loading={server.checking} onClick={() => realCheck()}><RefreshCw aria-hidden /></IconButton>
             )}
           </div>
           <p className="text-sm text-muted">Problems with tags and conditions in this letter. A lettered flag in the letter's margin marks each one.</p>

@@ -30,7 +30,7 @@ registerCommands(() => {
     if (HISTORY.undo.length) out.push({ id: 'edit.undo', group: 'Edit', label: 'Undo', shortcut: 'Ctrl+Z', icon: <Undo2 aria-hidden />, run: undo })
     if (HISTORY.redo.length) out.push({ id: 'edit.redo', group: 'Edit', label: 'Redo', shortcut: 'Ctrl+Shift+Z', icon: <Redo2 aria-hidden />, run: redo })
     if (server.ok) {
-      out.push({ id: 'check.real', group: 'Check', label: 'Run the real Jinja check', keywords: ['validate', 'docxtpl'], icon: <ShieldCheck aria-hidden />, run: () => { goToStep('check'); scheduleRealCheck() } })
+      out.push({ id: 'check.real', group: 'Check', label: 'Run the full check', keywords: ['validate', 'docxtpl'], icon: <ShieldCheck aria-hidden />, run: () => { goToStep('check'); scheduleRealCheck() } })
       if (csvRows().length) out.push({ id: 'check.batch', group: 'Check', label: 'Test every employee', keywords: ['batch', 'employees'], icon: <Users aria-hidden />, run: () => { goToStep('check'); runBatch() } })
     }
     out.push({ id: 'dl.docx', group: 'Download', label: 'Download tagged .docx', keywords: ['export', 'template', 'save'], icon: <Download aria-hidden />, run: () => { runDownloadDocx() } })

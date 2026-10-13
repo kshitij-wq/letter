@@ -5,7 +5,7 @@ import { openIssue, runCategoryAction } from './actions'
 import { FlagLetter, LevelBadge, MSG, Places } from './parts'
 import type { CheckViewData as View, IssueItem as Item } from './types'
 
-/** One line about what the real Jinja check did. Plain, no box: only the icon carries the colour. */
+/** One line about what the full check did. Plain, no box: only the icon carries the colour. */
 export function EngineLine({ engine }: { engine: View['engine'] }) {
   if (engine.kind === 'none') return null
   const icon = engine.kind === 'passed' ? <CircleCheck aria-hidden className="text-ok" />
@@ -47,7 +47,7 @@ function IssueRow({ x, selected }: { x: Item; selected: boolean }) {
       <div className="flex items-center gap-2">
         <FlagLetter letter={x.letter} level={x.level} />
         <LevelBadge level={x.level} label={x.label} />
-        {x.real && <Badge>Real Jinja</Badge>}
+        {x.real && <Badge>Full check</Badge>}
       </div>
       <p className={MSG} dangerouslySetInnerHTML={{ __html: x.html }} />
       <Places chips={x.chips} more={x.moreTags} />

@@ -77,7 +77,7 @@ export function FirstRun() {
           ))}
         </ol>
         <p className="mx-auto max-w-[58ch] text-sm text-muted">
-          Your files stay in this browser. Checks with real Jinja send the template to this tool's own server, never to anyone else. Test every employee also sends the employee values there.
+          Your files stay in this browser. The full check sends the template to this tool's own server, never to anyone else. Test every employee also sends the employee values there.
           Claude helpers, if you use them, get the letter text, column names and a few example values (such as departments), never employee rows or names.
         </p>
       </div>

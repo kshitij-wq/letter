@@ -8,7 +8,7 @@ import { batchView, type BatchDone as Done } from './types'
 
 const pl = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
 
-/** The real Jinja line under a finished test: what it did, never more than it confirmed. */
+/** The full-check line under a finished test: what it did, never more than it confirmed. */
 function RealLine({ real }: { real: Done['real'] }) {
   if (real.kind === 'none') return null
   const icon = real.kind === 'passed' ? <CircleCheck aria-hidden className="text-ok" />
@@ -63,13 +63,13 @@ function Result({ done }: { done: Done }) {
       {done.allClear && (
         <Notice tone="ok">
           <b>No problems found</b>
-          <p className="mt-0.5 text-sm">Every employee's letter filled without a problem, and real Jinja filled them too. Before generating the cycle, preview one employee's PDF in CompUp.</p>
+          <p className="mt-0.5 text-sm">Every employee's letter filled without a problem, and CompUp's engine filled them too. Before generating the cycle, preview one employee's PDF in CompUp.</p>
         </Notice>
       )}
       {done.pageOnly && (
         <Notice tone="info">
           <b>No problems found by the page's own test</b>
-          <p className="mt-0.5 text-sm">The real Jinja check isn't available here, so this used the page's preview engine, not the one CompUp uses. Preview one employee's PDF in CompUp before generating the cycle.</p>
+          <p className="mt-0.5 text-sm">The full check isn't available here, so this used the page's preview engine, not the one CompUp uses. Preview one employee's PDF in CompUp before generating the cycle.</p>
         </Notice>
       )}
       {done.hasProblems ? (
@@ -91,7 +91,7 @@ function Result({ done }: { done: Done }) {
               <li key={i} data-level={g.level} className="grid grid-cols-[minmax(0,1fr)] gap-2 py-3">
                 <div className="flex items-center gap-2">
                   <LevelBadge level={g.level} label={g.label} />
-                  {g.real && <Badge>Real Jinja</Badge>}
+                  {g.real && <Badge>Full check</Badge>}
                   <b className="tnum ml-auto text-sm">{pl(g.count, 'employee')}</b>
                 </div>
                 <p className={MSG} dangerouslySetInnerHTML={{ __html: g.html }} />

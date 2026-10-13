@@ -28,7 +28,7 @@ export function IssueInspector({ args, close }: InspectorPanelProps) {
           <FlagLetter letter={x.letter} level={x.level} />
           <LevelBadge level={x.level} label={x.label} />
           <span className="text-sm font-semibold text-muted">{x.catName}</span>
-          {x.real && <Badge>Real Jinja</Badge>}
+          {x.real && <Badge>Full check</Badge>}
         </div>
         <p className={MSG} dangerouslySetInnerHTML={{ __html: x.html }} />
         <section className="grid gap-1.5">
@@ -43,6 +43,12 @@ export function IssueInspector({ args, close }: InspectorPanelProps) {
           <h3 className="text-sm font-semibold text-muted">How to fix</h3>
           <p className="text-base leading-snug">{x.how}</p>
         </section>
+        {x.original && (
+          <section className="grid gap-1">
+            <h3 className="text-sm font-semibold text-muted">Technical details</h3>
+            <p data-testid="issue-details" className="break-words text-sm leading-snug text-muted [&_code]:font-mono" dangerouslySetInnerHTML={{ __html: x.original }} />
+          </section>
+        )}
       </InspectorBody>
       <InspectorFoot className="flex-wrap">
         {x.hasLocs && <Button icon={<Search aria-hidden />} onClick={() => locateIssue(x.locs, true)}>Locate in the letter</Button>}

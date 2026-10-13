@@ -111,7 +111,7 @@ async def main():
             ok(any("Regards, warmly" in t for t in await paras(page)), "the engine's letter shows the typed text")
             ok(await tags_in(page) == before_tags, "every tag is still in the letter after the save")
             await page.get_by_role("tab", name="Validate").click()
-            await expect(page.get_by_text("Real Jinja check passed")).to_be_visible(timeout=20000)
+            await expect(page.get_by_text("The full check passed")).to_be_visible(timeout=20000)
             ok(True, "Validate still runs real Jinja on the edited letter")
             await page.get_by_role("tab", name="Document").click()
             blob = await download(page)
@@ -195,7 +195,7 @@ async def main():
             await type_at_end(page, "HR Team", " {% if x %}")
             await save(page)
             await page.get_by_role("tab", name="Validate").click()
-            await expect(page.get_by_text("Real Jinja check failed")).to_be_visible(timeout=20000)
+            await expect(page.get_by_text("The full check found")).to_be_visible(timeout=20000)
             ok(True, "a missing endif typed in the editor fails the real Jinja check")
             await ctx.close()
 

@@ -7,6 +7,7 @@ import {
   ST_INFO, canConfirm, confirmRow, deleteRow, fieldPickerGroups, finalTag, formatOptions, inferNote, nextReviewId, noteFor, previewTag, resetRowTag, rowContext, rowEdited, rowNote,
   rowStatus, setRowEnabled, setRowFormat, setRowTag, tagProblem,
 } from '../../engine'
+import { plainLine } from '../validate/plain'
 import { InspectorBody, InspectorFoot } from '../shell/Inspector'
 import type { InspectorPanelProps } from '../shell/registry'
 import { FieldSlots } from './FieldSlots'
@@ -133,7 +134,7 @@ export function TagInspector({ args, close }: InspectorPanelProps) {
           <TagInput id="tag-final" multiline value={tag} invalid={!!problem} aria-describedby={problem ? 'tag-problem' : undefined}
             className={edited ? 'border-accent' : undefined} onValueChange={(v) => setRowTag(id, v)} />
           {problem && (
-            <p id="tag-problem" role="status" className="mt-1.5 flex items-start gap-1.5 text-sm text-err"><CircleAlert aria-hidden className="mt-px size-3.5 shrink-0" /><span>{problem}</span></p>
+            <p id="tag-problem" role="status" className="mt-1.5 flex items-start gap-1.5 text-sm text-err"><CircleAlert aria-hidden className="mt-px size-3.5 shrink-0" /><span>{plainLine(problem)}</span></p>
           )}
           {edited && <Button size="sm" variant="ghost" className="mt-1.5" icon={<RotateCcw aria-hidden />} onClick={() => resetRowTag(id)}>Reset to generated tag</Button>}
         </section>
