@@ -38,8 +38,9 @@ export function SelectionToolbar() {
     last.current = r
     const w = bar.current?.offsetWidth ?? 300, h = bar.current?.offsetHeight ?? 48
     if (r.bottom < 60 || r.top > window.innerHeight) { setPos(null); return }
-    let top = r.top - h - 10
-    if (top < 70) top = r.bottom + 10
+    // below the words, so the line above them stays readable; above only when the bottom of the screen has no room
+    let top = r.bottom + 12
+    if (top + h > window.innerHeight - 8) top = Math.max(70, r.top - h - 12)
     const left = Math.max(8 + w / 2, Math.min(window.innerWidth - 8 - w / 2, r.left + r.width / 2))
     setPos((p) => (p && Math.abs(p.left - left) < 1 && Math.abs(p.top - top) < 1 ? p : { left, top }))
   }, [show, s.text, tick])

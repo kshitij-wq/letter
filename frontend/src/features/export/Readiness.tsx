@@ -40,12 +40,19 @@ function Row({ it }: { it: Item }) {
 /** The readiness checklist: every line is read from the page's current state (never from clicks), and takes you to its step. */
 export function Readiness() {
   const raw = exportChecklist() as { items: Item[]; warn: string }
-  const warn = plainLine(raw.warn)
-  const items = raw.items.map((it) => ({ ...it, label: it.label === 'Real Jinja check' ? 'Full check' : it.label, text: plainLine(it.text), sub: plainLine(it.sub) }))
+  // the full check only proves the template runs: it is never a green "passed" while something else is still open
+  const open = raw.items.some((it) => it.kind === 'warn' || it.kind === 'err')
+  const errs = raw.items.some((it) => it.kind === 'err')
+  const items = raw.items.map((it) => {
+    const full = it.label === 'Real Jinja check' && it.kind === 'ok'
+    return { ...it, label: it.label === 'Real Jinja check' ? 'Full check' : it.label, text: full ? "the template runs in CompUp's engine" : plainLine(it.text), sub: plainLine(it.sub), kind: (full && open ? 'idle' : it.kind) as Kind }
+  })
   return (
     <div className="grid gap-2">
       <ul aria-label="Readiness" className="-mx-2 grid gap-0.5">{items.map((it) => <Row key={it.label} it={it} />)}</ul>
-      {warn && <p className="flex items-start gap-2 text-sm text-err"><CircleAlert aria-hidden className="mt-px" /><span>{warn}</span></p>}
+      {errs && <p className="flex items-start gap-2 text-sm text-err"><CircleAlert aria-hidden className="mt-px" /><span>Download stays blocked until the errors are fixed.</span></p>}
+      {!errs && open && <p className="flex items-start gap-2 text-sm text-warn"><TriangleAlert aria-hidden className="mt-px" /><span>Not finished. Downloading will ask you first.</span></p>}
+      {!open && items.length > 0 && <p className="flex items-start gap-2 text-sm text-ok"><CircleCheck aria-hidden className="mt-px" /><span>Ready. Nothing is left to fix.</span></p>}
     </div>
   )
 }

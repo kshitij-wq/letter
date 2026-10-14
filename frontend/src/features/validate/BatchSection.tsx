@@ -63,13 +63,13 @@ function Result({ done }: { done: Done }) {
       {done.allClear && (
         <Notice tone="ok">
           <b>No problems found</b>
-          <p className="mt-0.5 text-sm">Every employee's letter filled without a problem, and CompUp's engine filled them too. Before generating the cycle, preview one employee's PDF in CompUp.</p>
+          <p className="mt-0.5 text-sm">Every employee's letter filled without a problem, and CompUp's engine filled them too. Before generating the cycle, check one employee's letter in CompUp.</p>
         </Notice>
       )}
       {done.pageOnly && (
         <Notice tone="info">
           <b>No problems found by the page's own test</b>
-          <p className="mt-0.5 text-sm">The full check isn't available here, so this used the page's preview engine, not the one CompUp uses. Preview one employee's PDF in CompUp before generating the cycle.</p>
+          <p className="mt-0.5 text-sm">The full check isn't available here, so this used the page's preview engine, not the one CompUp uses. Check one employee's letter in CompUp before generating the cycle.</p>
         </Notice>
       )}
       {done.hasProblems ? (

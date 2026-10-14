@@ -63,7 +63,6 @@ export function FirstRun() {
       <div className="flex flex-wrap items-center justify-center gap-x-3 text-muted">
         <span>No file to hand?</span>
         <Button variant="ghost" onClick={() => openSample()}>Open the sample letter</Button>
-        <span aria-hidden>·</span>
         <Button variant="ghost" onClick={() => pickFile(LETTER_ACCEPT, openTagged)}>Check a tagged template…</Button>
       </div>
 

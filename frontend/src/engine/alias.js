@@ -1,6 +1,7 @@
 // Moved from frontend_src/letter-tagger.html — see tests_ui/legacy for the reference page. No DOM rendering in this module.
 import { CAT, CATALOG, FORMULAS, KNOWN } from './catalog.js'
 import { norm, snake, straighten } from './helpers.js'
+import { tagKeyOf } from './tables.js'
 import { state } from './state.js'
 
 /* ======================= alias resolution ======================= */
@@ -66,6 +67,11 @@ export function resolveLabel(label, opts={}){
   if (best){ let k=best.key; if (role==='old' && SWAP_OLD[k]) k=SWAP_OLD[k]; if (role==='new' && SWAP_NEW[k]) k=SWAP_NEW[k]; return {key:k, conf:Math.min(0.85,best.sc), how:''}; }
   if (opts.fallback===false) return null;
   return {key:'custom_schema.'+snake(label), conf:0.25, how:'No CompUp tag matched.'};
+}
+// a column in the loaded data that means this field under another name ("dept" for Department), or ''. Only offered, never applied.
+export function dataColumnFor(key){
+  if (!key || !state.csvHeaders.length) return '';
+  return state.csvHeaders.find(h=>ALIAS_EXACT.get(norm(h))===key && tagKeyOf(h)!==key) || '';
 }
 export function resolveContext(ctx){
   let words = norm(ctx).split(' ').filter(Boolean).slice(-8);

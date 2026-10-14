@@ -22,7 +22,8 @@ export function SaveGroup({ report, onReport }: { report: Report; onReport: (r: 
     <div className="grid gap-3">
       <h3 className="text-base font-semibold">Save your work</h3>
       <div className="grid gap-2.5 text-sm">
-        <div><p className="font-semibold text-ink">Autosaved in this browser</p><p className="text-muted" role="status" data-testid="autosave">{has ? saveStatusText() : 'Starts once a letter is open'}</p></div>
+        <div><p className="font-semibold text-ink">Autosaved in this browser</p><p className="text-muted" role="status" data-testid="autosave">{has ? saveStatusText() : 'Starts once a letter is open'}</p>
+          <p className="text-muted">This copy lives only in this browser. Use Download setup file to keep your work safe.</p></div>
         <div><p className="font-semibold text-ink">Setup file</p><p className="text-muted">Download a setup file to keep it or share it. It holds every choice for this letter and your data's column names, never its employee rows.</p></div>
       </div>
       <div className="flex flex-wrap gap-2">

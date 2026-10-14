@@ -28,7 +28,11 @@ export function StepBar() {
   const drawer = useUi((s) => s.drawerOpen)
   const setCollapsed = useUi((s) => s.setSideCollapsed)
   const setDrawer = useUi((s) => s.setDrawerOpen)
-  const { info, done } = stepInfo() as { info: Record<string, { n: number | string; err?: boolean; label: string; title: string }>; done: Record<string, boolean> }
+  const visited = useUi((s) => s.visited)
+  const { info, done: engineDone } = stepInfo() as { info: Record<string, { n: number | string; err?: boolean; label: string; title: string }>; done: Record<string, boolean> }
+  // green only when the step is truly done: seen by the person, and with no open warning (Validate's own warnings are in its count)
+  const openCond = ((es.issues || []) as { cat: string; level: string }[]).some((x) => x.cat === 'conditions' && (x.level === 'warn' || x.level === 'error'))
+  const done: Record<string, boolean> = Object.fromEntries(STEPS.map((id: string) => [id, !!engineDone[id] && (id === 'doc' || id === 'tags' || !!visited[id]) && !(id === 'logic' && openCond)]))
   const sideOpen = narrow ? drawer : !collapsed
   // on a phone the bar scrolls sideways: keep the current step in view
   useEffect(() => { document.querySelector('[role="tab"][aria-selected="true"]')?.scrollIntoView({ inline: 'nearest', block: 'nearest' }) }, [es.tab])

@@ -4,9 +4,21 @@ import { Badge, Button, IconButton, Input, Select, cn } from '@/ui'
 import {
   PLACES, blockCountInfo, commitLogicText, deleteLogic, lgInfo, lgWord, logicSay, pageLabel, setLogicPlace, snippet, startCondEdit, typeLogicText,
 } from '../../engine'
+import { es } from '@/hooks/useEngine'
 import { showPid } from '../paper/navigate'
 import { Code } from './parts'
 import { useSyncedText } from './hooks'
+
+/** The paragraph a condition is labelled by: its own, or when that is an empty line, the first one after it that has text (the block it wraps). */
+function labelPara(p: any): any {
+  const paras = (es.an?.paras || []) as any[]
+  if (!p || p.model.text.trim()) return p
+  const i = paras.indexOf(p)
+  for (let k = i + 1; i >= 0 && k < paras.length && k <= i + 30; k++) {
+    if (!paras[k].fallback && paras[k].model.text.replace(/\{%[\s\S]*?%\}|\{#[\s\S]*?#\}/g, '').trim()) return paras[k]
+  }
+  return p
+}
 
 const PLACE_OPTIONS = (PLACES as Array<[string, string]>).map(([value, label]) => ({ value, label }))
 
@@ -46,7 +58,8 @@ export function LogicItem({ e }: { e: any }) {
   const say = logicSay(e) as { lead?: string; en?: string; expr?: string; text?: string } | null
   const cnt = blockCountInfo(e) as { kind: string; text: string } | null
   const isEnd = e.kw === 'endif' || e.kw === 'endfor'
-  const page = pageLabel(e.p) as string
+  const lp = labelPara(e.p)
+  const page = pageLabel(lp) as string
   const depth: number = e.depth || 0
 
   return (
@@ -66,11 +79,11 @@ export function LogicItem({ e }: { e: any }) {
           </p>
         )}
         <div className="flex items-center gap-1">
-          <button type="button" onClick={() => showPid(e.pid)} title="Show in the letter" aria-label={`Show in the letter: ${page} ${snippet(e.p, 34)}`}
+          <button type="button" onClick={() => showPid(e.pid)} title="Show in the letter" aria-label={`Show in the letter: ${page} ${snippet(lp, 34)}`}
             className="-ml-1 flex min-w-0 flex-1 items-center gap-1.5 rounded-control px-1 py-1 text-left text-sm text-muted transition-colors duration-150 hover:bg-hairline-soft hover:text-ink">
             <Eye aria-hidden className="shrink-0" />
             {page && <span className="tnum shrink-0 font-medium">{page}</span>}
-            <span className="min-w-0 flex-1 truncate">“{snippet(e.p, 34)}”</span>
+            <span className="min-w-0 flex-1 truncate">“{snippet(lp, 34)}”</span>
           </button>
           {isCond && <Button size="sm" variant="secondary" className="shrink-0" onClick={() => startCondEdit(e.key)}>Change condition</Button>}
         </div>

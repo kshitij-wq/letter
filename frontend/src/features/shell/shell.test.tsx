@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it } from 'vitest'
 import App from '../../App'
-import { loadSample, state } from '../../engine'
+import { loadSample, setTab, state } from '../../engine'
 import { useUi } from '@/store'
 import '../register'
 import { collectCommands, registerCommands, registerInspector, registerStep, getStep } from './registry'
@@ -39,7 +39,7 @@ describe('the app', () => {
   })
 
   it('shows the five steps, goes between them, and opens a placeholder in the inspector (Esc closes it)', async () => {
-    await act(async () => { await loadSample() })
+    await act(async () => { await loadSample(); setTab('doc') })   // the sample opens on Tags & fields; start from Document
     render(<App />)
     const tabs = within(screen.getByRole('tablist', { name: 'Workflow steps' })).getAllByRole('tab')
     expect(tabs.map((t) => t.textContent?.replace(/\d+$/, ''))).toEqual(expect.arrayContaining([expect.stringContaining('Document'), expect.stringContaining('Tags & fields'), expect.stringContaining('Conditions'), expect.stringContaining('Validate'), expect.stringContaining('Preview & export')]))

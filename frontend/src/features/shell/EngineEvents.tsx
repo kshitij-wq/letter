@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { es } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { toast } from '@/ui'
-import { on, redo, undo } from '../../engine'
+import { on, redo, undo, unsavedWork } from '../../engine'
 import { showPid } from '../paper/navigate'
 import { plainLine } from '../validate/plain'
 import { closeInspector, openInspector } from './inspector'
@@ -32,10 +32,14 @@ export function EngineEvents() {
       on('reveal', (e: { panel?: string }) => { if (e.panel === 'selTools') openInspector('selection') }),
       on('tab', (e: { tab: string; changed: boolean; open: boolean }) => {
         if (e.open && !sideIsOpen()) revealSide(isNarrowNow())
+        const ui = useUi.getState()
+        ui.setVisited({ ...ui.visited, [e.tab]: true })
         // leaving Tags & fields closes the placeholder panel, as before
-        if (e.changed && e.tab !== 'tags' && useUi.getState().inspector?.kind === 'tag') useUi.getState().dismissInspector()
+        if (e.changed && e.tab !== 'tags' && ui.inspector?.kind === 'tag') ui.dismissInspector()
+        // a new step starts with no selected text: the selection panel would cover the step's own panel
+        if (e.changed && ui.inspector?.kind === 'selection') closeInspector()
       }),
-      on('loaded', () => { const ui = useUi.getState(); ui.dismissInspector(); ui.setDrawerOpen(false); ui.setError(null) }),
+      on('loaded', () => { const ui = useUi.getState(); ui.setVisited({ [es.tab]: true }); ui.dismissInspector(); ui.setDrawerOpen(false); ui.setError(null) }),
     ]
 
     const onKey = (e: KeyboardEvent) => {
@@ -65,12 +69,16 @@ export function EngineEvents() {
       if (e.target instanceof Element && e.target.closest('[data-dropzone]')) return
       toast('To open a file, use the Document step.')
     }
+    // closing the tab or reloading would lose work that only this browser's autosave holds
+    const onLeave = (e: BeforeUnloadEvent) => { if (unsavedWork()) { e.preventDefault(); e.returnValue = '' } }
+    window.addEventListener('beforeunload', onLeave)
     window.addEventListener('keydown', onKey)
     window.addEventListener('keydown', onEsc, true)
     window.addEventListener('dragover', onDragOver)
     window.addEventListener('drop', onDrop)
     return () => {
       offs.forEach((off) => off())
+      window.removeEventListener('beforeunload', onLeave)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('keydown', onEsc, true)
       window.removeEventListener('dragover', onDragOver)

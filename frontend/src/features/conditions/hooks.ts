@@ -38,8 +38,12 @@ export function focusSoon(selector: string) {
 function buildFieldGroups(noFx?: boolean): PickerGroup[] {
   const seen = new Set<string>()
   const groups = new Map<string, PickerOption[]>()
-  for (const o of comboOptions() as Array<{ v: string; l: string; g: string }>) {
+  const all = comboOptions() as Array<{ v: string; l: string; g: string }>
+  const columns = new Set(all.filter((o) => o.g === 'Your CSV columns').map((o) => o.v))
+  for (const o of all) {
     if (noFx && o.v.startsWith('fx:')) continue
+    // the same column again as custom_schema.<name> is not a second choice
+    if (o.g === 'From your CSV' && columns.has(o.v.replace(/^custom_schema\./, ''))) continue
     if (seen.has(o.v)) continue
     seen.add(o.v)
     const list = groups.get(o.g) || []
