@@ -1,5 +1,5 @@
 import { GitBranch, X } from 'lucide-react'
-import { es, useEngineRev } from '@/hooks/useEngine'
+import { useEngineRev } from '@/hooks/useEngine'
 import { Badge, Button, EmptyState, IconButton, Notice } from '@/ui'
 import { discardUnplaced, logicProblems, logicRows, logicWhere, snippet, startClosing, startPlacing } from '../../engine'
 import { showPid } from '../paper/navigate'

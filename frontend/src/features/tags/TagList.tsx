@@ -14,12 +14,12 @@ type Entry = { type: 'head'; key: string; label: string; n: number; first: boole
 
 const MARK_TONE = { tagged: 'text-ok', check: 'text-warn', need: 'text-err', off: 'text-muted', removed: 'text-muted' } as const
 /** More rows than this and the list draws only the ones in view. */
-export const VIRTUAL_FROM = 80
+const VIRTUAL_FROM = 80
 const ROW = 64
 const GROUPS: [string, string][] = [['need', 'Needs a tag'], ['check', 'To check'], ['tagged', 'Tagged'], ['off', 'Skipped, left as typed'], ['gone', 'Not in the letter'], ['removed', 'Removed, plain text again']]
 
 /** The list as headed groups: what needs a tag first, then what to check, then what is done. */
-export function groupItems(items: Item[]): Entry[] {
+function groupItems(items: Item[]): Entry[] {
   const group = (it: Item) => (it.removed ? 'removed' : !it.inLetter ? 'gone' : it.status)
   const out: Entry[] = []
   for (const [g, label] of GROUPS) {

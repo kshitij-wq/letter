@@ -6,7 +6,7 @@ import { getFlags } from './paperEvents'
 type Item = { sw: string; label: string; note?: string }
 
 /** What the marks in the current view mean. */
-export function legendItems(): { main: Item[]; more: Item[] } {
+function legendItems(): { main: Item[]; more: Item[] } {
   const view = es.view
   if (view === 'source') {
     const more: Item[] = []

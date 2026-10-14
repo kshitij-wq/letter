@@ -10,7 +10,7 @@ export type IssueItem = {
   /** the engine's own sentence, kept as technical details when the shown one was reworded */
   original?: string
 }
-export type EngineLineData = { kind: 'none' | 'unavailable' | 'error' | 'checking' | 'notrun' | 'failed' | 'passed'; title: string; detail: string }
+type EngineLineData = { kind: 'none' | 'unavailable' | 'error' | 'checking' | 'notrun' | 'failed' | 'passed'; title: string; detail: string }
 export type CheckViewData = {
   hasLetter: boolean
   counts: { errors: number; warnings: number; resolved: number; notes: number }
@@ -19,7 +19,7 @@ export type CheckViewData = {
   groups: { cat: string; name: string; errors: number; warnings: number; items: IssueItem[] }[]
   resolved: { key: string; text: string; letter: string }[]
 }
-export type BatchGroup = { level: Level; label: string; real: boolean; count: number; html: string; text: string; fixDefault: string; chips: Chip[]; original?: string }
+type BatchGroup = { level: Level; label: string; real: boolean; count: number; html: string; text: string; fixDefault: string; chips: Chip[]; original?: string }
 export type BatchDone = {
   ok: number; bad: number; total: number; seconds: number; cancelled: boolean; stale: boolean; groups: BatchGroup[]
   real: { kind: 'none' | 'busy' | 'error' | 'failed' | 'passed'; text: string }

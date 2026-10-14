@@ -56,7 +56,11 @@ jobs:
       # Every letter x view x step, every button, Conditions end to end, downloads, bad files, team library, phone width
       - name: Click-through sweep of the React page
         run: python tests_ui/sweep.py
-      - name: Smoke tests (Preview & export, Validate)
+      - name: Smoke tests (export, validate, Assistant, Edit letter, combine, tag fixes)
         run: |
           python tests_ui/react/export.py
           python tests_ui/react/validate.py
+          python tests_ui/react/assistant.py
+          python tests_ui/react/editor.py
+          python tests_ui/react/combine.py
+          python tests_ui/react/tagfix.py

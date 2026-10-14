@@ -55,7 +55,7 @@ export async function editorInput(buf) {
   return zip.generateAsync({ type: 'arraybuffer', mimeType: `${CT}.document`, compression: 'DEFLATE' })
 }
 
-const squash =(s) => s.replace(/\s+/g, ' ').trim()
+export const squashSpaces = (s) => s.replace(/\s+/g, ' ').trim()
 
 /** Every tag in the document (all parts, a tag split over runs counts as one), whitespace squashed. */
 export async function docTags(buf) {
@@ -66,7 +66,7 @@ export async function docTags(buf) {
     const doc = parseXml(await zip.file(p).async('string'))
     for (const para of doc.getElementsByTagNameNS(W, 'p')) {
       const text = [...para.getElementsByTagNameNS(W, 't')].map((t) => t.textContent).join('')
-      for (const m of text.matchAll(RX_TAG)) out.push(squash(m[0]))
+      for (const m of text.matchAll(RX_TAG)) out.push(squashSpaces(m[0]))
     }
   }
   return out
@@ -175,9 +175,9 @@ export async function undoEditorChange() {
  */
 export async function selectEditorWords(words, paraText, before) {
   if (!(await saveEditor())) return false
-  const want = squash(paraText || words), w = words.trim()
+  const want = squashSpaces(paraText || words), w = words.trim()
   const paras = state.an.paras.filter((p) => !p.fallback && !p.textbox && ['body', 'header', 'footer'].includes(p.kind))
-  const exact = paras.filter((p) => squash(p.model.text) === want)
+  const exact = paras.filter((p) => squashSpaces(p.model.text) === want)
   const cands = exact.length ? exact : paras.filter((p) => p.model.text.includes(w))
   if (!cands.length) return false
   const p = cands[0], t = p.model.text

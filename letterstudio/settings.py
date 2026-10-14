@@ -37,13 +37,11 @@ ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "loca
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
 INSTALLED_APPS = [
-    "django.contrib.staticfiles",
     "renderer",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # serves the page's libraries when DEBUG is off
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -54,37 +52,8 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 ROOT_URLCONF = "letterstudio.urls"
 WSGI_APPLICATION = "letterstudio.wsgi.application"
 
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {"context_processors": []},
-    }
-]
-
-# No database is needed for rendering. SQLite is configured so the app can grow
-# (template library, tag registry) without extra setup.
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
-LANGUAGE_CODE = "en-us"
 TIME_ZONE = os.environ.get("TIME_ZONE", "Asia/Kolkata")
-USE_I18N = False
 USE_TZ = True
-
-STATIC_URL = "static/"
-# Locally the page's libraries are served straight from the app; collectstatic is only for a server.
-WHITENOISE_USE_FINDERS = True
-import warnings  # noqa: E402
-warnings.filterwarnings("ignore", message="No directory at")
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Uploads: letters with images can be large.
 MAX_UPLOAD_MB = int(os.environ.get("LS_MAX_UPLOAD_MB", "25"))

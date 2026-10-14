@@ -141,8 +141,6 @@ def _friendly(exc):
         if "expected token 'end of statement block'" in text or "expected token 'end of print statement'" in text:
             got = re.search(r"got '([^']+)'", text)
             return f"A tag has a typing mistake near “{got.group(1)}”: a missing quote, bracket or | , or two words without and / or between them." if got else f"A tag has a typing mistake: {text}"
-        if "Unexpected end of template" in text or "endif" in text and "Encountered unknown tag" in text:
-            return f"An if or for block isn't closed properly: {text}"
         return f"A tag has a typing mistake: {text}"
     return text
 
@@ -151,13 +149,7 @@ def render_docx(template_bytes: bytes, context: dict, autoescape: bool | None = 
     """Return the filled .docx as bytes, or raise RenderError."""
     if autoescape is None:
         autoescape = settings.LETTER_STUDIO["AUTOESCAPE"]
-    try:
-        tpl = DocxTemplate(io.BytesIO(template_bytes))
-        # opening the parts early turns a broken file into a clear message
-        tpl.init_docx()
-    except Exception as exc:  # noqa: BLE001 - any failure here means "not a usable .docx"
-        raise RenderError("That file isn't a .docx Word can open.", kind="file") from exc
-
+    tpl = _open(template_bytes)
     env = make_env(autoescape)
     try:
         tpl.render(context or {}, jinja_env=env, autoescape=autoescape)

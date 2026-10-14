@@ -39,17 +39,17 @@ typography:
     lineHeight: 1.3
   title:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "16px"
+    fontSize: "18px"
     fontWeight: 600
     lineHeight: 1.45
   subtitle:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "15px"
+    fontSize: "16px"
     fontWeight: 600
     lineHeight: 1.45
   body:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "15px"
+    fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.45
   body-small:
@@ -94,7 +94,7 @@ components:
     rounded: "{rounded.control}"
     typography: "{typography.subtitle}"
     padding: "5px 12px"
-    height: "32px"
+    height: "40px"
   button-primary-hover:
     backgroundColor: "{colors.accent-deep}"
     textColor: "{colors.on-accent}"
@@ -104,7 +104,7 @@ components:
     rounded: "{rounded.control}"
     typography: "{typography.subtitle}"
     padding: "5px 12px"
-    height: "32px"
+    height: "40px"
   button-secondary-hover:
     backgroundColor: "{colors.hairline-soft}"
     textColor: "{colors.ink}"
@@ -113,20 +113,20 @@ components:
     textColor: "{colors.muted}"
     rounded: "{rounded.control}"
     padding: "5px 12px"
-    height: "32px"
+    height: "40px"
   button-danger:
     backgroundColor: "{colors.panel}"
     textColor: "{colors.flag-red}"
     rounded: "{rounded.control}"
     padding: "5px 12px"
-    height: "32px"
+    height: "40px"
   input:
     backgroundColor: "{colors.panel}"
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
     typography: "{typography.body}"
     padding: "5px 8px"
-    height: "32px"
+    height: "40px"
   chip:
     backgroundColor: "{colors.panel}"
     textColor: "{colors.ink}"
@@ -226,7 +226,7 @@ components:
   inspector:
     backgroundColor: "{colors.panel}"
     textColor: "{colors.ink}"
-    width: "380px"
+    width: "420px"
 ---
 
 # Design System: Letter Tagger
@@ -296,8 +296,8 @@ Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0
 ### Hierarchy
 - **Headline** (600, 21px, 1.3): the first-run heading only, centred and balanced.
 - **Title** (600, 16px, 1.45): the product name "Letter Tagger" in the header, dialog titles, the "all clear" statement in the issue inspector, drop-zone titles.
-- **Subtitle** (600, 15px, 1.45): panel block heads, inspector section heads, step labels, buttons.
-- **Body** (400, 15px, 1.45): all running UI text, inputs, list items. Panel copy stays near 40-60 characters per line because the side panel is 380px.
+- **Subtitle** (600, 16px, 1.45): panel block heads, inspector section heads, step labels, buttons.
+- **Body** (400, 16px, 1.5): all running UI text, inputs, list items. Panel copy stays near 40-60 characters per line because the side panel is 400px.
 - **Body Small** (400, 14px, 1.45; also 12.5px for metadata): hints, counts, row summaries, notices, chips.
 - **Label** (600, 12px, 1.5, tabular figures): badge text, count pills, flag letters. Numbers always use tabular figures.
 - **Tag** (400, 12.5px, 1.55 in the inspector; 12px or 0.82em inline; 11.5px in condition lines): every Jinja tag, field name and expression.
@@ -310,7 +310,7 @@ Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0
 
 ## Layout
 
-An app frame that does not scroll as a page on wide screens: each column scrolls on its own. A 52px header and a 44px step bar sit on top; below them three columns: the current step (380px, resizable and collapsible, on the notesheet layer), the letter (fluid, on the desk ground, with a 48px view toolbar), and the inspector (380px, only present when a tag, condition or issue is selected). The paper is centred, max 816px wide (a Letter page), with 80px side padding and 72px top and bottom padding, narrowing to 56px under 1500px and 20px by 28px on phones. Gutters around the paper are 24px (16px on phones). Spacing rhythm is a 4px base: 4, 8, 12, 16, 24, 32. Panel blocks pad 16px and separate with a soft hairline rather than cards; list rows are 48px tall with 6px 8px padding.
+An app frame that does not scroll as a page on wide screens: each column scrolls on its own. A 52px header and a 44px step bar sit on top; below them three columns: the current step (400px, resizable and collapsible, on the notesheet layer), the letter (fluid, on the desk ground, with a 48px view toolbar), and the inspector (420px, only present when a tag, condition or issue is selected). The paper is centred, max 816px wide (a Letter page), with 80px side padding and 72px top and bottom padding, narrowing to 56px under 1500px and 20px by 28px on phones. Gutters around the paper are 24px (16px on phones). Spacing rhythm is a 4px base: 4, 8, 12, 16, 24, 32. Panel blocks pad 16px and separate with a soft hairline rather than cards; list rows are 48px tall with 6px 8px padding.
 
 The step bar is a numbered sequence (Document, Tags & fields, Conditions, Validate, Preview & export), each with a count or a check mark; it appears once a letter is open, and before that the page is only the first-run screen. Responsive behaviour: at 1280px and below the inspector floats over the right edge as a drawer; at 980px and below the page scrolls normally, the current step becomes a 88vw drawer on the left with a scrim, and the view toolbar sticks under the step bar; at 600px the header drops the company name, file name and save state; at 440px the mapping CSV button gives way; at 380px Download becomes icon-only. Touch targets stay 28-32px minimum.
 
@@ -330,7 +330,7 @@ Flat and hairline-built. Regions are told apart by tonal layers and 1px borders;
 
 ## Shapes
 
-Small, even radii and straight rules. Controls (buttons, inputs, chips, rows, notices) are 6px; panels, file rows, popovers and dialogs are 8px; badges 4px; inline tag pills 3px; the paper just 2px so it reads as a sheet, not a card. Count pills and step marks are fully round. The one signature silhouette is the pennant flag: a 20 by 18px rectangle with its right edge cut to a point (a 76% notch), carrying a bold letter. Icons are authored 16px outline glyphs at 1.5px stroke with round caps and joins, inheriting text colour; 12 to 14px inside badges and chips, 24 to 28px in empty states.
+Small, even radii and straight rules. Controls (buttons, inputs, chips, rows, notices) are 8px; panels, file rows, popovers and dialogs are 10px; badges 4px; inline tag pills 3px; the paper just 2px so it reads as a sheet, not a card. Count pills and step marks are fully round. The one signature silhouette is the pennant flag: a 20 by 18px rectangle with its right edge cut to a point (a 76% notch), carrying a bold letter. Icons are authored 16px outline glyphs at 1.5px stroke with round caps and joins, inheriting text colour; 12 to 14px inside badges and chips, 24 to 28px in empty states.
 
 ### Named Rules
 **The Pennant Rule.** A lettered pennant is the only way a finding is marked on the paper. Do not invent other marker shapes for issues.
@@ -340,7 +340,7 @@ Small, even radii and straight rules. Controls (buttons, inputs, chips, rows, no
 Quiet and legible: buttons and chips are outlined, status is carried by tint and a small mark, and nothing moves except short tints and the 1.2 second flash that shows where a click landed.
 
 ### Buttons
-- **Shape:** 6px corners, 32px high (28px small, 32px square for icon-only), 5px 12px padding, weight 600, 6px gap to an icon.
+- **Shape:** 8px corners, 40px high (32px small, 40px square for icon-only), 16px side padding, weight 600, 6px gap to an icon.
 - **Primary:** Accent fill with white text and a matching 1px border; one per view (Download tagged .docx). Hover goes to Deep Indigo.
 - **Secondary (default):** Panel white with a hairline border and ink text. Hover tints to Hairline Soft and darkens the border to Filing Grey.
 - **Ghost:** Transparent with muted text, ink and a soft wash on hover; for undo/redo and quiet tools.
@@ -357,7 +357,7 @@ Quiet and legible: buttons and chips are outlined, status is carried by tint and
 - **Notice:** An inline strip, 6px corners, 8px 12px padding, 12.5px text, no border. Blue by default; amber and red variants keep ink text and tint only the icon and ground.
 
 ### Inputs / Fields
-- **Style:** 32px high, 1px hairline border, 6px corners, white ground, 5px 8px padding; selects take a drawn 16px chevron; text areas start at 60px.
+- **Style:** 40px high, 1px hairline border, 8px corners, white ground, 5px 8px padding; selects take a drawn 16px chevron; text areas start at 60px.
 - **Focus:** the 2px accent outline, inset by one pixel, with the border turning accent.
 - **Error / Disabled:** the Jinja editor turns its border red when invalid; disabled fields drop to 55% opacity.
 - **Combobox:** a field list in an 8px-radius popover with sticky group heads, 30px options, and a mono code on the right in muted type.
@@ -371,7 +371,7 @@ Quiet and legible: buttons and chips are outlined, status is carried by tint and
 - **State:** hover washes Hairline Soft; selected is Accent Wash with a 1px accent inset ring; a 1.2 second accent wash flash marks a row you were just sent to.
 
 ### Inspector
-- **Style:** a 380px white column with a 48px head (title, close), hairline separators, 16px section padding and 16px gaps. It keeps the inventory context: the quote from the letter, then mapping, format, live preview of the real value and the written tag, with a sticky foot of Include, previous/next and a primary Done.
+- **Style:** a 420px white column with a 48px head (title, close), hairline separators, 16px section padding and 16px gaps. It keeps the inventory context: the quote from the letter, then mapping, format, live preview of the real value and the written tag, with a sticky foot of Include, previous/next and a primary Done.
 - **Behaviour:** appears only on selection. At 1280px and below it overlays from the right with the Pop shadow.
 
 ### Tag chips and placeholders on the paper (signature)

@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { Button, EmptyState, FilterChip, Input, Notice, Progress, SearchInput, confirm } from '@/ui'
-import { FILTERS, acceptAllChecks, addManual, clearFilters, inventoryItems, inventoryStats, nextReviewId, oldTagNames, setFilter, setSearch, tagsTodo } from '../../engine'
+import { FILTERS, acceptAllChecks, addManual, clearFilters, inventoryItems, inventoryStats, nextReviewId, oldTagNames, plural, setFilter, setSearch, tagsTodo } from '../../engine'
 import { ClaudeBar } from './ClaudeBar'
 import { ExistingTags } from './ExistingTags'
 import { NextCard } from './NextCard'
@@ -43,7 +43,7 @@ export function AddForm() {
 }
 
 /** Salary-table cells that still need a tag are part of the step's number: say so up front and open them from here. */
-export function TablesTodo() {
+function TablesTodo() {
   const t = tagsTodo()
   if (!t.cells) return null
   const k = (t.tables as any[]).length
@@ -74,7 +74,6 @@ export function Inventory() {
   const q = (es.q as string) || ''
   const old = oldTagNames()
   const hasOld = old.total > 0
-  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
   const todo = tagsTodo()
 
   return (

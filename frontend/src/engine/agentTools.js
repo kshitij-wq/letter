@@ -477,5 +477,3 @@ export async function applyWrite(name, args) {
   if (name === 'undo') return undoApplied()
   return transact(name, args, false)
 }
-export const WRITE_NAMES = new Set([...Object.keys(WRITE), 'undo'])
-export const READ_NAMES = new Set(Object.keys(READ))

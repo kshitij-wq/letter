@@ -35,7 +35,7 @@ export function focusSoon(selector: string) {
 }
 
 /** The choices for a field picker: CSV columns first, then the team library, then CompUp's tags (the old page's comboOptions). */
-export function buildFieldGroups(noFx?: boolean): PickerGroup[] {
+function buildFieldGroups(noFx?: boolean): PickerGroup[] {
   const seen = new Set<string>()
   const groups = new Map<string, PickerOption[]>()
   for (const o of comboOptions() as Array<{ v: string; l: string; g: string }>) {

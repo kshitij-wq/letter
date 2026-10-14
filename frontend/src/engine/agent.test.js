@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs'
 import process from 'node:process'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  HISTORY, TOOLS, TOOL_BY_NAME, ToolError, WRITE, agentState, applied, applyWrite, buildAgentContext, clearConversation, decide, finalTag, ingestCsv, loadDocx, planWrite,
-  READ, rowStatus, sampleDocx, sendMessage, setAutoApply, setRowKey, snapState, state, stopAgent, trimHistory, validateArgs, build, computeLogic, setTab,
+  HISTORY, TOOLS, TOOL_BY_NAME, WRITE, agentState, applied, applyWrite, buildAgentContext, clearConversation, decide, finalTag, ingestCsv, loadDocx, planWrite,
+  READ, sampleDocx, sendMessage, setAutoApply, setRowKey, snapState, state, stopAgent, trimHistory, validateArgs, build, computeLogic, setTab,
 } from './index.js'
 
 const para = (text) => state.an.paras.find((p) => !p.fallback && p.model.text.includes(text))

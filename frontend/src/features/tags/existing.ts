@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { es } from '@/hooks/useEngine'
 import { oldTagNames, setView } from '../../engine'
-import { scrollBehavior } from '../paper/navigate'
+import { afterPaint, scrollBehavior } from '../paper/navigate'
 
 /*
  * The tags a letter already had ({{ first_name }} and the like), shown up front on Tags & fields. Shared state of the list:
@@ -38,7 +38,6 @@ const posStore = store<{ id: string; index: number; count: number } | null>(null
 export const useTagPos = (id: string) => { const p = posStore.use(); return p && p.id === id ? p : null }
 
 const LOC = { id: null as string | null, i: 0 }
-const afterPaint = (fn: () => void) => requestAnimationFrame(() => requestAnimationFrame(fn))
 
 /** The chip(s) of one tag in the letter: the `.tg` spans whose text starts inside [s, e) of the paragraph. */
 function chipsOf(pid: string, s: number, e: number): HTMLElement[] {

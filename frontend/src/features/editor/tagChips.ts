@@ -4,11 +4,12 @@
  * style on. The chips are a see-through layer laid over the painted lines: it reads where each tag's text is on screen
  * (DOM ranges) and draws a box there. It never touches the document, so what is saved is exactly what was typed.
  */
-export type ChipKind = 'var' | 'custom' | 'block' | 'bad'
+type ChipKind = 'var' | 'custom' | 'block' | 'bad'
 export type Chip = { tag: string; kind: ChipKind; title: string; rects: DOMRect[] }
 
+import { squashSpaces } from '../../engine'
+
 const RX = /\{\{[\s\S]*?\}\}|\{%[\s\S]*?%\}/g
-const squash = (s: string) => s.replace(/\s+/g, ' ').trim()
 
 export type ChipHooks = {
   /** What kind of chip this tag is, and the hover text. */
@@ -86,7 +87,7 @@ export function installTagChips(host: HTMLElement, hooks: ChipHooks): { refresh:
           else rects.push(new DOMRect(q.left, q.top, q.width, q.height))
         }
         if (!rects.length) continue
-        const tag = squash(m[0])
+        const tag = squashSpaces(m[0])
         const c = hooks.classify(tag)
         const occ = seen.get(tag) ?? 0; seen.set(tag, occ + 1)
         next.push({ tag, kind: c.kind, title: c.title, rects })

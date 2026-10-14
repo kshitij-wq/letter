@@ -1,10 +1,10 @@
 import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheck, Table2, TriangleAlert } from 'lucide-react'
 import { useEffect, useId, useMemo, useState } from 'react'
 import { useEngineRev } from '@/hooks/useEngine'
+import { useUi } from '@/store'
 import { Badge, Button, IconButton, SearchInput, Spinner, cn } from '@/ui'
 import { csvRows, empLabel, previewBarInfo, pvStep, setPvIdx, setPvQuery, setTab, setView, togglePvIssues } from '../../engine'
 import { DATA_ACCEPT, openData, pickFile } from '../shell/openFile'
-import { requestValues } from './valuesFocus'
 
 const LEVEL = { error: ['Fix', 'err'], warn: ['Check', 'warn'], info: ['Note', 'info'] } as const
 type Info = ReturnType<typeof previewBarInfo>
@@ -94,7 +94,7 @@ export function PreviewBar() {
           </button>
         )}
         <Button size="sm" className="ml-auto" icon={<Table2 aria-hidden />} aria-label="Show and change the values used in this preview"
-          onClick={() => { requestValues(); setTab('export', { open: true }) }}>Values</Button>
+          onClick={() => { useUi.getState().setValuesWanted(true); setTab('export', { open: true }) }}>Values</Button>
       </div>
 
       {info.open && (

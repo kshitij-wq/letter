@@ -2,10 +2,9 @@ import { Plus, Trash2 } from 'lucide-react'
 import { useId, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Button, Checkbox, IconButton, Input, Select, confirm } from '@/ui'
-import { chooseTeamClient, fmtWhen, loadTeamSetup, setTeamNew, setTeamUse, teamCreateClient, teamDeleteSetup, teamSaveChoices, teamSaveSetup } from '../../engine'
+import { chooseTeamClient, fmtWhen, loadTeamSetup, plural, setTeamNew, setTeamUse, teamCreateClient, teamDeleteSetup, teamSaveChoices, teamSaveSetup } from '../../engine'
 
 const NONE = '__none'
-const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
 
 type Client = { id: string; name?: string; labels?: object; cells?: object; columns?: unknown[]; updatedAt?: string; use?: boolean }
 type Setup = { id: string; name: string; fileName?: string; savedAt?: string; noSource?: boolean }

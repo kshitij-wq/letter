@@ -31,17 +31,15 @@ import asyncio
 import json
 import os
 import re
-import socket
-import subprocess
 import sys
 import tempfile
 import traceback
-import time
 import zipfile
 from pathlib import Path
-from urllib.request import urlopen
 
 from playwright.async_api import async_playwright
+
+from common import launch, start_django
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -95,28 +93,6 @@ async def fake_claude(page):
         await route.fulfill(json=out)
     await page.route("**/api/health", health)
     await page.route("**/api/assist", assist)
-
-
-def free_port():
-    with socket.socket() as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
-
-
-def start_server():
-    port = free_port()
-    env = {**os.environ, "LS_NO_BROWSER": "1", "DJANGO_DEBUG": "1"}
-    proc = subprocess.Popen([sys.executable, "manage.py", "runserver", f"127.0.0.1:{port}", "--noreload"],
-                            cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-    url = f"http://127.0.0.1:{port}/"
-    for _ in range(60):
-        try:
-            urlopen(url + "api/health", timeout=1)
-            return proc, url
-        except Exception:  # noqa: BLE001 - still starting
-            time.sleep(0.5)
-    proc.kill()
-    raise SystemExit("The server didn't start.")
 
 
 # A fake claude.ai host: window.claude with a shared database (the team library) and downloads
@@ -2068,7 +2044,7 @@ async def main():
     proc = None
     url = args.url
     if not url:
-        proc, url = start_server()
+        proc, url = start_django()
     letters = [str(Path(x).resolve()) for x in args.letters] if args.letters else LETTERS
     data = [str(Path(x).resolve()) for x in args.data] if args.data else DATA
     if args.quick and not args.letters:
@@ -2076,8 +2052,7 @@ async def main():
     sw = None
     try:
         async with async_playwright() as p:
-            exe = os.environ.get("CHROMIUM_PATH")
-            browser = await p.chromium.launch(headless=not args.headed, **({"executable_path": exe} if exe else {}))
+            browser = await launch(p, headless=not args.headed)
             ctx = await browser.new_context(viewport={"width": 1400, "height": 950}, accept_downloads=True)
             page = await ctx.new_page()
             sw = Sweep(page, quick=args.quick)

@@ -10,7 +10,7 @@ type Slot = { left: number; top: number }
  * more stack downward. Positions are measured from the DOM and recomputed when the paper resizes or the fonts load.
  * Returns a map flag key -> {left, top} in paper coordinates.
  */
-export function useFlagSlots(paper: RefObject<HTMLElement | null>, flags: MarginFlag[], dep: unknown): { slots: Map<string, Slot>; size: number } {
+function useFlagSlots(paper: RefObject<HTMLElement | null>, flags: MarginFlag[], dep: unknown): { slots: Map<string, Slot>; size: number } {
   const [state, setState] = useState<{ slots: Map<string, Slot>; size: number }>({ slots: new Map(), size: 20 })
   const key = useRef('')
   const flagsRef = useRef(flags)
