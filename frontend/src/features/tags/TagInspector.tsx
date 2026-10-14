@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Badge, Button, Checkbox, SegmentedControl, Select, confirm } from '@/ui'
 import { useUi } from '@/store'
-import { mergePlace, onlyHere, placeLabel, removeRow, rowPlaces, sameTextRow, setRowFormatAt, setRowKey, setRowKeyAt, setRowTagAt } from '../../engine'
+import { dataColumnFor, mergePlace, onlyHere, placeLabel, removeRow, rowPlaces, sameTextRow, setRowFormatAt, setRowKey, setRowKeyAt, setRowTagAt, tagKeyOf } from '../../engine'
 import {
   ST_INFO, canConfirm, confirmRow, deleteRow, fieldPickerGroups, finalTag, formatOptions, inferNote, nextReviewId, noteFor, previewTag, resetRowTag, rowContext, rowEdited, rowNote,
   rowStatus, setRowEnabled, setRowFormat, setRowTag, tagProblem,
@@ -148,6 +148,7 @@ export function TagInspector({ args, close }: InspectorPanelProps) {
         <section>
           <Heading htmlFor="tag-key-0">Employee field</Heading>
           <FieldSlots id={id} fieldKey={r.key || ''} groups={groups} focusFirst={!!args.focus} onKey={changeKey} />
+          {r.key && dataColumnFor(r.key) && <p data-testid="data-column-hint" className="mt-2 text-sm text-muted">Your data has a “{dataColumnFor(r.key)}” column. <button type="button" className="font-semibold text-accent hover:underline" onClick={() => changeKey(tagKeyOf(dataColumnFor(r.key)))}>Use {dataColumnFor(r.key)}</button></p>}
           <CustomToggle className="mt-3" fieldKey={r.key || r.override || ''} onChange={changeKey} />
           {!r.key && <p className="mt-2 text-sm text-muted">{r.override ? 'No field chosen. This text uses a tag you wrote yourself.' : 'No field chosen yet.'}</p>}
           {r.scope === 'all' && r.count > 1 && !here && (
