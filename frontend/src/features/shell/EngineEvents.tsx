@@ -32,10 +32,12 @@ export function EngineEvents() {
       on('reveal', (e: { panel?: string }) => { if (e.panel === 'selTools') openInspector('selection') }),
       on('tab', (e: { tab: string; changed: boolean; open: boolean }) => {
         if (e.open && !sideIsOpen()) revealSide(isNarrowNow())
+        const ui = useUi.getState()
+        ui.setVisited({ ...ui.visited, [e.tab]: true })
         // leaving Tags & fields closes the placeholder panel, as before
-        if (e.changed && e.tab !== 'tags' && useUi.getState().inspector?.kind === 'tag') useUi.getState().dismissInspector()
+        if (e.changed && e.tab !== 'tags' && ui.inspector?.kind === 'tag') ui.dismissInspector()
       }),
-      on('loaded', () => { const ui = useUi.getState(); ui.dismissInspector(); ui.setDrawerOpen(false); ui.setError(null) }),
+      on('loaded', () => { const ui = useUi.getState(); ui.setVisited({ [es.tab]: true }); ui.dismissInspector(); ui.setDrawerOpen(false); ui.setError(null) }),
     ]
 
     const onKey = (e: KeyboardEvent) => {

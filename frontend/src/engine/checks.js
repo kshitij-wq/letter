@@ -1,6 +1,7 @@
 // Moved from frontend_src/letter-tagger.html — see tests_ui/legacy for the reference page. No DOM rendering in this module.
 import { blockCountsNow } from './blocks.js'
 import { KNOWN, isMoney } from './catalog.js'
+import { AUTO_FIELD } from './combine.js'
 import { condEnglish, startCondEdit } from './conditions.js'
 import { dataFiles, fileHeaders } from './data.js'
 import { RX_TAG, analyze } from './detect.js'
@@ -239,10 +240,13 @@ export function runChecks(an, st){
     }
   }
   for (const [path, sk] of Object.entries(stacks)) for (const x of sk) add('error', `<code>${esc(x.tag.slice(0,70))}</code> is never closed. Add <code>{% end${x.kw} %}</code> where it should stop.`, closingFixFor(x.tag), [x.tag]);
+  // a combined template still switched on the made-up field: no letter will ever match until a real field is chosen
+  if (usedIds.has(AUTO_FIELD) && keyStatus(AUTO_FIELD,U)!=='csv') add('warn', `Choose which employee field decides the version. The combined letter still switches on <code>${AUTO_FIELD}</code>, which is not in your data, so no employee gets the right version.`, null, tagsOf([AUTO_FIELD]));
   if (U.size){
     let n=0; const noSug=[];
     for (const id of usedIds){
       if (keyStatus(id,U)!=='unknown') continue; unknown.delete(id);
+      if (id===AUTO_FIELD) continue;   // has its own warning above
       const sug=didYouMean(id,U); if (!sug){ noSug.push(id); continue; } if (n++>=20) continue;
       const pref=sug.replace(/^custom_schema\.|^custom_/,'')===id.replace(/^custom_schema\.|^custom_/,'');
       add('warn', `<code>${esc(id)}</code> isn't in your data file. Did you mean <code>${esc(sug)}</code>?${pref?' (If it comes from another upload, ignore this.)':''}`, {label:`Use ${sug}`, fn:()=>{ renameEverywhere(id, sug); toast(`Changed ${id} to ${sug}.`); }}, tagsOf([id]));
@@ -316,7 +320,7 @@ export function checkCategory(x){
   if (/different table cells/.test(t)) return 'conditions';
   if (x.level==='error') return 'syntax';
   if (/isn't in your data file|not in your data file or the CompUp tag list|Not in the standard tag list/.test(t)) return 'fields';
-  if (/Nobody in your data file|Every employee in your data file|test a value directly|tests a value directly|on a line of its own|trim marks|is shown or hidden by|same field with different prefixes|will be left out when the value is empty/.test(t)) return 'conditions';
+  if (/Choose which employee field decides the version|Nobody in your data file|Every employee in your data file|test a value directly|tests a value directly|on a line of its own|trim marks|is shown or hidden by|same field with different prefixes|will be left out when the value is empty/.test(t)) return 'conditions';
   if (/without commas|decimal number|fixed amount|inside quotes|without <code>|but without|merge field is really|\| float/.test(t)) return 'format';
   if (/shown or hidden|the letter shows/.test(t)) return 'format';
   return 'other';

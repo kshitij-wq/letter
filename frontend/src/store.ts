@@ -56,6 +56,9 @@ type UiState = {
   /** The last file or data error the engine reported (the first-run screen and the Document step show it inline). */
   error: LoadError
   setError: (e: LoadError) => void
+  /** Steps the person has opened with this letter: a step tick is only green for a step that was looked at. */
+  visited: Record<string, true>
+  setVisited: (v: Record<string, true>) => void
 }
 
 export const useUi = create<UiState>((set) => ({
@@ -78,4 +81,6 @@ export const useUi = create<UiState>((set) => ({
   setDocx: (docx) => set({ docx }),
   error: null,
   setError: (error) => set({ error }),
+  visited: {},
+  setVisited: (visited) => set({ visited }),
 }))

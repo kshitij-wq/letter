@@ -151,6 +151,9 @@ def main():
         pg.get_by_test_id("step-export").click()
         with pg.expect_download() as dl:
             pg.click('button:has-text("Download tagged .docx")')
+            expect(pg.get_by_role("dialog")).to_contain_text("Download anyway?")   # the version field is still the placeholder: the gate asks
+            expect(pg.get_by_role("dialog")).to_contain_text("Validate")
+            pg.get_by_test_id("confirm-ok").click()
         tagged = Path(dl.value.path()).read_bytes()
 
         # --- real Jinja: valid, and once per version value the same text as that version
@@ -213,6 +216,9 @@ def main():
         pg.get_by_test_id("step-export").click()
         with pg.expect_download() as dl:
             pg.click('button:has-text("Download tagged .docx")')
+            expect(pg.get_by_role("dialog")).to_contain_text("Download anyway?")   # the version field is still the placeholder: the gate asks
+            expect(pg.get_by_role("dialog")).to_contain_text("Validate")
+            pg.get_by_test_id("confirm-ok").click()
         tagged2 = Path(dl.value.path()).read_bytes()
         res = validate_docx(tagged2)
         assert res["ok"], res["syntax"]
@@ -234,9 +240,17 @@ def main():
         expect(pg.get_by_test_id("step-logic")).to_have_attribute("aria-selected", "true")
         expect(pg.get_by_text("set who sees which in Conditions").first).to_be_visible()
         expect(pg.get_by_test_id("placeholder-field-note")).to_contain_text("custom_schema.letter_version")
+        # Validate warns in plain words and points back to Conditions
+        pg.get_by_test_id("step-check").click()
+        expect(pg.get_by_text("Choose which employee field decides the version").first).to_be_visible()
+        pg.get_by_role("button", name="Open conditions").first.click()
+        expect(pg.get_by_test_id("step-logic")).to_have_attribute("aria-selected", "true")
         pg.get_by_test_id("step-export").click()
         with pg.expect_download() as dl:
             pg.click('button:has-text("Download tagged .docx")')
+            expect(pg.get_by_role("dialog")).to_contain_text("Download anyway?")   # the version field is still the placeholder: the gate asks
+            expect(pg.get_by_role("dialog")).to_contain_text("Validate")
+            pg.get_by_test_id("confirm-ok").click()
         tagged3 = Path(dl.value.path()).read_bytes()
         res = validate_docx(tagged3)
         assert res["ok"], res["syntax"]

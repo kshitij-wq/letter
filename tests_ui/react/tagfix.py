@@ -321,6 +321,7 @@ def main():
         pg.wait_for_timeout(300)
         with pg.expect_download() as dl:
             pg.click('button:has-text("Download tagged .docx")')
+            pg.get_by_test_id("confirm-ok").click()   # other placeholders are still untagged: the gate asks first
         out = tmp / "tagged.docx"
         dl.value.save_as(str(out))
         paras = [x.text for x in docx.Document(str(out)).paragraphs]

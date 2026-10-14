@@ -118,6 +118,11 @@ export function exportChecklist(){
   const n=F.errs||realN;
   return {items, warn: n ? `${F.errs?pl(F.errs,'error'):pl(realN,'typing mistake')} will stay in the file.` : ''};
 }
+// what the Download button asks before it saves, from the same checklist: errors block it, warnings ask "Download anyway?"
+export function exportGate(){
+  const from=kind=>exportChecklist().items.filter(i=>i.kind===kind).map(i=>({label:i.label, text:i.text, step:i.step}));
+  return {errors:from('err'), warnings:from('warn')};
+}
 
 // the three views of the letter: source (what you tag), tagged (the template that gets downloaded), filled (one employee's letter)
 export function setView(v){
