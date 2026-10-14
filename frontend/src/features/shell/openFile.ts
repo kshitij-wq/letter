@@ -1,6 +1,7 @@
 import { confirm } from '@/ui'
 import { es } from '@/hooks/useEngine'
 import { useUi } from '@/store'
+import { goToStep } from './commands'
 import { applyCombine, letterFileProblem, loadVersions, loadDataFile, loadSample, openLetterFile, openTaggedTemplate, replaceWarning, reportError, setView } from '../../engine'
 
 /**
@@ -18,6 +19,9 @@ async function okToReplace(): Promise<boolean> {
   })
 }
 
+/** A letter that was just opened starts on Tags & fields with the client's letter shown (Edit letter is one click away). */
+function startTagging() { goToStep('tags'); setView('source') }
+
 /** The client's letter (a .docx). Resolves true when it was opened. */
 export async function openLetter(file: File): Promise<boolean> {
   useUi.getState().setError(null)
@@ -25,14 +29,14 @@ export async function openLetter(file: File): Promise<boolean> {
   if (bad) { reportError(bad, 'letter'); return false }
   if (!(await okToReplace())) return false
   const ok = await openLetterFile(file)
-  if (ok) setView('edit')   // a letter that was just opened starts in the editor
+  if (ok) startTagging()
   return ok
 }
 
 /** The built-in sample letter, opened the same way. */
 export async function openSample(): Promise<boolean> {
   const ok = await loadSample()
-  if (ok) setView('edit')
+  if (ok) startTagging()
   return ok
 }
 

@@ -53,6 +53,10 @@ def main():
         pg.goto(f"http://127.0.0.1:{srv.server_address[1]}/")
 
         pg.click("text=Open the sample letter")
+        # a new letter opens on Tags & fields with the client's letter, not the editor; Edit letter is one click away
+        expect(pg.get_by_role("tab", name="Tags & fields", selected=True)).to_be_visible()
+        expect(pg.get_by_test_id("seg-source")).to_have_attribute("data-state", "on")
+        pg.get_by_role("tab", name="Document").click()
         expect(pg.get_by_test_id("doc-name")).to_contain_text("sample-appraisal-letter.docx")
         expect(pg.get_by_text("None loaded")).to_be_visible()
 
@@ -93,9 +97,14 @@ def main():
         expect(pg.get_by_role("tab", name="Tags & fields", selected=True)).to_be_visible()
         pg.get_by_role("tab", name="Preview & export").click()
 
-        # downloads
+        # downloads: open items ask first; Go back downloads nothing
+        pg.click('button:has-text("Download tagged .docx")')
+        expect(pg.get_by_role("dialog")).to_contain_text("Download anyway?")
+        pg.get_by_test_id("confirm-cancel").click()
+        expect(pg.get_by_role("dialog")).to_have_count(0)
         with pg.expect_download() as dl:
             pg.click('button:has-text("Download tagged .docx")')
+            pg.get_by_test_id("confirm-ok").click()
         assert dl.value.suggested_filename.endswith("-compup-template.docx")
         with pg.expect_download() as dl:
             pg.click('button:has-text("Export mapping CSV")')

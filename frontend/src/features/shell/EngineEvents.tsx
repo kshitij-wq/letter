@@ -36,6 +36,8 @@ export function EngineEvents() {
         ui.setVisited({ ...ui.visited, [e.tab]: true })
         // leaving Tags & fields closes the placeholder panel, as before
         if (e.changed && e.tab !== 'tags' && ui.inspector?.kind === 'tag') ui.dismissInspector()
+        // a new step starts with no selected text: the selection panel would cover the step's own panel
+        if (e.changed && ui.inspector?.kind === 'selection') closeInspector()
       }),
       on('loaded', () => { const ui = useUi.getState(); ui.setVisited({ [es.tab]: true }); ui.dismissInspector(); ui.setDrawerOpen(false); ui.setError(null) }),
     ]
