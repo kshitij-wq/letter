@@ -1564,9 +1564,14 @@ class Sweep:
         self.doing = "downloads"
         tmp = Path(tempfile.mkdtemp())
 
-        async def grab(click, suffix):
+        async def grab(click, suffix, gate=False):
             async with pg.expect_download(timeout=60000) as dl:
                 await click()
+                if gate:   # open items: Download tagged .docx asks "Download anyway?" first
+                    await self.settle(300)
+                    if await self.visible("[data-testid=confirm-ok]"):
+                        self.expect("Download anyway?" in await pg.get_by_role("dialog").inner_text(), "the gate before the .docx download isn't 'Download anyway?'")
+                        await pg.get_by_test_id("confirm-ok").click()
             d = await dl.value
             path = tmp / d.suggested_filename
             await d.save_as(path)
@@ -1574,7 +1579,7 @@ class Sweep:
             return path
 
         await self.view("tagged")
-        docx = await grab(pg.get_by_role("button", name="Download tagged .docx").click, "-compup-template.docx")
+        docx = await grab(pg.get_by_role("button", name="Download tagged .docx").click, "-compup-template.docx", gate=True)
         try:
             with zipfile.ZipFile(docx) as z:
                 self.expect("word/document.xml" in z.namelist(), "the tagged .docx has no word/document.xml")
@@ -1593,7 +1598,7 @@ class Sweep:
         except Exception:  # noqa: BLE001
             self.fail("the setup file isn't JSON")
         await self.tab("export")
-        await grab(pg.locator(PANEL).get_by_role("button", name="Download tagged .docx").click, "-compup-template.docx")
+        await grab(pg.locator(PANEL).get_by_role("button", name="Download tagged .docx").click, "-compup-template.docx", gate=True)
         # the setup file loads back
         await self.tab("doc")
         await self.choose(pg.get_by_role("button", name="Load setup file…").click, setup)
@@ -1653,6 +1658,16 @@ class Sweep:
         validate = [r for r in rows if "Validate" in r]
         self.expect(bool(validate) and validate[0].startswith("Problem: Validate"), f"{name}: Preview & export doesn't show Validate as a problem ({validate[:1]})")
         self.expect(not any(r.startswith("Done: Validate") for r in rows), f"{name}: Preview & export says Validate is fine for a template with errors")
+        # the export gate: errors block Download tagged .docx and point at Validate
+        self.expect(not any(r.startswith("Done: Full check") for r in rows), f"{name}: the Full check line is green next to errors")
+        await pg.get_by_role("button", name="Download tagged .docx").first.click()
+        await self.settle(400)
+        dlg = pg.get_by_role("dialog")
+        self.expect(await dlg.count() == 1 and "Fix the errors first" in await dlg.inner_text(), f"{name}: Download tagged .docx with errors didn't stop with 'Fix the errors first'")
+        self.expect(await pg.get_by_test_id("confirm-ok").inner_text() == "Go to Validate", f"{name}: the error gate has no 'Go to Validate' button")
+        await pg.get_by_test_id("confirm-ok").click()
+        await self.settle(400)
+        self.expect(await self.ev("()=>window.__lt.state.tab") == "check", f"{name}: 'Go to Validate' didn't open Validate")
         await self.tab("check")
         await self.view("source")
         flags = pg.locator("#paper .mflag")
@@ -1736,7 +1751,7 @@ class Sweep:
 
     async def letter_round(self, letter, data):
         await self.load_letter(letter, keep_edit=True)
-        self.expect(await self.ev("()=>window.__lt.state.view") == "edit", f"{letter} did not open in the editor")
+        self.expect(await self.ev("()=>[window.__lt.state.tab, window.__lt.state.view]") == ["tags", "source"], f"{letter} did not open on Tags & fields with the client letter")
         for v in VIEWS:
             await self.view(v)
             if v == "source":
@@ -1769,6 +1784,7 @@ class Sweep:
         """The Edit letter view: types, the save status, the engine's letter, undo of the editor change, Tag this text."""
         pg = self.pg
         await self.load_letter("northwind.docx", keep_edit=True)
+        await self.tab("doc")
         await self.view("edit")
         await pg.wait_for_function("()=>!!window.__sd", timeout=20000)
         await self.settle(1200)
@@ -1942,6 +1958,56 @@ class Sweep:
             await self.tab(t)
             await self.click_all(PANEL, limit=20)
 
+    async def quick_wins(self):
+        """Export gate with warnings, step ticks, where a new letter opens, the selection clearing on a step change, the leave-the-page guard."""
+        pg = self.pg
+        self.doing = "quick wins"
+        await self.load_letter("letterA.docx", keep_edit=True)
+        self.expect(await self.ev("()=>[window.__lt.state.tab, window.__lt.state.view]") == ["tags", "source"], "a letter that was just opened should start on Tags & fields with the client letter view")
+        self.expect(await self.visible("[data-testid=seg-edit]"), "Edit letter is not one click away after opening a letter")
+        # step ticks are green only for steps that were looked at (and have nothing open)
+        for t in ("logic", "check", "export"):
+            self.expect(await pg.locator(f"[data-testid=step-{t}]").get_attribute("data-done") is None, f"the {t} step shows a green tick before it was ever opened")
+        # a selection does not follow you to the next step
+        await self.drag_words(0, 0.4)
+        self.expect(await self.visible("#inspector[data-kind=selection]") or await self.visible("#inspector"), "selecting words opened no inspector")
+        await pg.locator("[data-testid=step-check]").click()
+        await self.settle(400)
+        self.expect(not await self.visible("#inspector[data-kind=selection]"), "the Selected text panel stayed open after changing step")
+        self.expect(not await self.ev("()=>window.__lt.state.sel.text"), "the selected words stayed selected after changing step")
+        # open items: Download tagged .docx asks first, listing them; Go back downloads nothing
+        await self.tab("export")
+        await pg.get_by_role("button", name="Download tagged .docx").first.click()
+        await self.settle(400)
+        dlg = pg.get_by_role("dialog")
+        self.expect(await dlg.count() == 1 and "Download anyway?" in await dlg.inner_text(), "Download tagged .docx with open items didn't ask 'Download anyway?'")
+        self.expect("Placeholders" in await dlg.inner_text(), "the 'Download anyway?' window doesn't list what is left")
+        await pg.get_by_test_id("confirm-cancel").click()
+        await self.settle(300)
+        self.expect(await pg.get_by_role("dialog").count() == 0, "Go back left the window open")
+        # the palette: a step name + Enter goes to that step
+        await self.tab("tags")
+        await pg.keyboard.press("Control+k")
+        await self.settle(250)
+        await pg.keyboard.type("valid")
+        await self.settle(250)
+        await pg.keyboard.press("Enter")
+        await self.settle(400)
+        self.expect(await self.ev("()=>window.__lt.state.tab") == "check", "typing 'valid' in the palette and pressing Enter didn't open Validate")
+        # the leave-the-page guard: changes only in this browser ask before leaving; a setup file download clears it
+        await self.tab("tags")
+        await self.ev("()=>{const r=window.__lt.state.rows.find(r=>r.count); window.__lt.edit(r.id,{key:'custom_schema.qw_probe'}); window.__lt.recordUndo(); window.__lt.notify()}")
+        guard = "()=>{const e=new Event('beforeunload',{cancelable:true}); window.dispatchEvent(e); return e.defaultPrevented}"
+        self.expect(await self.ev(guard) is True, "closing the page with unsaved changes didn't ask first")
+        await self.tab("doc")
+        self.expect("only in this browser" in (await pg.locator(PANEL).inner_text()).lower() or "lives only in this browser" in (await pg.locator(PANEL).inner_text()).lower(), "no note that the autosave is only in this browser")
+        async with pg.expect_download() as d:
+            await pg.locator(PANEL).get_by_role("button", name="Download setup file").click()
+        await d.value
+        await self.settle(300)
+        self.expect(await self.ev(guard) is False, "the page still asks before closing after the setup file was downloaded")
+        await self.ev("()=>window.__lt.undo()")
+
     async def narrow(self):
         """A phone: the steps are a drawer, the inspector floats over the letter, nothing scrolls sideways."""
         self.doing = "phone width"
@@ -2061,7 +2127,7 @@ async def main():
     ap.add_argument("--data", nargs="*", help="data files to use instead of the fixtures")
     ap.add_argument("--quick", action="store_true", help="fewer clicks per tab and 3 letters")
     ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags nexttag tables shell conditions export validate downloads letters replace drop oldtags existing roundtrip editor merge combine assistant mailmerge tagged bad narrow nexttag tagfix team nobackend")
+    ap.add_argument("--only", nargs="*", help="run only these stages (while fixing the page): sample selection tags nexttag tables shell conditions export validate downloads letters replace drop oldtags existing roundtrip editor merge combine assistant mailmerge tagged bad quickwins narrow nexttag tagfix team nobackend")
     ap.add_argument("--real-claude", action="store_true", help="don't fake the Claude API (needs ANTHROPIC_API_KEY on the server)")
     args = ap.parse_args()
 
@@ -2122,7 +2188,7 @@ async def main():
 
             stages = [("selection", sw.selection_rules), ("tags", sw.tag_editor_flows), ("tables", sw.tables_flows), ("shell", sw.shell_flows), ("conditions", sw.conditions_flows), ("export", sw.export_flows), ("validate", sw.validate_flows),
                       ("downloads", sw.downloads), ("letters", letters_stage), ("replace", sw.replace_dialog), ("drop", sw.drop_and_restore), ("oldtags", sw.old_tags_flow), ("existing", sw.existing_tags_flow), ("roundtrip", sw.condition_roundtrip),
-                      ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("combine", sw.combine_flows), ("assistant", sw.assistant_flows), ("tagged", tagged_stage), ("bad", bad_stage), ("narrow", sw.narrow), ("nexttag", sw.next_to_tag_flows), ("tagfix", sw.tag_fix_flows),
+                      ("editor", sw.editor_flows), ("merge", sw.unplaced_and_merge), ("mailmerge", sw.mail_merge), ("combine", sw.combine_flows), ("assistant", sw.assistant_flows), ("tagged", tagged_stage), ("bad", bad_stage), ("quickwins", sw.quick_wins), ("narrow", sw.narrow), ("nexttag", sw.next_to_tag_flows), ("tagfix", sw.tag_fix_flows),
                       ("team", lambda: team_library(browser, url, sw)), ("nobackend", lambda: no_backend(browser, url, sw))]
             for name, run in stages:
                 if args.only and name not in args.only:
