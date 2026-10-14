@@ -2,7 +2,7 @@ import { CircleCheck, SkipForward, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Button, FieldPicker } from '@/ui'
-import { confirmRow, fieldPickerGroups, inventoryStats, removeRow, rowContext, rowStatus, setFilter, setRowKey, setTab, tagsTodo } from '../../engine'
+import { confirmRow, dataColumnFor, fieldPickerGroups, inventoryStats, removeRow, rowContext, rowStatus, setFilter, setRowKey, setTab, tagKeyOf, tagsTodo } from '../../engine'
 import { CustomToggle } from './CustomToggle'
 import { locateRow, showRow } from './locate'
 
@@ -49,6 +49,7 @@ export function NextCard() {
   const status = rowStatus(r)
   const picked = draft && draft.id === r.id ? draft.key : null
   const key: string = picked ?? r.key ?? ''
+  const col = dataColumnFor(key)
   const left = list.length
   const times = r.count > 1 ? `Appears ${r.count} times in the letter` : ''
 
@@ -98,6 +99,7 @@ export function NextCard() {
         <span id="next-field-label" className="text-sm font-medium text-ink">{status === 'check' ? 'Suggested field' : 'Which employee field is this?'}</span>
         <FieldPicker id="next-field" aria-label="Employee field for the next placeholder" value={key} groups={groups} allowCustom placeholder="Pick or type a field" searchPlaceholder="Search fields or type a name"
           customLabel={(t) => `Use “${t}” as the field`} emptyText="No field matches. Keep typing to use your own name." onChange={(v) => setDraft({ id: r.id, key: v })} />
+        {col && <p data-testid="next-column" className="text-sm text-muted">Your data has a “{col}” column. <button type="button" className="font-semibold text-accent hover:underline" onClick={() => setDraft({ id: r.id, key: tagKeyOf(col) })}>Use {col}</button></p>}
         <CustomToggle fieldKey={key} compact className="mt-1" onChange={(k) => setDraft({ id: r.id, key: k })} />
       </div>
       <div className="flex flex-wrap items-center gap-2">

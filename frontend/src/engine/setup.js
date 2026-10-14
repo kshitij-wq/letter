@@ -151,6 +151,7 @@ export function saveStatusText(){
   return state.isSample ? "Sample letter isn't saved"
     : state.autosaveFailed ? 'Not saved: browser storage is full or blocked'
     : state.lastAutosave ? 'Saved in this browser · '+fmtWhen(state.lastAutosave)
+    : state.editedAt ? 'Edited in Edit letter · '+fmtWhen(state.editedAt)
     : HISTORY.undo.length ? 'Saves in this browser as you work' : 'Not changed yet';
 }
 export function readAutosave(hash){ try{ const s=localStorage.getItem('lt.auto.'+hash); return s?JSON.parse(s):null; }catch(e){ return null; } }

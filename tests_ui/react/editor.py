@@ -39,6 +39,9 @@ async def open_letter(page, name: str, data: bool = False):
     async with page.expect_file_chooser() as fc:
         await page.get_by_text("Choose a .docx file").click()
     await (await fc.value).set_files(str(FIX / name))
+    # a letter that was just opened starts on Tags & fields with the client's letter; Edit letter is one click away
+    await page.wait_for_function("window.__lt.state.view === 'source' && window.__lt.state.tab === 'tags'")
+    await page.get_by_test_id("seg-edit").click()
     await page.wait_for_function("window.__lt.state.view === 'edit'")
     await page.wait_for_function("window.__sdReady !== false && !!window.__sd", timeout=20000)
     await page.wait_for_timeout(1200)   # the editor settles its own document
@@ -80,6 +83,8 @@ async def paras(page):
 async def download(page) -> bytes:
     async with page.expect_download() as dl:
         await page.get_by_role("button", name="Download tagged .docx").click()
+        try: await page.get_by_test_id("confirm-ok").click(timeout=3000)   # open items: "Download anyway?"
+        except Exception: pass
     path = await (await dl.value).path()
     return Path(path).read_bytes()
 
@@ -100,7 +105,7 @@ async def main():
 
             # ---- 1. conditions letter + data: type, bold, save, downloads, conditions still render --------------------
             await open_letter(page, "conditions_tagged.docx", data=True)
-            ok(await page.get_by_test_id("editor").count() == 1, "a letter that was just opened starts in the editor")
+            ok(await page.get_by_test_id("editor").count() == 1, "Edit letter opens from the view switch")
             ok(await page.locator(".tag-chip-block").count() >= 5 and await page.locator(".tag-chip-var").count() >= 1, "tags are drawn as chips (yellow and indigo)")
             before_tags = await tags_in(page)
             await type_at_end(page, "Regards,", " warmly")
@@ -109,6 +114,8 @@ async def main():
             await page.keyboard.press("Control+b")
             await save(page)
             ok(any("Regards, warmly" in t for t in await paras(page)), "the engine's letter shows the typed text")
+            await expect(page.get_by_text("Edited in Edit letter").first).to_be_visible()
+            ok(await page.get_by_text("Not changed yet").count() == 0, "the header no longer says Not changed yet after an Edit letter save")
             ok(await tags_in(page) == before_tags, "every tag is still in the letter after the save")
             await page.get_by_role("tab", name="Validate").click()
             await expect(page.get_by_text("The full check passed")).to_be_visible(timeout=20000)

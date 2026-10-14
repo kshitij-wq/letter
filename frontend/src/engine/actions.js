@@ -63,7 +63,7 @@ export async function loadDataFile(f, extra){
   flags.addingExtra=!!extra;
   try {
     if (/\.(xlsx|xlsm|xls)$/i.test(f.name)){ toast('Reading the workbook…'); await ingestWorkbook(await f.arrayBuffer(), f.name); }
-    else ingestCsv(await f.text(), f.name);
+    else { const text=await f.text(); ingestCsv(text, f.name); if (state.csv && state.csv.mode==='keys' && state.csv.keys.length>1 && text.trim().split(/\r?\n/).length===1){ toast(`No employees in ${f.name}: it only has column names. The preview uses made-up values until you add rows.`); return true; } }
     toast(extra ? `Added ${f.name}` : `Loaded ${f.name}`);
     return true;
   } catch(e){ console.warn(e); reportError('Could not read that file: '+e.message, 'data'); return false; }

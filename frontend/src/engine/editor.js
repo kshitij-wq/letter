@@ -117,7 +117,7 @@ async function apply(buf, accept) {
   await loadDocx(buf, state.fileName, state.isSample)
   state.pendingRestore = null
   ed.lastReport = importSetup(setup, { noUndo: true })
-  ed.prev = prev; ed.blocked = null; ed.savedAt = Date.now()
+  ed.prev = prev; ed.blocked = null; ed.savedAt = Date.now(); state.editedAt = ed.savedAt
   handle?.markClean?.()
   setStatus('saved')
   return true

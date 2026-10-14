@@ -24,7 +24,7 @@ export default function EditorSurface() {
 
   useEffect(() => {
     if (!host.current || !bar.current || !state.srcBuf) return
-    let base: any = null, dirty = false, live = true, sd: any = null, stopChips = () => {}, chips: ReturnType<typeof installTagChips> | null = null, unsub = () => {}
+    let base: any = null, dirty = false, live = true, sd: any = null, stopChips = () => {}, chips: ReturnType<typeof installTagChips> | null = null, unsub = () => {}, fitWatch: ResizeObserver | null = null
     const srcBuf = state.srcBuf, srcName = state.fileName || 'letter.docx'
     const handle = {
       exportDocx: async () => {
@@ -82,6 +82,17 @@ export default function EditorSurface() {
           chips = installTagChips(host.current!, hooks)
           stopChips = chips.stop
           unsub = subscribe(() => chips?.refresh())
+          // a page wider than its frame (Assistant open, a phone) shrinks to fit the frame instead of running off its right edge
+          const fit = () => {
+            try {
+              const narrow = host.current!.clientWidth < 840
+              const mode = sd?.getZoomState?.()?.mode
+              if (narrow && mode !== 'fit-width') sd?.setZoomMode?.('fit-width')
+              else if (!narrow && mode === 'fit-width') { sd?.setZoomMode?.('manual'); sd?.setZoom?.(100) }
+              chips?.refresh()
+            } catch { /* the editor still scrolls inside its own frame */ }
+          }
+          fitWatch = new ResizeObserver(fit); fitWatch.observe(host.current!); fit()
         },
         onEditorUpdate: ({ editor }: any) => {
           const doc = editor?.state?.doc ?? sd?.activeEditor?.state?.doc
@@ -98,7 +109,7 @@ export default function EditorSurface() {
 
     return () => {
       live = false
-      stopChips(); unsub()
+      stopChips(); unsub(); fitWatch?.disconnect()
       // a save in progress has to finish before the editor goes away
       flushEditor().catch(() => {}).finally(() => { unregisterEditor(handle); try { sd?.destroy() } catch { /* already gone */ } if ((window as any).__sd === sd) (window as any).__sd = null })
     }

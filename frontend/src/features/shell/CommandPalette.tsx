@@ -23,9 +23,11 @@ export function CommandPalette() {
   const groups = useMemo(() => {
     const m = new Map<string, Cmd[]>()
     for (const c of commands) m.set(c.group, [...(m.get(c.group) || []), c])
-    const rank = (g: string) => { const i = GROUP_ORDER.indexOf(g); return i < 0 ? 99 : i }
+    // typing a step name ("valid") and pressing Enter should go to that step, so "Go to" leads once something is typed
+    const order = query.trim() ? ['Go to', ...GROUP_ORDER.filter((g) => g !== 'Go to')] : GROUP_ORDER
+    const rank = (g: string) => { const i = order.indexOf(g); return i < 0 ? 99 : i }
     return [...m].sort((a, b) => rank(a[0]) - rank(b[0]))
-  }, [commands])
+  }, [commands, query])
   // placeholders are only listed once something is typed (a list of fifty rows is not a menu)
   const rows = open && query.trim() && es.an ? (es.rows as any[]).filter((r) => r.count) : []
   const run = (fn: () => void) => { setOpen(false); setQuery(''); setTimeout(fn, 0) }

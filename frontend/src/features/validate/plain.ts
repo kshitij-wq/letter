@@ -33,7 +33,11 @@ const RULES: Rule[] = [
   [/(\d+) conditions? tests? a value directly, e\.g\. <code>[^<]*<\/code>\. Uploaded values are text, and the text “0” counts as true, so the line or cell still shows \(printing 0\) when the upload has 0\./,
     (_m, n) => `${n} ${plural(n, 'condition checks', 'conditions check')} a field on its own. Values from your upload are text, so even “0” counts as filled in and the line still shows.`],
   [/(\d+) logic tags? sits? on a line of its own without the <code>-<\/code> trim marks, so that line stays blank in the letter CompUp turns into a PDF:/,
-    (_m, n) => `${n} condition ${plural(n, 'line would leave an empty line', 'lines would leave empty lines')} in the PDF:`],
+    (_m, n) => `${n} condition ${plural(n, 'line would leave an empty line', 'lines would leave empty lines')} in the letter:`],
+  [/may be dropped from the PDF it makes\./, 'may be dropped from the letters it makes.'],
+  [/ Check an employee with a missing component in Employee preview, then preview their PDF in CompUp\./, ' Check an employee with a missing component in Employee preview.'],
+  [/ Check one edge-case employee in Employee preview, then preview their PDF in CompUp before generating the cycle\./, ' Check one employee with unusual values in Employee preview before generating the cycle.'],
+  [/check the (header|footer) once in Employee preview, then in a PDF previewed in CompUp\./, (_m, k) => `check the ${k} once in Employee preview.`],
   [/(\d+) tags? prints? a decimal number such as 1234567\.0 in CompUp, because the result comes from <code>\| float<\/code>, <code>\| round<\/code> or <code>\/<\/code>\. End (?:them|it) with <code>\| int<\/code> or a comma filter:/,
     (_m, n) => `${n} ${plural(n, 'tag would show', 'tags would show')} a number like 1234567.0 instead of 1234567. End ${plural(n, 'it', 'them')} with <code>| int</code> or a comma format:`],
   // ---- what the full check (the engine CompUp uses) reports
