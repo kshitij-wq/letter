@@ -4,49 +4,21 @@
 
 Drives the real UI (clicks, typing, file choosers) and fails on any page error or failed expectation.
 """
-import http.server
-import os
-import socketserver
 import sys
-import threading
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
-FIX = ROOT / "tests_ui" / "fixtures"
-PAGE = ROOT / "renderer" / "frontend" / "index.html"
+sys.path.insert(0, str(ROOT / "tests_ui"))
+from common import FIX, launch, start_static  # noqa: E402
 errors = []
 
 
-class H(http.server.BaseHTTPRequestHandler):
-    def log_message(self, *a):
-        pass
-
-    def do_GET(self):
-        if self.path.split("?")[0] in ("/", "/index.html"):
-            b = PAGE.read_bytes()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(b)))
-            self.end_headers()
-            self.wfile.write(b)
-        else:
-            self.send_response(404)
-            self.end_headers()
-
-
-class S(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    daemon_threads = True
-    allow_reuse_address = True
-
-
 def main():
-    srv = S(("127.0.0.1", 0), H)
-    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    srv, _ = start_static()
     with sync_playwright() as p:
-        exe = os.environ.get("CHROMIUM_PATH")
-        b = p.chromium.launch(**({"executable_path": exe} if exe else {}))
+        b = launch(p)
         pg = b.new_context(viewport={"width": 1440, "height": 900}, accept_downloads=True).new_page()
         pg.on("pageerror", lambda e: errors.append(str(e)))
         pg.on("console", lambda m: errors.append(m.text) if m.type == "error" and "404" not in m.text else None)

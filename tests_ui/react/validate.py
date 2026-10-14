@@ -10,40 +10,17 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import re
-import socket
-import subprocess
 import sys
-import time
-import urllib.request
 from pathlib import Path
 
 from playwright.async_api import async_playwright, expect
 
-ROOT = Path(__file__).resolve().parent.parent.parent
-FIX = ROOT / "tests_ui" / "fixtures"
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from common import FIX, launch, start_django  # noqa: E402
 READY = {"status": "ok", "app": "Letter Studio", "validate": True, "render": True, "assistant": {"ready": True, "model": "claude-test"},
          "versions": {"docxtpl": "0.20.2"}}
 PROBLEMS: list[str] = []
-
-
-def free_port() -> int:
-    with socket.socket() as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
-
-
-def start_server(port: int):
-    proc = subprocess.Popen([sys.executable, "manage.py", "runserver", f"127.0.0.1:{port}", "--noreload"], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    for _ in range(60):
-        try:
-            urllib.request.urlopen(f"http://127.0.0.1:{port}/api/health", timeout=1)
-            return proc
-        except Exception:
-            time.sleep(0.5)
-    proc.kill()
-    raise SystemExit("the Django server did not start")
 
 
 def ok(cond: bool, what: str):
@@ -88,12 +65,10 @@ async def open_tagged(page, name: str):
 
 
 async def main():
-    port = free_port()
-    proc = start_server(port)
-    url = f"http://127.0.0.1:{port}/"
+    proc, url = start_django()
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(executable_path=os.environ.get("CHROMIUM_PATH"), args=["--no-sandbox"])
+            browser = await launch(p, args=["--no-sandbox"])
 
             # ---- 1. the sample letter, real Jinja, Claude ready -------------------------------------------------
             ctx, page = await new_page(browser, url, claude_ready=True)

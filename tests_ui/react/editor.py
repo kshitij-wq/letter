@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import validate as V  # noqa: E402  (the helpers: server, page setup, ok())
 from playwright.async_api import async_playwright, expect  # noqa: E402
 
-ROOT = V.ROOT
+ROOT = Path(__file__).resolve().parents[2]
 FIX = V.FIX
 ok = V.ok
 CSV = (FIX / "emps.csv").read_text()
@@ -89,12 +89,10 @@ async def tags_in(page):
 
 
 async def main():
-    port = V.free_port()
-    proc = V.start_server(port)
-    url = f"http://127.0.0.1:{port}/"
+    proc, url = V.start_django()
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(executable_path=os.environ.get("CHROMIUM_PATH"), args=["--no-sandbox"])
+            browser = await V.launch(p, args=["--no-sandbox"])
             ctx, page = await V.new_page(browser, url)
             page.set_default_timeout(20000)
 

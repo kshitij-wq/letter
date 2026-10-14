@@ -11,7 +11,6 @@ from __future__ import annotations
 import asyncio
 import io
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -80,13 +79,11 @@ async def ev(page, js: str, arg=None):
 
 
 async def main():
-    port = V.free_port()
-    proc = V.start_server(port)
-    url = f"http://127.0.0.1:{port}/"
+    proc, url = V.start_django()
     fake = Fake()
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(executable_path=os.environ.get("CHROMIUM_PATH"), args=["--no-sandbox"])
+            browser = await V.launch(p, args=["--no-sandbox"])
 
             # ---- 1. the sample letter, Claude ready: the panel, starters, read tools ----------------------------------
             ctx, page = await V.new_page(browser, url, claude_ready=True)
