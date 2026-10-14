@@ -147,7 +147,9 @@ d2('custom tag switch', () => {
     e2(setCustomKey('custom_schema.basic_mo', false)).toBe('basic_mo')
     e2(setCustomKey('first_name + last_name', true)).toBe('custom_schema.first_name + custom_schema.last_name')
     e2(setCustomKey('fx:full_name', true)).toBe('custom_schema.first_name + custom_schema.last_name')
-    e2(setCustomKey('employee_schema.rating', true)).toBe('employee_schema.rating')
+    e2(setCustomKey('employee_schema.rating', true)).toBe('custom_schema.rating')
+    e2(setCustomKey('employee_schema.function', true)).toBe('custom_schema.function')
+    e2(setCustomKey('custom_schema.function', false)).toBe('employee_schema.function')   // back to the CompUp field
     e2(isCustomKey('custom_schema.basic_mo')).toBe(true)
     e2(isCustomKey('basic_mo')).toBe(false)
     e2(canBeCustom('fx:full_name')).toBe(true)

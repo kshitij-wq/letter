@@ -251,19 +251,23 @@ export function tagOpParts(op){
 
 // "Custom tag" switch in the tag editor: custom cycle columns live under custom_schema. in CompUp.
 const CUSTOM = 'custom_schema.';
-function plainKey(k){ return /^[A-Za-z_][\w]*$/.test(k); }   // a bare field name (not fx:, not already in a schema, not an expression)
+function plainKey(k){ return /^[A-Za-z_][\w]*$/.test(k); }   // a bare field name (not fx:, not an expression)
+// a field in another group, e.g. employee_schema.function: the switch moves it into custom_schema.
+function groupedKey(k){ return /^[A-Za-z_]\w*\.[A-Za-z_]\w*$/.test(k) && !k.startsWith(CUSTOM); }
+const movable=k=>plainKey(k) || groupedKey(k);
 const FULL_NAME='first_name + last_name';
-export function isCustomKey(key){ const parts=keyParts(key); return parts.length>0 && parts.some(k=>k.startsWith(CUSTOM)) && parts.every(k=>k.startsWith(CUSTOM) || !plainKey(k)); }
-export function canBeCustom(key){ return key==='fx:full_name' || keyParts(key).some(k=>k.startsWith(CUSTOM) || plainKey(k)); }
+export function isCustomKey(key){ const parts=keyParts(key); return parts.length>0 && parts.some(k=>k.startsWith(CUSTOM)) && parts.every(k=>k.startsWith(CUSTOM) || !movable(k)); }
+export function canBeCustom(key){ return key==='fx:full_name' || keyParts(key).some(k=>k.startsWith(CUSTOM) || movable(k)); }
 // why the switch can't apply to this field (shown next to the disabled switch), or ''
 export function customReason(key){
   if (!key || canBeCustom(key)) return '';
   if (/\{\{|\{%/.test(key)) return "This is a tag you wrote yourself, so there is no field to move.";
-  if (String(key).startsWith('fx:')) return 'This is a built-in formula, not a plain field.';
-  return 'This field already has its own group, so it can not be custom.';
+  return 'This is a built-in formula, not a plain field.';
 }
+// custom_schema.function -> the CompUp field it came from (employee_schema.function), else the bare name
+function uncustom(k){ const name=k.slice(CUSTOM.length); if (CATALOG.some(c=>c.key===name)) return name; const c=CATALOG.find(c=>c.key.endsWith('.'+name)); return c ? c.key : name; }
 export function setCustomKey(key, on){
   if (key==='fx:full_name') key=FULL_NAME;   // the full name is first + last name: the switch works on the two fields
   if (!key || /\{\{|\{%/.test(key)) return key;
-  return keyParts(key).map(k=> on ? (plainKey(k) ? CUSTOM+k : k) : (k.startsWith(CUSTOM) ? k.slice(CUSTOM.length) : k)).join(' + ');
+  return keyParts(key).map(k=> on ? (movable(k) ? CUSTOM+k.split('.').pop() : k) : (k.startsWith(CUSTOM) ? uncustom(k) : k)).join(' + ');
 }
