@@ -3,16 +3,12 @@ from __future__ import annotations
 
 import json
 import logging
-import platform
 import re
 from pathlib import Path
 
-import django
 import docxtpl
-import jinja2
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
-from django.templatetags.static import static
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from . import assistant
@@ -26,7 +22,7 @@ DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.docu
 @ensure_csrf_cookie
 def index(request):
     # The page is full of {{ … }} and {% … %} examples, so it is served as a file, not a Django template.
-    html = FRONTEND.read_text(encoding="utf-8").replace("__STATIC__/", static("renderer/"))
+    html = FRONTEND.read_text(encoding="utf-8")
     return HttpResponse(html, content_type="text/html; charset=utf-8")
 
 
@@ -35,11 +31,8 @@ def health(request):
         "status": "ok",
         "app": "Letter Studio",
         "validate": True,
-        "render": True,
         "assistant": {"ready": assistant.ready(), "model": assistant.config()["model"]},
-        "autoescape": settings.LETTER_STUDIO["AUTOESCAPE"],
-        "versions": {"python": platform.python_version(), "django": django.get_version(),
-                     "docxtpl": getattr(docxtpl, "__version__", ""), "jinja2": jinja2.__version__},
+        "versions": {"docxtpl": getattr(docxtpl, "__version__", "")},
     })
 
 
