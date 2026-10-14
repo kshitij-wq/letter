@@ -4,8 +4,6 @@ import './styles.css'
 import App from './App'
 import { initTeam, probeServer, setIconRenderer } from './engine'
 import './features/register'
-import { setFlagProvider, setPaperHandler } from './features/paper/paperEvents'
-import { closeInspector, openInspector } from './features/shell/inspector'
 import { useUi } from './store'
 
 // Same start-up as the old page: the team library (claude.ai only) and the Letter Studio back-end probe
@@ -26,4 +24,4 @@ createRoot(document.getElementById('root')!).render(
 )
 
 // Test hook, next to the engine's window.__lt: the UI store and the extension points, for the browser tests and the screenshots.
-;(window as unknown as { __ltUi: unknown }).__ltUi = { useUi, openInspector, closeInspector, setFlagProvider, setPaperHandler }
+;(window as unknown as { __ltUi: unknown }).__ltUi = { useUi }

@@ -8,7 +8,7 @@ import {
 } from '../../engine'
 import { focusSoon, useFieldGroups, useSyncedText } from './hooks'
 
-export type Rule = { field: string; op: string; value: string }
+type Rule = { field: string; op: string; value: string }
 export type Cb = { rules: Rule[]; join: string; raw: string | null }
 export type Facts = { raw: boolean; expr: string; en: string; why: string; handOk: boolean }
 

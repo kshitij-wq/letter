@@ -19,7 +19,7 @@ const setPos = (p: Pos) => { pos = p; subs.forEach((f) => f()) }
 export const usePos = (id: string): Pos => useSyncExternalStore((f) => { subs.add(f); return () => { subs.delete(f) } }, () => (pos && pos.id === id ? pos : null), () => null)
 
 /** The spot of a placeholder that a `.ph` element in the letter shows. */
-export function placeOfSpan(id: string, sp: HTMLElement | undefined): Place | null {
+function placeOfSpan(id: string, sp: HTMLElement | undefined): Place | null {
   const p = sp?.closest<HTMLElement>('p.lp'), o = sp?.querySelector<HTMLElement>('.tx')?.dataset.o
   if (!p || o == null) return null
   const pl = placeAt(id, p.dataset.pid as string, +o)
@@ -53,7 +53,7 @@ function endSelection() {
 }
 
 /** The list is showing this placeholder (the filters and the search leave it in). */
-export const isListed = (id: string) => listRows().some((r: any) => r.id === id)
+const isListed = (id: string) => listRows().some((r: any) => r.id === id)
 
 /**
  * Open a placeholder in the inspector. If the filters hide it they are cleared; the list scrolls to it. `focus` puts the cursor

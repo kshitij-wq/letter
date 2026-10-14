@@ -7,5 +7,5 @@ export function Kbd({ children, className }: { children: ReactNode; className?: 
 }
 
 /** True on macOS and iOS, so shortcuts read ⌘ there and Ctrl elsewhere. */
-export const isMac = typeof navigator !== 'undefined' && /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent)
+const isMac = typeof navigator !== 'undefined' && /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent)
 export const modKey = isMac ? '⌘' : 'Ctrl'

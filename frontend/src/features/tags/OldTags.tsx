@@ -2,7 +2,7 @@ import { MapPin, Pencil, X } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Button, Checkbox, IconButton, Input, Section, Select, cn } from '@/ui'
-import { addPrefixToTags, fieldLabel, oldTagNames, renameTag, renameTagTyped, replaceInTags, rewriteAmountTags, squash, tagOpParts, undoTagOp } from '../../engine'
+import { addPrefixToTags, fieldLabel, oldTagNames, plural, renameTag, renameTagTyped, replaceInTags, rewriteAmountTags, squash, tagOpParts, undoTagOp } from '../../engine'
 import { scrollBehavior } from '../paper/navigate'
 import { plainLine } from '../validate/plain'
 import { CustomToggle } from './CustomToggle'
@@ -86,7 +86,6 @@ export function OldTags() {
   const info = oldTagNames()
   if (!(info.total > 0 || info.ops.length > 0)) return null
   const names = info.names as any[]
-  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
   const tools = 'flex flex-col gap-1.5'
 
   return (

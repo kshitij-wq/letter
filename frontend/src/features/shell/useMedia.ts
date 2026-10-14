@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 
 /** True while the media query matches (re-renders on change). */
-export function useMedia(query: string): boolean {
+function useMedia(query: string): boolean {
   const sub = (cb: () => void) => { const m = window.matchMedia(query); m.addEventListener('change', cb); return () => m.removeEventListener('change', cb) }
   return useSyncExternalStore(sub, () => window.matchMedia(query).matches, () => false)
 }

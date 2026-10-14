@@ -8,7 +8,6 @@ import { runDownloadDocx } from '../shell/docx'
 import { isNarrowNow } from '../shell/useMedia'
 import { PreviewValues } from './PreviewValues'
 import { Readiness } from './Readiness'
-import { takeValuesRequest, useValuesRequest } from './valuesFocus'
 
 function DownloadItem({ children, hint, ...props }: { children: React.ReactNode; hint: string } & React.ComponentProps<typeof Button>) {
   return (
@@ -77,12 +76,13 @@ function PreviewSettings() {
  */
 export function ExportStep() {
   const rev = useEngineRev()
-  const wanted = useValuesRequest()
+  const wanted = useUi((s) => s.valuesWanted)
   const [valuesOpen, setValuesOpen] = useState(false)
   const valuesRef = useRef<HTMLDivElement>(null)
   // "Values" in the preview bar: unfold the values and bring them into view
   useEffect(() => {
-    if (!wanted || !takeValuesRequest()) return
+    if (!wanted) return
+    useUi.getState().setValuesWanted(false)
     setValuesOpen(true)
     requestAnimationFrame(() => valuesRef.current?.scrollIntoView({ block: 'start', inline: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }))
   }, [wanted])

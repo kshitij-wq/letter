@@ -37,7 +37,9 @@ export function findAll(text, find){
 }
 export function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 export function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
-/* ---- icons inside HTML strings (the letter's margin lines): the UI layer may swap the renderer; the default points at an SVG sprite ---- */
-export const iconHook = { fn: (n, cls='') => `<svg class="ic ${cls}" aria-hidden="true" focusable="false"><use href="#i-${n}"/></svg>` };
-export function icon(n, cls=''){ return iconHook.fn(n, cls); }
-export function setIconRenderer(fn){ iconHook.fn = fn; }
+/* ---- icons inside HTML strings (the letter's margin lines): the UI layer (main.tsx) supplies the renderer ---- */
+let iconFn = () => '';
+export function icon(n, cls=''){ return iconFn(n, cls); }
+export function setIconRenderer(fn){ iconFn = fn; }
+/** "3 letters", "1 letter" */
+export const plural = (n, w) => `${n} ${w}${n===1?'':'s'}`;

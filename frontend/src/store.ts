@@ -9,9 +9,9 @@ import { lsGet, lsSet } from './engine'
  * with `useUi.getState().openInspector('tag', { id })`.
  */
 export type Theme = 'system' | 'light' | 'dark'
-export type InspectorState = { kind: string; args: Record<string, unknown> } | null
-export type DocxState = 'idle' | 'busy' | 'done'
-export type LoadError = { id: number; message: string; scope?: string } | null
+type InspectorState = { kind: string; args: Record<string, unknown> } | null
+type DocxState = 'idle' | 'busy' | 'done'
+type LoadError = { id: number; message: string; scope?: string } | null
 
 export const SIDE_MIN = 300
 export const SIDE_MAX = 640
@@ -56,6 +56,9 @@ type UiState = {
   /** The last file or data error the engine reported (the first-run screen and the Document step show it inline). */
   error: LoadError
   setError: (e: LoadError) => void
+  /** "Values" in the preview bar asks the Export step to unfold and show its values. */
+  valuesWanted: boolean
+  setValuesWanted: (w: boolean) => void
 }
 
 export const useUi = create<UiState>((set) => ({
@@ -78,4 +81,6 @@ export const useUi = create<UiState>((set) => ({
   setDocx: (docx) => set({ docx }),
   error: null,
   setError: (error) => set({ error }),
+  valuesWanted: false,
+  setValuesWanted: (valuesWanted) => set({ valuesWanted }),
 }))
