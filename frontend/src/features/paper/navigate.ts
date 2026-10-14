@@ -9,7 +9,7 @@ export const paperEl = () => document.getElementById('paper')
 export const paperScroller = () => document.getElementById('paper-scroll')
 
 // the DOM is redrawn by React after setView(); wait for it
-const afterPaint = (fn: () => void) => requestAnimationFrame(() => requestAnimationFrame(fn))
+export const afterPaint = (fn: () => void) => requestAnimationFrame(() => requestAnimationFrame(fn))
 
 /** Scroll the letter to a paragraph and flash it. On a phone the step drawer covers the letter, so it closes first. */
 export function showPid(pid: string) {

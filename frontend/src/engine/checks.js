@@ -69,7 +69,6 @@ export function rawNumericUses(expr){
   }
   return out;
 }
-export function lastFilterName(expr){ const m=String(expr).replace(/'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"/g,'""').match(/\|\s*(\w+)\s*(\([^()]*\))?\s*$/); return m?m[1]:''; }
 export function addTrimMarkers(tag){
   const p=parseLogic(tag); if (!p.kw) return tag;
   const open=t=>t.replace(/\s*-?%\}$/,' -%}'), close=t=>t.replace(/^\{%-?\s*/,'{%- ');

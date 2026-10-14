@@ -58,7 +58,7 @@ export function build(){
     }
   }
   // logic tags placed by the user
-  const condErr=[]; const logicPlaced=applyLogic(docs, an);
+  const condErr=[]; applyLogic(docs, an);
   // repair pass on every paragraph: merge split tags, straighten quotes
   let merged=0, fixedQ=0, ampFixed=0;
   for (const part of state.parts){

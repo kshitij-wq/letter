@@ -8,12 +8,9 @@ renderer.engine.validate_docx, fills it with docxtpl once per version (letter_ve
 result with that version's own text, paragraph for paragraph. Also: another base version, the preview in the page for each
 version, undo back to the base, a file that is not a .docx, one version only, and that the old who-gets-which section is gone.
 """
-import http.server
 import io
 import os
-import socketserver
 import sys
-import threading
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -28,35 +25,13 @@ from playwright.sync_api import expect, sync_playwright  # noqa: E402
 
 from renderer.engine import render_docx, validate_docx  # noqa: E402
 
-FIX = ROOT / "tests_ui" / "fixtures"
+sys.path.insert(0, str(ROOT / "tests_ui"))
+from common import FIX, launch, start_static  # noqa: E402
 VERS = FIX / "versions"
-PAGE = ROOT / "renderer" / "frontend" / "index.html"
 NAMES = ["promotion", "variable-pay", "no-increase", "bonus-only"]
 VALUES = {n: n.replace("-", "_") for n in NAMES}   # the automatic value of each version
 FIELD = "custom_schema.letter_version"
 errors = []
-
-
-class H(http.server.BaseHTTPRequestHandler):
-    def log_message(self, *a):
-        pass
-
-    def do_GET(self):
-        if self.path.split("?")[0] in ("/", "/index.html"):
-            b = PAGE.read_bytes()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(b)))
-            self.end_headers()
-            self.wfile.write(b)
-        else:
-            self.send_response(404)
-            self.end_headers()
-
-
-class S(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    daemon_threads = True
-    allow_reuse_address = True
 
 
 def doc_lines(source):
@@ -81,11 +56,9 @@ def doc_lines(source):
 
 
 def main():
-    srv = S(("127.0.0.1", 0), H)
-    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    srv, _ = start_static()
     with sync_playwright() as p:
-        exe = os.environ.get("CHROMIUM_PATH")
-        b = p.chromium.launch(**({"executable_path": exe} if exe else {}))
+        b = launch(p)
         pg = b.new_context(viewport={"width": 1440, "height": 900}, accept_downloads=True).new_page()
         pg.on("pageerror", lambda e: errors.append(str(e)))
         pg.on("console", lambda m: errors.append(m.text) if m.type == "error" and "404" not in m.text else None)

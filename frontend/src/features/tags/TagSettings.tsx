@@ -3,7 +3,7 @@ import { Checkbox, Section, Select } from '@/ui'
 import { changeSettings } from '../../engine'
 import { useCollapsed } from './useCollapsed'
 
-export const MONEY = [
+const MONEY = [
   { value: 'indian', label: 'Indian commas', hint: '{{ ctc | indian_comma }}' },
   { value: 'indian_round', label: 'Indian commas, whole number' },
   { value: 'dec0', label: 'No decimals', hint: "'{:.0f}'.format(…)" },

@@ -6,7 +6,7 @@ import type { Chip } from './types'
 export const MSG = 'break-words text-base leading-snug text-ink [&_code]:rounded-tag [&_code]:bg-tag-bg [&_code]:px-1 [&_code]:py-px [&_code]:font-mono [&_code]:text-xs [&_code]:text-tag'
 
 export type Level = 'error' | 'warn' | 'info' | 'fixed'
-export const LEVEL_TONE = { error: 'err', warn: 'warn', info: 'info', fixed: 'ok' } as const
+const LEVEL_TONE = { error: 'err', warn: 'warn', info: 'info', fixed: 'ok' } as const
 
 /** Fix / Check / Note: the word is always there, the colour only repeats it. */
 export function LevelBadge({ level, label }: { level: Level; label: string }) {

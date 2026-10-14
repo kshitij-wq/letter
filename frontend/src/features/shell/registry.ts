@@ -18,7 +18,7 @@ export const registerStep = (id: StepId, def: StepDef) => { steps.set(id, def) }
 export const getStep = (id: StepId) => steps.get(id)
 
 /* ---- inspector panels (the right column, one at a time) ---- */
-export type InspectorArgs = Record<string, any>
+type InspectorArgs = Record<string, any>
 export type InspectorPanelProps = { args: InspectorArgs; close: () => void }
 export type InspectorDef = {
   /** The title in the inspector head. */

@@ -21,13 +21,12 @@ import asyncio
 import base64
 import http.server
 import json
-import os
-import socketserver
 import sys
-import threading
 from pathlib import Path
 
 from playwright.async_api import async_playwright
+
+from common import launch, start_static
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -103,13 +102,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
         return self._send(404)
 
 
-def start_server():
-    class S(socketserver.ThreadingMixIn, socketserver.TCPServer):
-        daemon_threads = True
-        allow_reuse_address = True
-    srv = S(("127.0.0.1", 0), Handler)
-    threading.Thread(target=srv.serve_forever, daemon=True).start()
-    return srv, srv.server_address[1]
 
 
 # ---------------------------------------------------------------------------------------------- the scripted run (runs in the page)
@@ -566,11 +558,10 @@ async def main():
     args = ap.parse_args()
     if not NEW.exists():
         sys.exit(f"{NEW} is missing: run  python tools/build_frontend.py  first")
-    srv, port = start_server()
+    srv, port = start_static(Handler)
     failed = 0
     async with async_playwright() as p:
-        exe = os.environ.get("CHROMIUM_PATH")
-        browser = await p.chromium.launch(**({"executable_path": exe} if exe else {}))
+        browser = await launch(p)
         try:
             for s in scenarios(args.quick, args.only):
                 arg = args_for(s)

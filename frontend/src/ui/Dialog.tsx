@@ -5,7 +5,7 @@ import { Button, IconButton } from './Button'
 import { cn } from './cn'
 
 /** A dialog: protected focus, Esc closes. Use it only when the task needs the person's full attention. */
-export function Dialog({ open, onOpenChange, title, description, children, footer, className, onOpenAutoFocus }: {
+function Dialog({ open, onOpenChange, title, description, children, footer, className, onOpenAutoFocus }: {
   open: boolean; onOpenChange: (o: boolean) => void; title: string; description?: ReactNode; children?: ReactNode; footer?: ReactNode; className?: string
   onOpenAutoFocus?: (e: Event) => void
 }) {

@@ -5,11 +5,11 @@ import { chooseDataFilter, chooseDataFilterValue, chooseSampleRow, chooseSheet, 
 import { dataSummary, type DataExtra, type DataSummary } from './types'
 import { DATA_ACCEPT, openData, pickFile } from '../shell/openFile'
 import { DropArea } from './DropArea'
+import { plural } from '../../engine'
 
 type Summary = DataSummary
 type Extra = DataExtra
 const ALL = '__all'
-const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
 
 /** A labelled control: the label above, quiet. */
 function Field({ label, children, id }: { label: ReactNode; children: ReactNode; id?: string }) {

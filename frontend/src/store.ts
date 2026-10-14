@@ -9,9 +9,9 @@ import { lsGet, lsSet } from './engine'
  * with `useUi.getState().openInspector('tag', { id })`.
  */
 export type Theme = 'system' | 'light' | 'dark'
-export type InspectorState = { kind: string; args: Record<string, unknown> } | null
-export type DocxState = 'idle' | 'busy' | 'done'
-export type LoadError = { id: number; message: string; scope?: string } | null
+type InspectorState = { kind: string; args: Record<string, unknown> } | null
+type DocxState = 'idle' | 'busy' | 'done'
+type LoadError = { id: number; message: string; scope?: string } | null
 
 export const SIDE_MIN = 300
 export const SIDE_MAX = 640
@@ -59,6 +59,9 @@ type UiState = {
   /** Steps the person has opened with this letter: a step tick is only green for a step that was looked at. */
   visited: Record<string, true>
   setVisited: (v: Record<string, true>) => void
+  /** "Values" in the preview bar asks the Export step to unfold and show its values. */
+  valuesWanted: boolean
+  setValuesWanted: (w: boolean) => void
 }
 
 export const useUi = create<UiState>((set) => ({
@@ -83,4 +86,6 @@ export const useUi = create<UiState>((set) => ({
   setError: (error) => set({ error }),
   visited: {},
   setVisited: (visited) => set({ visited }),
+  valuesWanted: false,
+  setValuesWanted: (valuesWanted) => set({ valuesWanted }),
 }))

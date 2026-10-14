@@ -22,7 +22,7 @@ function rove(root: HTMLElement) {
 }
 
 /** What a click on a paragraph does, in the mode the letter is in (picking where a block ends, placing a tag, selecting). */
-export function activateParagraph(pid: string, shift: boolean) {
+function activateParagraph(pid: string, shift: boolean) {
   if (es.placing) placeUnplacedAt(pid)
   else if (es.closing) closeBlockAt(pid)
   else clickParagraph(pid, shift)

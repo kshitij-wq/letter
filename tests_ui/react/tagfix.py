@@ -8,13 +8,10 @@ The letter is made up here (an Expleo-style letter: a highlighted "PF/" in the r
 cells, a header and a footer, one tag the letter already had).
 """
 import csv
-import http.server
 import os
 import re
-import socketserver
 import sys
 import tempfile
-import threading
 from pathlib import Path
 
 import docx
@@ -28,8 +25,8 @@ import django  # noqa: E402
 
 django.setup()
 from renderer.engine import render_docx  # noqa: E402
-FIX = ROOT / "tests_ui" / "fixtures"
-PAGE = ROOT / "renderer" / "frontend" / "index.html"
+sys.path.insert(0, str(ROOT / "tests_ui"))
+from common import FIX, launch, start_static  # noqa: E402
 SHOTS = Path(os.environ["SHOTS"]) if os.environ.get("SHOTS") else None
 errors = []
 fails = []
@@ -62,28 +59,6 @@ def make_letter(path):
     d.save(path)
 
 
-class H(http.server.BaseHTTPRequestHandler):
-    def log_message(self, *a):
-        pass
-
-    def do_GET(self):
-        if self.path.split("?")[0] in ("/", "/index.html"):
-            b = PAGE.read_bytes()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(b)))
-            self.end_headers()
-            self.wfile.write(b)
-        else:
-            self.send_response(404)
-            self.end_headers()
-
-
-class S(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    daemon_threads = True
-    allow_reuse_address = True
-
-
 def shot(pg, name):
     if SHOTS:
         SHOTS.mkdir(parents=True, exist_ok=True)
@@ -94,11 +69,9 @@ def main():
     tmp = Path(tempfile.mkdtemp(prefix="tagfix-"))
     letter = tmp / "expleo-letter.docx"
     make_letter(letter)
-    srv = S(("127.0.0.1", 0), H)
-    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    srv, _ = start_static()
     with sync_playwright() as p:
-        exe = os.environ.get("CHROMIUM_PATH")
-        b = p.chromium.launch(**({"executable_path": exe} if exe else {}))
+        b = launch(p)
         ctx = b.new_context(viewport={"width": 1440, "height": 900}, accept_downloads=True, color_scheme="light")
         pg = ctx.new_page()
         pg.on("pageerror", lambda e: errors.append(str(e)))

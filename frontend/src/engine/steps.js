@@ -2,6 +2,7 @@
 import { build } from './build.js'
 import { csvRows } from './data.js'
 import { saveEditor } from './editor.js'
+import { plural } from './helpers.js'
 import { emit, notify, on, toast } from './events.js'
 import { PV_MAX, previewPicker, refreshPreview, templateIdentifiers } from './pipeline.js'
 import { rowStatus } from './rows.js'
@@ -62,7 +63,6 @@ export function stepInfo(){
   // an error from Validate that points at a condition (an if / elif / for tag) keeps Conditions from showing done
   const logicErr=(state.issues||[]).some(x=>x.level==='error' && (x.cat==='conditions' || (x.cat==='syntax' && (x.tags||[]).some(t=>typeof t==='string' && /^\s*\{%/.test(t)))));
   const realOk = !server.ok || !!(server.check && !server.check.syntax.length);
-  const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
   const done={
     doc: !!(state.an && !state.isSample),
     tags: !need && taggedAny,

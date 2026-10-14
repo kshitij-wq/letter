@@ -3,12 +3,12 @@ import { useEffect, useId, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger, IconButton, Kbd, modKey } from '@/ui'
-import { HISTORY, downloadMapping, redo, saveStatusText, server, undo } from '../../engine'
+import { HISTORY, downloadMapping, redo, saveStatusText, undo } from '../../engine'
 import { runDownloadDocx } from './docx'
 import { THEMES, ThemeMenu } from './ThemeMenu'
 
 /** The CompUp mark: navy square, orange and yellow rounded shapes, white where they overlap (drawn from the logo). */
-export function Mark({ className }: { className?: string }) {
+function Mark({ className }: { className?: string }) {
   const id = useId()
   return (
     <svg viewBox="0 0 100 100" aria-hidden className={className ?? 'size-6 shrink-0'}>
