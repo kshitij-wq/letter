@@ -16,7 +16,7 @@ import { addLogic, addLogicAt, afterLogicChange, logicTpl, normalizeLogicText, s
 import { batchCsv, pvMatches, refreshPreview, schedulePreview } from './pipeline.js'
 import { buildTag, edit, onlyHere, rowPlaces, rowStatus, sameTextRow } from './rows.js'
 import { sampleDocx } from './sample.js'
-import { exportSetup, findOffset, flushAutosave, importSetup, setupReportText } from './setup.js'
+import { exportSetup, findOffset, flushAutosave, importSetup, setupHasWork, setupReportText } from './setup.js'
 import { state } from './state.js'
 import { setTab, setView } from './steps.js'
 import { cellMemKey, tEditCell, tEditCol, tEditHide, tEditRowHide, tableAction } from './tables.js'
@@ -389,13 +389,18 @@ export function clearMerge(){ state.mergeB=null; notify(); }
 /* ---- saving and sharing ---- */
 export async function downloadTemplate(){
   let saved=false;
-  try { const blob=await buildBlob(); const errs=state.built.checks.filter(c=>c.level==='error').length; saved=await offer(baseName()+'-compup-template.docx', blob); if (errs) toast(`Saved, but ${errs} template check${errs>1?'s need':' needs'} fixing first.`); }
+  try { const blob=await buildBlob(); const errs=state.built.checks.filter(c=>c.level==='error').length; saved=markSaved(await offer(baseName()+'-compup-template.docx', blob)); if (errs) toast(`Saved, but ${errs} template check${errs>1?'s need':' needs'} fixing first.`); }
   catch(e){ console.warn(e); toast('Could not build the file: '+e.message); }
   return saved;
 }
 export function downloadMapping(){ return offer(baseName()+'-tag-mapping.csv', mappingCsv()); }
 export function downloadTagListTemplate(){ return offer('compup-letter-tags-template.csv', templateCsv()); }
-export async function downloadSetup(){ await flushEditor(); return offer(baseName()+'-tagger-setup.json', JSON.stringify(exportSetup())); }
+// the work as a comparable string (no timestamp): what the leave-the-page guard checks against the last setup file or template download
+const workKey=()=>{ const s=exportSetup({includeSource:false}); delete s.savedAt; return JSON.stringify(s); };
+const markSaved=saved=>{ if (saved){ state.savedWork=workKey(); state.savedEdit=state.editedAt; } return saved; };
+// changes that live only in this browser's autosave: not in a setup file or a downloaded template yet
+export function unsavedWork(){ return !!state.an && !state.isSample && ((setupHasWork(exportSetup({includeSource:false})) && workKey()!==state.savedWork) || (!!state.editedAt && state.editedAt!==state.savedEdit)); }
+export async function downloadSetup(){ await flushEditor(); return markSaved(await offer(baseName()+'-tagger-setup.json', JSON.stringify(exportSetup()))); }
 export function downloadBatchResults(){ return offer(baseName()+'-employee-test.csv', batchCsv()); }
 // a setup file chosen by the person: {report} on success, {error} otherwise
 export async function loadSetupFile(f){

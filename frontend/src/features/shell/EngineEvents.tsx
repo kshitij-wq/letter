@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { es } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { toast } from '@/ui'
-import { on, redo, undo } from '../../engine'
+import { on, redo, undo, unsavedWork } from '../../engine'
 import { showPid } from '../paper/navigate'
 import { plainLine } from '../validate/plain'
 import { closeInspector, openInspector } from './inspector'
@@ -69,12 +69,16 @@ export function EngineEvents() {
       if (e.target instanceof Element && e.target.closest('[data-dropzone]')) return
       toast('To open a file, use the Document step.')
     }
+    // closing the tab or reloading would lose work that only this browser's autosave holds
+    const onLeave = (e: BeforeUnloadEvent) => { if (unsavedWork()) { e.preventDefault(); e.returnValue = '' } }
+    window.addEventListener('beforeunload', onLeave)
     window.addEventListener('keydown', onKey)
     window.addEventListener('keydown', onEsc, true)
     window.addEventListener('dragover', onDragOver)
     window.addEventListener('drop', onDrop)
     return () => {
       offs.forEach((off) => off())
+      window.removeEventListener('beforeunload', onLeave)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('keydown', onEsc, true)
       window.removeEventListener('dragover', onDragOver)
