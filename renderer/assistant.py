@@ -71,7 +71,7 @@ def _api_error(status, body):
 def _need_key():
     cfg = config()
     if not cfg["key"]:
-        raise AssistError("Claude isn't set up yet: add ANTHROPIC_API_KEY to the .env file in the letter-studio folder and restart. See the README.", 503)
+        raise AssistError("Claude isn't set up yet: add ANTHROPIC_API_KEY to the .env file in the project folder and restart. See the README.", 503)
     return cfg
 
 

@@ -63,7 +63,7 @@ With an Anthropic API key, the page gets four Claude helpers:
 
 Set it up once:
 
-1. Copy `.env.example` to `.env` in the `letter-studio` folder.
+1. Copy `.env.example` to `.env` in the project folder.
 2. Put your key in it: `ANTHROPIC_API_KEY=sk-ant-…` (from console.anthropic.com).
 3. Restart Letter Studio. The terminal says `Claude: ready`.
 
@@ -133,6 +133,11 @@ employee data**: keep them in a `private/` folder (ignored by git) or name them 
 | `ANTHROPIC_API_KEY` | empty | Your Claude API key (put it in `.env`) |
 | `LS_CLAUDE_MODEL` | `claude-sonnet-5-5` | Claude model for the helpers |
 | `LS_MAX_UPLOAD_MB` | `25` | Largest letter accepted |
+| `LS_CLAUDE_TIMEOUT` | `120` | Seconds to wait for Claude |
+| `LS_LOG_LEVEL` | `INFO` | Log level of the `renderer` logger |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | empty | Origins allowed to post, behind a proxy |
+| `PORT` | `8000` | Port used by `run_local.py` |
+| `LS_NO_BROWSER` | unset | Set to `1` so `run_local.py` doesn't open a browser |
 | `DJANGO_DEBUG` | `1` | Set `0` on a shared server |
 | `DJANGO_SECRET_KEY` | dev key | Set a real one on a shared server |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Host names allowed to serve the app |
@@ -142,7 +147,7 @@ employee data**: keep them in a `private/` folder (ignored by git) or name them 
 
 | Endpoint | |
 |---|---|
-| `GET /api/health` | `{app, validate, autoescape, versions}` |
+| `GET /api/health` | `{status, app, validate, assistant: {ready, model}, versions: {docxtpl}}` |
 | `POST /api/validate` | multipart: `template` (.docx), optional `employees` (JSON list of `{label, values}`). Returns `{ok, syntax: [...], variables: [...], employees: {tested, failed: [...]}}`. Each problem has `friendly` (plain words), `part` / `part_label` (body, header…), `para_index`, `line_text` and `tag`. Makes no file. |
 | `POST /api/assist` | JSON `{task, payload}`; task `suggest_tags`, `review`, `condition` or `ask`. Calls Claude with the key from `.env` and returns its JSON answer. `503` when no key is set. |
 | `POST /api/render` | multipart: `template`, `context` (JSON of one employee's values), `format` (`docx` \| `json`). Returns the filled .docx, or `{"text": …}`. Errors: `422 {error, kind, tag, context}`. |
@@ -158,8 +163,11 @@ tools/build_frontend.py           builds it into one file, renderer/frontend/ind
 renderer/engine.py                Jinja environment + CompUp filters, validate_docx, render_docx, plain-language errors
 renderer/views.py                 /, /api/health, /api/validate, /api/assist, /api/render
 renderer/assistant.py             Claude: prompts, JSON answers, plain-language API errors
+renderer/agent_tools.json         the Letter Assistant's tool list, read by the server and the page
 renderer/tests.py                 python manage.py test renderer
 tests_ui/sweep.py                 click-through test of the page
+tests_ui/parity.py                the page against the old one in tests_ui/legacy/
+tests_ui/react/                   smaller smoke tests of the page; tests_ui/common.py is their shared part
 ```
 
 The page notices it is running here (it can reach `/api/health`) and turns on the real-Jinja
@@ -178,21 +186,3 @@ Templates are read in Jinja's **sandbox**, so an uploaded letter can't reach Pyt
 docker build -t letter-studio .
 docker run --rm -p 8000:8000 -e DJANGO_SECRET_KEY=change-me letter-studio
 ```
-
-## What we took from the earlier prototype (Python-Blank)
-
-| Prototype | Here |
-|---|---|
-| FastAPI + SQLite, upload and count tags, "health score" | Django; the Validate step lists each problem with where it is, and real Jinja checks the file |
-| Adds `{% if %}` around a paragraph, `{%tr if %}` marker rows for table rows | Conditions on paragraphs and words (builder), row hiding inside the existing rows |
-| Planned: users and roles, template library with versions, tag registry, rules, audit log, Sentry error → fix | Not built yet. Ideas below. |
-| Saves every upload in `uploads/` | Nothing is stored; files live in memory for one request |
-
-Next steps that fit the prototype's plan:
-
-1. **Template library** (Django models): client → template → versions, with who saved
-   each version and a diff; restore an older one.
-2. **Tag registry**: the shared tag list (name, label, default format, source) that feeds
-   the tag picker, replacing the claude.ai team library.
-3. **Error → fix**: paste a CompUp/Sentry error, find the tag that caused it.
-4. **Sign-in and roles** before putting it on a shared server.
