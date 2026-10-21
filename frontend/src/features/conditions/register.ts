@@ -4,6 +4,7 @@ import { es } from '@/hooks/useEngine'
 import {
   cancelCondEdit, cancelPicking, cancelSwitch, clearSelection, condEnglish, lgInfo, on, setTab, setView, startClosing, startCondEdit,
 } from '../../engine'
+import { afterPaint, flash, scrollBehavior } from '../paper/navigate'
 import { setPaperHandler } from '../paper/paperEvents'
 import { registerCommands, registerInspector, registerStep, type Command } from '../shell/registry'
 import './conditions.css'
@@ -23,13 +24,13 @@ on('clearSelection', () => { window.getSelection()?.removeAllRanges() })
 /** Scroll the Conditions list to a tag and flash it (after the step has drawn). */
 export function flashLogicItem(key: string) {
   const base = String(key).replace(/#\d+$/, '')
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  afterPaint(() => {
     const li = [...document.querySelectorAll<HTMLElement>('.lg-item')].find((x) => x.dataset.lgKey === key || x.dataset.lgKey === base)
     if (!li) return
-    li.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
-    li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash')
+    li.scrollIntoView({ block: 'nearest', behavior: scrollBehavior() })
+    flash(li)
     setTimeout(() => li.classList.remove('flash'), 1500)
-  }))
+  })
 }
 
 // a click on a condition line in the letter: go to Conditions, flash the item and, for an if / else if, open it for changing

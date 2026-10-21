@@ -4,6 +4,7 @@ import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { Badge, Button, EmptyState, Section, Select, Switch, cn } from '@/ui'
 import { changePreviewSettings, csvRows, downloadMapping, downloadSetup, previewValues, setView } from '../../engine'
+import { scrollBehavior } from '../paper/navigate'
 import { runDownloadDocx } from '../shell/docx'
 import { isNarrowNow } from '../shell/useMedia'
 import { PreviewValues } from './PreviewValues'
@@ -84,7 +85,7 @@ export function ExportStep() {
     if (!wanted) return
     useUi.getState().setValuesWanted(false)
     setValuesOpen(true)
-    requestAnimationFrame(() => valuesRef.current?.scrollIntoView({ block: 'start', inline: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }))
+    requestAnimationFrame(() => valuesRef.current?.scrollIntoView({ block: 'start', inline: 'nearest', behavior: scrollBehavior() }))
   }, [wanted])
   if (!es.an) return <EmptyState title="Load a letter first">Readiness, downloads and the employee preview appear once a letter is open.</EmptyState>
   const h = 'text-lg font-semibold'
