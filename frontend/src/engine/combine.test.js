@@ -1,10 +1,9 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { describe, expect, it, beforeEach } from 'vitest'
 import {
   alignVersions, applyCombine, autoValues, slugOf, build, cbParse, combineCancel, combineMove, combineSetBase, combineSetLoose, combineView, groupCondition, groupRegion,
   loadVersions, on, planVersions, regionBranches, state, undo,
 } from './index.js'
+import { versionFile as file } from './testkit.js'
 
 const P = (text) => ({ kind: 'p', text })
 const T = (text) => ({ kind: 'tbl', text: '[table] ' + text })
@@ -101,12 +100,6 @@ describe('branches', () => {
 })
 
 // ---- the real fixtures through the engine ----
-// eslint-disable-next-line no-undef
-const FIX = resolve(process.cwd(), '../tests_ui/fixtures/versions')
-const file = (name) => {
-  const b = readFileSync(resolve(FIX, name))
-  return { name, arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) }
-}
 const NAMES = ['promotion.docx', 'variable-pay.docx', 'no-increase.docx', 'bonus-only.docx']
 const toasts = []
 on('toast', (m) => toasts.push(m))

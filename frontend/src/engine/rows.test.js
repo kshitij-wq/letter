@@ -4,8 +4,8 @@ import {
   sampleDocx, setFilter, setKeyPart, setRowFormat, setRowKey, setRowTag, setSearch, state, tableCellView, tableHideExample, tableRowHide, tableSummary, tablesOverview, tagOpParts,
   typeTableCellKey, setTableHideOn, clearFilters,
 } from './index.js'
+import { rowFor } from './testkit.js'
 
-const rowFor = (find) => state.rows.find((r) => r.find === find)
 
 beforeEach(async () => {
   localStorage.clear(); state.learned = {}; state.learnedCells = {}

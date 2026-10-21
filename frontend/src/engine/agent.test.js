@@ -6,9 +6,9 @@ import {
   HISTORY, TOOLS, TOOL_BY_NAME, WRITE, agentState, applied, applyWrite, buildAgentContext, clearConversation, decide, finalTag, ingestCsv, loadDocx, planWrite,
   READ, sampleDocx, sendMessage, setAutoApply, setRowKey, snapState, state, stopAgent, trimHistory, validateArgs, build, computeLogic, setTab,
 } from './index.js'
+import { rowFor } from './testkit.js'
 
 const para = (text) => state.an.paras.find((p) => !p.fallback && p.model.text.includes(text))
-const rowFor = (find) => state.rows.find((r) => r.find === find)
 const same = (a, b) => a.rest === b.rest && Object.keys(a.xml).every((k) => a.xml[k] === b.xml[k])
 const fixture = (name) => { const b = readFileSync(`${process.cwd()}/../tests_ui/fixtures/${name}`); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) }
 
