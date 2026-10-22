@@ -15,6 +15,7 @@ import { FieldSlots } from './FieldSlots'
 import { TagInput } from './TagInput'
 import { CustomToggle } from './CustomToggle'
 import { locateRow, showRow, usePos } from './locate'
+import { Around, ColumnHint } from './parts'
 
 const TONE = { tagged: 'ok', check: 'warn', need: 'err', off: 'neutral' } as const
 export const STATUS_ICON = { tagged: CircleCheck, check: TriangleAlert, need: Flag, off: Minus } as const
@@ -79,6 +80,7 @@ export function TagInspector({ args, close }: InspectorPanelProps) {
   const changeKey = (k: string) => { if (here) follow(setRowKeyAt(id, here, k)); else setRowKey(id, k) }
   const changeTag = (v: string) => { if (here) follow(setRowTagAt(id, here, v)); else setRowTag(id, v) }
   const changeFormat = (v: string) => { if (here) follow(setRowFormatAt(id, here, v)); else setRowFormat(id, v) }
+  const col: string = dataColumnFor(r.key)
   const times = r.count === 0 ? 'Not in the letter' : r.count === 1 ? 'Appears once' : `Appears ${r.count} times`
 
   const done = () => {
@@ -107,7 +109,7 @@ export function TagInspector({ args, close }: InspectorPanelProps) {
           <p className="break-words font-serif text-xl leading-snug">{r.find}</p>
           {cx && (
             <p className="mt-2 break-words rounded-control bg-hairline-soft px-2.5 py-1.5 font-serif text-base leading-snug text-muted">
-              {cx.before.length > 60 ? '…' : ''}{cx.before.slice(-60)}<mark className="rounded-[2px] bg-hl px-0.5 text-hl-ink">{cx.find}</mark>{cx.after.slice(0, 30)}{cx.after.length > 30 ? '…' : ''}
+              <Around cx={cx} after={30} />
             </p>
           )}
           <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -148,7 +150,7 @@ export function TagInspector({ args, close }: InspectorPanelProps) {
         <section>
           <Heading htmlFor="tag-key-0">Employee field</Heading>
           <FieldSlots id={id} fieldKey={r.key || ''} groups={groups} focusFirst={!!args.focus} onKey={changeKey} />
-          {r.key && dataColumnFor(r.key) && <p data-testid="data-column-hint" className="mt-2 text-sm text-muted">Your data has a “{dataColumnFor(r.key)}” column. <button type="button" className="font-semibold text-accent hover:underline" onClick={() => changeKey(tagKeyOf(dataColumnFor(r.key)))}>Use {dataColumnFor(r.key)}</button></p>}
+          {col && <ColumnHint testId="data-column-hint" className="mt-2" col={col} onUse={() => changeKey(tagKeyOf(col))} />}
           <CustomToggle className="mt-3" fieldKey={r.key || r.override || ''} onChange={changeKey} />
           {!r.key && <p className="mt-2 text-sm text-muted">{r.override ? 'No field chosen. This text uses a tag you wrote yourself.' : 'No field chosen yet.'}</p>}
           {r.scope === 'all' && r.count > 1 && !here && (

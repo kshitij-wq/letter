@@ -156,13 +156,13 @@ export function tableAction(t, act){
 }
 
 /* ======================= data for the salary tables screen (new: pure helpers, no DOM) ======================= */
-// all tables' cell counts: {all, done}
 // the cells the step badge counts: empty cells without a tag in the tables that are switched on, per table
 export function tableCellsTodo(){
   const per=[]; let todo=0;
   for (const t of state.tables){ if (!t.enabled) continue; const c=tableCounts(t); if (c.all-c.done>0){ per.push({id:t.id, n:t.n, corner:t.corner, todo:c.all-c.done, all:c.all}); todo+=c.all-c.done; } }
   return {todo, tables:per};
 }
+// all tables' cell counts: {all, done}
 export function tablesOverview(){ return state.tables.reduce((s,t)=>{ const c=tableCounts(t); return {all:s.all+c.all, done:s.done+c.done}; },{all:0,done:0}); }
 // the one-line summaries of a table's options: the formats ("Indian commas ÷ 12") and the row hiding ("hides empty rows (checks Annual)")
 export function tableSummary(t){

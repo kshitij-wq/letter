@@ -116,8 +116,8 @@ describe('FieldPicker', () => {
     const onPick = vi.fn()
     render(<Picker onPick={onPick} allowCustom />)
     await user.click(screen.getByRole('combobox', { name: 'Field' }))
-    await user.type(await screen.findByRole('combobox', { name: 'Search fields' }), 'my_col')
-    await user.click(await screen.findByText('Use “my_col”'))
+    await user.type(await screen.findByRole('combobox', { name: 'Search fields or type a name' }), 'my_col')
+    await user.click(await screen.findByText('Use “my_col” as the field'))
     expect(onPick).toHaveBeenCalledWith('my_col')
   })
   it('closes on Escape without picking', async () => {

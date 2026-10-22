@@ -1,13 +1,9 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   applyCombine, build, dataColumnFor, resolveLabel, combineCancel, edit, exportChecklist, exportGate, ingestCsv, loadDataFile, loadDocx, on, loadVersions, notify, sampleDocx, saveStatusText, state, unsavedWork,
 } from './index.js'
+import { versionFile as file } from './testkit.js'
 
-// eslint-disable-next-line no-undef
-const FIX = resolve(process.cwd(), '../tests_ui/fixtures/versions')
-const file = (name) => { const b = readFileSync(resolve(FIX, name)); return { name, arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) } }
 
 describe('combined template switched on yes / no fields the data does not have yet', () => {
   beforeEach(async () => {

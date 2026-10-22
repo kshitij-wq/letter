@@ -2,11 +2,10 @@ import { CircleAlert, CircleCheck, Download, Play, Square, Table2, TriangleAlert
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { Badge, Button, Checkbox, EmptyState, Notice, Progress, Section, Spinner, VirtualList, cn } from '@/ui'
-import { batchFixDefault, downloadBatchResults, notify, previewEmployee, runBatch, setTab, stopBatch } from '../../engine'
+import { batchFixDefault, downloadBatchResults, notify, plural, previewEmployee, runBatch, setTab, stopBatch } from '../../engine'
 import { LevelBadge, MSG, Places } from './parts'
 import { batchView, type BatchDone as Done } from './types'
 
-const pl = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
 
 /** The full-check line under a finished test: what it did, never more than it confirmed. */
 function RealLine({ real }: { real: Done['real'] }) {
@@ -37,7 +36,7 @@ function EmployeeTable({ done }: { done: Done }) {
             <div className="grid grid-cols-[1fr_auto_auto] items-center gap-3 border-b border-hairline-soft px-2 py-1">
               <span className="min-w-0 truncate text-base" title={x.label}>{x.label}</span>
               <span className={cn('flex w-24 items-center gap-1.5 text-sm', x.n ? 'text-warn' : 'text-ok')}>
-                {x.n ? <TriangleAlert aria-hidden /> : <CircleCheck aria-hidden />}{x.n ? pl(x.n, 'problem') : 'OK'}
+                {x.n ? <TriangleAlert aria-hidden /> : <CircleCheck aria-hidden />}{x.n ? plural(x.n, 'problem') : 'OK'}
               </span>
               <Button size="sm" className="w-[68px]" aria-label={`Preview ${x.label}`} onClick={() => go(x.i)}>Preview</Button>
             </div>
@@ -56,7 +55,7 @@ function Result({ done }: { done: Done }) {
       {done.stale && <Notice tone="warn" action={rerun}>The template changed after this test. Run it again for the current result.</Notice>}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
         <p className="text-sm text-muted">
-          {pl(done.total, 'employee')} tested in {done.seconds.toFixed(1)} s{done.cancelled ? ' (stopped early)' : ''}.
+          {plural(done.total, 'employee')} tested in {done.seconds.toFixed(1)} s{done.cancelled ? ' (stopped early)' : ''}.
         </p>
         <RealLine real={done.real} />
       </div>
@@ -92,7 +91,7 @@ function Result({ done }: { done: Done }) {
                 <div className="flex items-center gap-2">
                   <LevelBadge level={g.level} label={g.label} />
                   {g.real && <Badge>Full check</Badge>}
-                  <b className="tnum ml-auto text-sm">{pl(g.count, 'employee')}</b>
+                  <b className="tnum ml-auto text-sm">{plural(g.count, 'employee')}</b>
                 </div>
                 <p className={MSG} dangerouslySetInnerHTML={{ __html: g.html }} />
                 {g.fixDefault && <div><Button size="sm" onClick={() => batchFixDefault(g.fixDefault)}>Add | default(0)</Button></div>}
@@ -125,12 +124,12 @@ export function BatchSection() {
           <>
             {v.src && (
               <p className="text-sm text-muted" data-batch-src>
-                <b className="font-semibold text-ink">{v.src.name}</b> · {pl(v.src.count, 'employee')}{v.src.filter ? ` of ${v.src.of} (only ${v.src.filter.col} = ${v.src.filter.value})` : ''}
+                <b className="font-semibold text-ink">{v.src.name}</b> · {plural(v.src.count, 'employee')}{v.src.filter ? ` of ${v.src.of} (only ${v.src.filter.col} = ${v.src.filter.value})` : ''}
               </p>
             )}
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="primary" disabled={running} icon={<Play aria-hidden />} onClick={() => runBatch()}>
-                {v.rows ? `Test ${pl(v.rows, 'employee')}` : 'Test every employee'}
+                {v.rows ? `Test ${plural(v.rows, 'employee')}` : 'Test every employee'}
               </Button>
               {running && <Button icon={<Square aria-hidden />} onClick={() => stopBatch()}>Stop</Button>}
               {v.status === 'done' && v.done?.canDownload && <Button icon={<Download aria-hidden />} onClick={() => downloadBatchResults()}>Download results (.csv)</Button>}

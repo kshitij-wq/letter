@@ -23,8 +23,8 @@ export type MarginFlag = {
   key: string
   pid: string
   letter: string
-  /** error = red, warn = amber, quiet = grey (resolved) */
-  level: 'error' | 'warn' | 'quiet'
+  /** error = red, warn = amber */
+  level: 'error' | 'warn'
   /** Read by screen readers and shown as the tooltip. */
   label: string
   /** The issue index, passed back to the 'flag' handler. */

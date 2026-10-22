@@ -3,16 +3,13 @@ import { useRef, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Button, FieldPicker, FilterChip, Input, Section, Select, Textarea } from '@/ui'
 import {
-  COND_PRESETS, LOGIC_QUICK, PLACES, applyParaCondition, cbExpr, cbFacts, cbNew, insertLogicTag, lgInsertAtCursor, lgTextForKw, lgTextWithExpr, logicTpl,
+  COND_PRESETS, LOGIC_QUICK, applyParaCondition, cbExpr, cbFacts, cbNew, insertLogicTag, lgInsertAtCursor, lgTextForKw, lgTextWithExpr, logicTpl,
   paraSelection, pageLabel, snippet, startSwitchParagraphs,
 } from '../../engine'
 import { InspectorBody, InspectorFoot } from '../shell/Inspector'
 import { ConditionBuilder, ConditionResult, type Cb } from './ConditionBuilder'
-import { Code, Part, SelSummary } from './parts'
+import { Code, PLACE_OPTIONS, PRESETS, Part, SelSummary } from './parts'
 import { focusSoon, useBump, useFieldGroups } from './hooks'
-
-const PLACE_OPTIONS = (PLACES as Array<[string, string]>).map(([value, label]) => ({ value, label }))
-const PRESETS = (COND_PRESETS as Array<{ id: string; label: string; expr: string }>).filter((p) => p.expr).map((p) => ({ value: p.id, label: p.label }))
 
 type ParaSel = NonNullable<ReturnType<typeof paraSelection>>
 

@@ -7,13 +7,13 @@ import {
   cbRestart, cbSetField, cbToBuilder, cbToJinja, cbValues, dataKey,
 } from '../../engine'
 import { focusSoon, useFieldGroups, useSyncedText } from './hooks'
+import { PRESETS } from './parts'
 
 type Rule = { field: string; op: string; value: string }
 export type Cb = { rules: Rule[]; join: string; raw: string | null }
 export type Facts = { raw: boolean; expr: string; en: string; why: string; handOk: boolean }
 
 const OPS = (CB_OPS as Array<[string, string]>).map(([value, label]) => ({ value, label }))
-const PRESETS = (COND_PRESETS as Array<{ id: string; label: string; expr: string }>).filter((p) => p.expr).map((p) => ({ value: p.id, label: p.label }))
 const JOIN = [{ value: 'and', label: 'and' }, { value: 'or', label: 'or' }]
 
 /** Whether the "Show Jinja" disclosure is open stays as the person left it. */
@@ -38,7 +38,6 @@ function RuleRow({ cb, k, change, groups }: { cb: Cb; k: number; change: () => v
       <div className="flex items-center gap-1.5">
         <div className="min-w-0 flex-1">
           <FieldPicker id={`cbf-${k}`} aria-label={`Field${sfx}`} value={r.field} groups={groups} allowCustom placeholder="Choose a field…" searchPlaceholder="Search fields"
-            customLabel={(t) => `Use “${t}” as the field`}
             onChange={(v) => { cbSetField(cb, k, v); change(); if (!CB_NOVAL.has(cb.rules[k].op)) focusSoon(`#cbv-${k}`) }} />
         </div>
         {many && <IconButton label={`Remove rule ${k + 1}`} size="sm" onClick={() => { cbRemoveRule(cb, k); change() }}><X aria-hidden /></IconButton>}

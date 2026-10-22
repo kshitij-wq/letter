@@ -10,6 +10,10 @@ export const paperScroller = () => document.getElementById('paper-scroll')
 
 // the DOM is redrawn by React after setView(); wait for it
 export const afterPaint = (fn: () => void) => requestAnimationFrame(() => requestAnimationFrame(fn))
+/** Run fn on the client letter view (switching to it first and waiting for it to draw). */
+export const inSource = (fn: () => void) => { if (es.view !== 'source') { setView('source'); afterPaint(fn) } else fn() }
+/** Start an element's flash animation again from the beginning. */
+export const flash = (el: HTMLElement, cls = 'flash') => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls) }
 
 /** Scroll the letter to a paragraph and flash it. On a phone the step drawer covers the letter, so it closes first. */
 export function showPid(pid: string) {
@@ -18,10 +22,10 @@ export function showPid(pid: string) {
     const el = [...document.querySelectorAll<HTMLElement>('#paper [data-pid]')].find((x) => x.dataset.pid === pid)
     if (!el) return
     el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: scrollBehavior() })
-    el.classList.remove('flash-p'); void el.offsetWidth; el.classList.add('flash-p')
+    flash(el, 'flash-p')
     setTimeout(() => el.classList.remove('flash-p'), 1600)
   }
-  if (es.view !== 'source') { setView('source'); afterPaint(go) } else go()
+  inSource(go)
 }
 
 const LOC = { id: null as string | null, i: 0 }
