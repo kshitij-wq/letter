@@ -1,15 +1,17 @@
-import { ArrowDown, ArrowLeft, ArrowUp, FilePlus2, GitBranch, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowUp, FilePlus2, GitBranch, ToggleRight, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Badge, Button, Checkbox, DropZone, IconButton, Input, Notice, cn } from '@/ui'
-import { combineCancel, combineMove, combineMoveTo, combineRemove, combineSetBase, combineSetLabel, combineSetLoose, combineView } from '../../engine'
+import { combineCancel, combineMove, combineMoveTo, combineRemove, combineSetBase, combineSetLabel, combineSetLoose, combineSetName, combineView } from '../../engine'
 import { useSyncedText } from '../conditions/hooks'
 import { LETTER_ACCEPT, combineNow, openVersions } from '../shell/openFile'
 
 type Ver = { id: string; name: string; label: string; blocks: unknown[] }
 type Group = { versions: string[]; english: string; cond: string; empty: boolean; texts: string[]; preview: string }
-type Region = { index: number; after: string; groups: Group[] }
-type View = { autoField: string; regions: Region[]; sameCount: number; differ: number; ready: boolean }
+type Region = { index: number; kind: 'blocks' | 'inline' | 'rows' | 'tables'; after: string; groups: Group[] }
+type Flag = { key: string; index: number; field: string; name: string; versions: string[] }
+type View = { flags: Flag[]; regions: Region[]; sameCount: number; differ: number; ready: boolean }
+const WHERE = { blocks: 'Paragraphs', inline: 'Words inside', rows: 'Table rows in', tables: 'Whole table' }
 
 function VersionRow({ v, i, n, isBase, dragId, setDragId }: {
   v: Ver; i: number; n: number; isBase: boolean; dragId: string | null; setDragId: (id: string | null) => void
@@ -40,6 +42,22 @@ function VersionRow({ v, i, n, isBase, dragId, setDragId }: {
   )
 }
 
+function FlagRow({ f }: { f: Flag }) {
+  // the row's own copy while typing ("Gets ESI" becomes custom_schema.gets_esi when it is kept, on Enter or leaving the box)
+  const [name, setName] = useState(f.name)
+  return (
+    <li data-testid={`combine-flag-${f.index}`} className="grid gap-1.5 rounded-control border border-hairline-soft bg-panel p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <code className="font-mono text-sm text-muted">custom_schema.</code>
+        <Input aria-label={`Field ${f.index + 1}`} data-testid={`combine-flag-name-${f.index}`} className="min-w-0 flex-1 basis-40" value={name}
+          onChange={(e) => setName(e.target.value)} onBlur={() => { if (name.trim() && name !== f.name) combineSetName(f.key, name) }}
+          onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) combineSetName(f.key, name) }} />
+      </div>
+      <p className="text-xs text-muted">“yes” for: {f.versions.join(', ')}</p>
+    </li>
+  )
+}
+
 function GroupCard({ g }: { g: Group }) {
   const [open, setOpen] = useState(false)
   const long = g.texts.join(' ').length > g.preview.length
@@ -65,7 +83,7 @@ function Differences({ view }: { view: View }) {
     <ol className="grid gap-5">
       {view.regions.map((r) => (
         <li key={r.index} data-testid={`combine-region-${r.index}`} className="grid gap-2">
-          <h3 className="text-sm font-semibold">Place {r.index + 1}<span className="font-normal text-muted">{r.after ? ` · after “${r.after}”` : ' · at the start'}</span></h3>
+          <h3 className="text-sm font-semibold">Place {r.index + 1}<span className="font-normal text-muted">{r.kind === 'blocks' ? (r.after ? ` · after “${r.after}”` : ' · at the start') : ` · ${WHERE[r.kind]} “${r.after}”`}</span></h3>
           <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))]">
             {r.groups.map((g, k) => <GroupCard key={k} g={g} />)}
           </div>
@@ -90,7 +108,7 @@ export function CombineScreen() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1 basis-72">
           <h1 id="combine-title" className="text-balance text-xl font-semibold leading-tight">Combine several versions into one template</h1>
-          <p className="mt-1 max-w-[62ch] text-muted">Text that is the same in every version stays once. Paragraphs that differ become if / else blocks. Each version is switched on <code className="font-mono">{view.autoField}</code>; change who gets which version later in Conditions.</p>
+          <p className="mt-1 max-w-[62ch] text-muted">Text that is the same in every version stays once. Paragraphs, table rows and words that differ get an if / else on a yes / no field, one field for each difference the versions share.</p>
         </div>
         <Button data-testid="combine-cancel" icon={<ArrowLeft aria-hidden />} onClick={combineCancel}>{es.an ? 'Back to the letter' : 'Cancel'}</Button>
       </div>
@@ -117,6 +135,13 @@ export function CombineScreen() {
 
       {n >= 2 && (
         <>
+          {view.flags.length > 0 && (
+            <section aria-labelledby="combine-flags-h" className="grid gap-3">
+              <h2 id="combine-flags-h" className="flex items-center gap-2 text-base font-semibold"><ToggleRight aria-hidden className="size-4 text-muted" />Yes / no fields</h2>
+              <p className="max-w-[62ch] text-sm text-muted">Each difference is switched on one of these fields; an employee gets a version’s text when the field is “yes” for them. Rename a field to match your data.</p>
+              <ol className="grid gap-2">{view.flags.map((f) => <FlagRow key={f.key} f={f} />)}</ol>
+            </section>
+          )}
           <section aria-labelledby="combine-diff-h" className="grid gap-3">
             <h2 id="combine-diff-h" className="flex items-center gap-2 text-base font-semibold"><GitBranch aria-hidden className="size-4 text-muted" />What differs</h2>
             <p data-testid="combine-summary" role="status" className="text-sm">
