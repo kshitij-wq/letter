@@ -122,15 +122,21 @@ export function computeHunks(A, B, loose){
   flush();
   return {hunks, similar};
 }
+// st.relMap / st.numMap (optional): relationship and list ids the copied content may keep, renamed to the target file's ids
+const RELNS=/officeDocument\/2006\/relationships/;
 export function sanitizeImported(n, st){
+  const map=st.relMap||{};
+  const kept=el=>!!st.relMap && [el, ...el.getElementsByTagName('*')].every(x=>[...(x.attributes||[])].every(a=>!RELNS.test(a.namespaceURI||'') || map[a.value]));
   const kill=['drawing','pict','object','footnoteReference','endnoteReference','commentRangeStart','commentRangeEnd','commentReference','bookmarkStart','bookmarkEnd','proofErr','del','moveFrom','altChunk','permStart','permEnd'];
-  for (const name of kill) for (const el of [...n.getElementsByTagNameNS(W,name)]){ if (['drawing','pict','object'].includes(name)) st.images++; el.parentNode && el.parentNode.removeChild(el); }
-  for (const el of [...n.getElementsByTagName('*')].filter(x=>x.localName==='AlternateContent')){ st.images++; el.parentNode && el.parentNode.removeChild(el); }
+  for (const name of kill) for (const el of [...n.getElementsByTagNameNS(W,name)]){ if (['drawing','pict','object'].includes(name)){ if (kept(el)) continue; st.images++; } el.parentNode && el.parentNode.removeChild(el); }
+  for (const el of [...n.getElementsByTagName('*')].filter(x=>x.localName==='AlternateContent')){ if (kept(el)) continue; st.images++; el.parentNode && el.parentNode.removeChild(el); }
   for (const el of [...n.getElementsByTagNameNS(W,'sectPr')]) if (el.parentNode && el.parentNode.localName==='pPr') el.parentNode.removeChild(el);
   for (const name of ['hyperlink','ins','moveTo','smartTag','fldSimple','customXml']) for (const el of [...n.getElementsByTagNameNS(W,name)]){ while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el); el.parentNode.removeChild(el); }
   for (const el of [...n.getElementsByTagNameNS(W,'sdt')]){ const c=childW(el,'sdtContent'); if (c) while (c.firstChild) el.parentNode.insertBefore(c.firstChild, el); el.parentNode.removeChild(el); }
-  for (const el of [n, ...n.getElementsByTagName('*')]) for (const a of [...(el.attributes||[])]) if (/officeDocument\/2006\/relationships/.test(a.namespaceURI||'')) el.removeAttributeNode(a);
-  if (n.getElementsByTagNameNS && n.getElementsByTagNameNS(W,'numPr').length) st.lists++;
+  for (const el of [n, ...n.getElementsByTagName('*')]) for (const a of [...(el.attributes||[])]) if (RELNS.test(a.namespaceURI||'')){ if (map[a.value]) el.setAttributeNS(a.namespaceURI, a.name, map[a.value]); else el.removeAttributeNode(a); }
+  const nm=st.numMap||{}; let unmapped=false;
+  for (const el of n.getElementsByTagNameNS ? n.getElementsByTagNameNS(W,'numId') : []){ const v=el.getAttributeNS(W,'val'); if (nm[v]) el.setAttributeNS(W,'w:val', nm[v]); else unmapped=true; }
+  if (unmapped) st.lists++;
 }
 export function importBlocks(docA, el, st){
   const n=docA.importNode(el, true);

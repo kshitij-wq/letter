@@ -7,14 +7,14 @@ import { state } from './state.js'
 /* ======================= docx model ======================= */
 // shown «name» → field code, when they differ (Word's mail merge prints the field code's value)
 export const MERGE_MISMATCH=new Map();
-export function unwrapMergeFields(doc){
-  let n=0;
+export function unwrapMergeFields(doc){   // a whole document, or one paragraph
+  let n=0; const d=doc.ownerDocument||doc;
   for (const f of [...doc.getElementsByTagNameNS(W,'fldSimple')]){
     if (!/MERGEFIELD/i.test(f.getAttributeNS(W,'instr')||f.getAttribute('w:instr')||'')) continue;
     while (f.firstChild) f.parentNode.insertBefore(f.firstChild, f);
     f.parentNode.removeChild(f); n++;
   }
-  for (const p of [...doc.getElementsByTagNameNS(W,'p')]){
+  for (const p of isW(doc,'p') ? [doc] : [...doc.getElementsByTagNameNS(W,'p')]){
     const runs=[...p.getElementsByTagNameNS(W,'r')].filter(r=>closestP(r)===p);
     for (let i=0;i<runs.length;i++){
       const fc=childW(runs[i],'fldChar'); if (!fc || fc.getAttributeNS(W,'fldCharType')!=='begin') continue;
@@ -29,7 +29,7 @@ export function unwrapMergeFields(doc){
       if (sep>=0){ const code=(instr.match(/MERGEFIELD\s+"?([^"\s\\]+)/i)||[])[1]||''; let shown=''; for (let k=sep+1;k<end;k++) for (const x of runs[k].getElementsByTagNameNS(W,'t')) shown+=x.textContent; const sn=shown.replace(/[«»]/g,'').trim(); if (code && sn && /«[^»]+»/.test(shown) && sn.toLowerCase()!==code.toLowerCase()) MERGE_MISMATCH.set(shown.trim(), code); }
       if (sep<0){
         const nm=(instr.match(/MERGEFIELD\s+"?([^"\s\\]+)/i)||[])[1]||'Field';
-        const r=doc.createElementNS(W,'w:r'); const t=doc.createElementNS(W,'w:t'); t.textContent='«'+nm+'»'; r.appendChild(t);
+        const r=d.createElementNS(W,'w:r'); const t=d.createElementNS(W,'w:t'); t.textContent='«'+nm+'»'; r.appendChild(t);
         runs[i].parentNode.insertBefore(r, runs[i]);
       }
       const cut = sep>=0 ? sep : end-1;
