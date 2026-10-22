@@ -1478,6 +1478,13 @@ class Sweep:
         self.expect(await pg.get_by_role("combobox", name="Field that decides the version").count() == 0, "the field picker is still on the Combine screen")
         self.expect(await pg.get_by_test_id("combine-value-0").count() == 0, "a per-version value box is still on the Combine screen")
         self.expect(await pg.get_by_test_id("combine-problems").count() == 0, "the Combine screen shows an error with nothing wrong")
+        # the yes / no fields can be renamed
+        box = pg.get_by_test_id("combine-flag-name-0")
+        self.expect(await box.count() == 1, "the Combine screen lists no yes / no fields")
+        await box.fill("sweep_field")
+        await box.press("Enter")
+        await self.settle(200)
+        self.expect(await pg.get_by_test_id("combine-flag-name-0").input_value() == "sweep_field", "renaming a yes / no field didn't stick")
         # the reorder arrows, the Show buttons, the checkbox
         await pg.get_by_role("button", name="Move no-increase up").click()
         await pg.get_by_role("button", name="Move no-increase down").click()
@@ -1509,7 +1516,7 @@ class Sweep:
         self.expect(await self.ev("()=>window.__lt.state.tab") == "logic", "after combining the page isn't on the Conditions step")
         n = await self.ev("()=>window.__lt.state.logic.filter(l=>l.mg).length")
         self.expect(n >= 6, f"combining added only {n} if / else lines")
-        self.expect(await self.ev("()=>{const c=window.__lt.state.logic.filter(l=>/^\\{%-? *(if|elif)/.test(l.text)); return c.length>=3 && c.every(l=>l.text.includes('custom_schema.letter_version'))}"), "the combined if / elif lines are not on custom_schema.letter_version")
+        self.expect(await self.ev("()=>{const f=window.__lt.state.combineFlags; const c=window.__lt.state.logic.filter(l=>/^\\{%-? *(if|elif)/.test(l.text)); return f.length>=2 && c.length>=3 && c.every(l=>f.some(x=>l.text.includes(x)))}"), "the combined if / elif lines are not on the yes / no fields of the Combine screen")
         await self.ev("()=>window.__lt.undo()")
         await self.settle(500)
         self.expect(await self.ev("()=>window.__lt.state.logic.length") == 0, "undo after combining left logic lines behind")

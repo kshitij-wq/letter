@@ -1,5 +1,5 @@
 import { GitBranch, X } from 'lucide-react'
-import { useEngineRev } from '@/hooks/useEngine'
+import { es, useEngineRev } from '@/hooks/useEngine'
 import { Badge, Button, EmptyState, IconButton, Notice } from '@/ui'
 import { discardUnplaced, logicProblems, logicRows, logicWhere, snippet, startClosing, startPlacing } from '../../engine'
 import { showPid } from '../paper/navigate'
@@ -52,6 +52,7 @@ export function LogicStep() {
   useEngineRev()
   const pr = logicProblems() as { probs: number; label: string; total: number }
   const rows = logicRows() as any[]
+  const flags = ((es.combineFlags || []) as string[]).filter((f) => rows.some((e) => String(e.full || e.text).includes(f)))
   const firstText = () => {
     const all = [...document.querySelectorAll<HTMLElement>('#paper p.lp.body')]
     const p = all.find((x) => (x.textContent || '').replace(/ /g, ' ').trim().length > 25) || all[0]
@@ -67,9 +68,9 @@ export function LogicStep() {
         )}
         {pr.total > 0 && <p className="text-sm text-muted">Click a paragraph in the letter to show it only for some employees. Select words to add a condition inside a sentence.</p>}
         <Alerts />
-        {rows.some((e) => String(e.text).includes('custom_schema.letter_version')) && (
+        {flags.length > 0 && (
           <div data-testid="placeholder-field-note"><Notice tone="info">
-            Combined versions are switched on a placeholder field, <Code className="bg-transparent px-0">custom_schema.letter_version</Code>. Click each condition and pick the real field that decides who gets which version.
+            Combined versions are switched on yes / no fields: {flags.map((f, i) => <span key={f}>{i ? ', ' : ''}<Code className="bg-transparent px-0">{f}</Code></span>)}. Add them to your data (yes or no for each employee), or click a condition and pick another field.
           </Notice></div>
         )}
         {rows.length ? (

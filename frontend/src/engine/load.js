@@ -39,7 +39,7 @@ export async function loadDocx(buf, name, isSample){
   state.parts=paths.map(p=>({path:p, kind: p===main?'body':partKind(p)}));
   state.comments=!!zip.file('word/comments.xml');
   state.edits={}; state.logic=[]; state.closing=null; state.sel={pids:[],anchor:null,text:''}; state.tableEdits={};
-  state.tagOps=[]; state.previewOverrides={}; state.unplaced=[]; state.typed=new Set(); state.switchOps=[]; state.tColl=new Set(); state.tOpts=new Set(); state.pv={}; state.built=null; state.pvIdx=0; state.batch=null; state.compiled=null; state.mergeB=null; state.switchUi=null; state.inlineUi=null; state.placing=null; state.lastAutosave=null; state.editedAt=null; state.savedWork=null; state.savedEdit=null; state.autosaveFailed=false; state.pendingRestore=null;
+  state.tagOps=[]; state.combineFlags=[]; state.previewOverrides={}; state.unplaced=[]; state.typed=new Set(); state.switchOps=[]; state.tColl=new Set(); state.tOpts=new Set(); state.pv={}; state.built=null; state.pvIdx=0; state.batch=null; state.compiled=null; state.mergeB=null; state.switchUi=null; state.inlineUi=null; state.placing=null; state.lastAutosave=null; state.editedAt=null; state.savedWork=null; state.savedEdit=null; state.autosaveFailed=false; state.pendingRestore=null;
   resetHistory();
   analyze();
   fullRefresh();

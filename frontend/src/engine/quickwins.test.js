@@ -5,7 +5,7 @@ import {
 import { versionFile as file } from './testkit.js'
 
 
-describe('combined template still on the placeholder version field', () => {
+describe('combined template switched on yes / no fields the data does not have yet', () => {
   beforeEach(async () => {
     combineCancel(); localStorage.clear(); state.csv = null; state.csvExtra = []
     await loadVersions(['promotion.docx', 'variable-pay.docx', 'no-increase.docx', 'bonus-only.docx'].map(file))
@@ -14,16 +14,18 @@ describe('combined template still on the placeholder version field', () => {
   })
 
   it('warns in plain words, in Conditions, and the export gate counts it', () => {
-    const w = state.built.checks.find((c) => /Choose which employee field decides the version/.test(c.html))
+    const w = state.built.checks.find((c) => /Choose which employee fields decide the version/.test(c.html))
+    expect(w.html).toContain('custom_schema.promotion')
     expect(w && w.level).toBe('warn')
     expect(exportGate().warnings.some((x) => x.label === 'Validate')).toBe(true)
     expect(exportChecklist().items.find((i) => i.label === 'Validate').kind).toBe('warn')
   })
 
-  it('stops warning once the data has a real letter_version column', () => {
-    ingestCsv('emp,letter_version\nE1,promotion\nE2,bonus_only', 'emps.csv')
+  it('stops warning once the data has those columns', () => {
+    const cols = state.combineFlags.map((f) => f.split('.').pop())
+    ingestCsv(`emp,${cols.join(',')}\nE1,${cols.map(() => 'yes').join(',')}\nE2,${cols.map(() => 'no').join(',')}`, 'emps.csv')
     build()
-    expect(state.built.checks.some((c) => /decides the version/.test(c.html))).toBe(false)
+    expect(state.built.checks.some((c) => /decide the version/.test(c.html))).toBe(false)
   })
 })
 
