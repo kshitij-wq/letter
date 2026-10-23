@@ -17,7 +17,7 @@ import { tCellTag } from './tables.js'
 /** What the editor view shows: status is none | unsaved | saving | saved | blocked | error. */
 // knownBuf/knownSig: the source and build the editor view was opened on; base: the docx it opened; baked: what that docx had
 // written in (bakedNow); stale: the tags changed elsewhere while the editor had unsaved changes.
-export const ed = { status: 'none', savedAt: 0, prev: null, blocked: null, error: '', knownBuf: null, knownSig: null, loadId: 0, lastReport: null, base: null, baked: null, stale: false }
+export const ed = { status: 'none', savedAt: 0, prev: null, blocked: null, error: '', knownBuf: null, knownSig: null, loadId: 0, lastReport: null, base: null, baked: null, stale: false, prevLoad: 0 }
 let handle = null          // set by the editor component: { exportDocx(): Promise<ArrayBuffer>, isDirty(): boolean, markClean(): void }
 let saveTimer = null
 let running = null         // the save in progress, so a second caller waits for it instead of starting another
