@@ -2,7 +2,8 @@
 
     python tests_ui/react/editor.py        (set CHROMIUM_PATH when Playwright has no browser of its own)
 
-Types into SuperDoc, saves, and checks what the engine has afterwards: every tag still there, the paper shows the edit, real Jinja
+The editor opens the tagged letter (what Download gives): a tag and a condition made in the steps show as tags, a save turns
+them into text in the letter (no double tags) and Undo editor change brings the choices back. Types into SuperDoc, saves, and checks what the engine has afterwards: every tag still there, the paper shows the edit, real Jinja
 (Django + docxtpl) still validates, the downloaded .docx reopens in python-docx and renders for an employee from emps.csv. Also: undo
 of an editor change, the blocked save when a tag is deleted, a tag split over runs, an undefined field, a missing endif, no data,
 and header/footer kept. Fails on any page error. Build the page first: python tools/build_frontend.py
@@ -10,6 +11,7 @@ and header/footer kept. Fails on any page error. Build the page first: python to
 from __future__ import annotations
 
 import asyncio
+import csv
 import io
 import os
 import sys
@@ -23,6 +25,8 @@ ROOT = Path(__file__).resolve().parents[2]
 FIX = V.FIX
 ok = V.ok
 CSV = (FIX / "emps.csv").read_text()
+EMPS = list(csv.DictReader(io.StringIO(CSV)))
+SHOTS = Path(os.environ.get("SHOTS", "/tmp/claude-0/-home-user-letter/f7ad159e-9f4f-5af5-becf-0ad12a10af0d/scratchpad/shots"))
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "letterstudio.settings")
 sys.path.insert(0, str(ROOT))
@@ -33,7 +37,7 @@ from renderer.engine import render_docx, validate_docx  # noqa: E402
 import docx as pydocx  # noqa: E402
 
 
-async def open_letter(page, name: str, data: bool = False):
+async def open_letter(page, name: str, data: bool = False, edit: bool = True):
     await page.goto(page.url)
     await page.wait_for_function("window.__lt && window.__ltUi")
     async with page.expect_file_chooser() as fc:
@@ -41,6 +45,11 @@ async def open_letter(page, name: str, data: bool = False):
     await (await fc.value).set_files(str(FIX / name))
     # a letter that was just opened starts on Tags & fields with the client's letter; Edit letter is one click away
     await page.wait_for_function("window.__lt.state.view === 'source' && window.__lt.state.tab === 'tags'")
+    if edit:
+        await open_editor(page, data)
+
+
+async def open_editor(page, data: bool = False):
     await page.get_by_test_id("seg-edit").click()
     await page.wait_for_function("window.__lt.state.view === 'edit'")
     await page.wait_for_function("window.__sdReady !== false && !!window.__sd", timeout=20000)
@@ -53,15 +62,20 @@ def run(page, text: str):
     return page.locator(".superdoc-text-run", has_text=text).first
 
 
-async def type_at_end(page, anchor: str, text: str):
-    await run(page, anchor).click()
+async def click_run(page, anchor: str):
+    """Click the start of the run: its middle may be a tag chip, and a click on a chip opens that tag in the steps."""
+    await run(page, anchor).click(position={"x": 3, "y": 5})
+
+
+async def type_at_end(page, anchor: str, text: str, delay: int = 0):
+    await click_run(page, anchor)
     await page.keyboard.press("End")
-    await page.keyboard.type(text)
+    await page.keyboard.type(text, delay=delay)
 
 
 async def select_first(page, anchor: str, n: int):
     """Select the first n characters of the paragraph (a double click does not select words in the editor)."""
-    await run(page, anchor).click()
+    await click_run(page, anchor)
     await page.keyboard.press("Home")
     for _ in range(n):
         await page.keyboard.press("Shift+ArrowRight")
@@ -90,14 +104,79 @@ async def download(page) -> bytes:
 
 
 async def tags_in(page):
-    return await page.evaluate("window.__lt.docTags(window.__lt.state.srcBuf)")
+    """The tags in the tagged letter (what the editor opens and Download gives)."""
+    return await page.evaluate("(async () => { window.__lt.build(); return window.__lt.docTags(await window.__lt.builtDocx()) })()")
+
+
+SETUP_JS = "JSON.stringify({...window.__lt.exportSetup({local: true}), savedAt: 0})"
+
+
+def text_of(blob: bytes) -> str:
+    return "\n".join(p.text for p in pydocx.Document(io.BytesIO(blob)).paragraphs)
 
 
 async def main():
     proc, url = V.start_django()
+
     try:
         async with async_playwright() as p:
             browser = await V.launch(p, args=["--no-sandbox"])
+            ctx, page = await V.new_page(browser, url)
+            page.set_default_timeout(20000)
+
+            # ---- 0. a tag and a condition made in the steps show in the editor; a save turns them into text ------------
+            SHOTS.mkdir(parents=True, exist_ok=True)
+            await page.set_viewport_size({"width": 1440, "height": 1000})
+            await open_letter(page, "letterA.docx", edit=False)
+            await page.evaluate("t => window.__lt.ingestCsv(t, 'emps.csv')", CSV)
+            await page.evaluate("""() => { const L = window.__lt
+              const r = L.state.rows.find(x => x.find === '[Department]'); L.setRowKey(r.id, 'dept')
+              const p = L.state.an.paras.find(x => x.model.text.startsWith('We are pleased to promote'))
+              L.clickParagraph(p.pid, false); L.state.cb = L.cbNew('promotion == "yes"'); L.applyParaCondition(); L.state.cb = null; L.build() }""")
+            setup0 = await page.evaluate(SETUP_JS)
+            await page.evaluate("window.__src0 = window.__lt.state.srcBuf")
+            tags_t = await tags_in(page)
+            ok("{{ dept }}" in tags_t and any(t.startswith("{% if promotion") for t in tags_t), "the tagged letter has the new tag and the condition")
+            # open and close without typing: nothing changes
+            await open_editor(page)
+            ok(await run(page, "{{ dept }}").count() == 1 and await page.locator(".tag-chip-var").count() >= 5, "the tag made in Tags & fields shows in Edit letter, as a chip")
+            ok(await run(page, "{% if promotion").count() == 1 and await page.locator(".tag-chip-block").count() >= 2, "the condition shows in Edit letter, as a chip")
+            await expect(page.get_by_test_id("editor-converts")).to_contain_text("Saving here turns your tags into text in the letter")
+            await page.screenshot(path=str(SHOTS / "edit-tagged-open.png"))
+            await page.get_by_test_id("editor-converts").screenshot(path=str(SHOTS / "edit-tagged-notice.png"))
+            await page.evaluate("window.__lt.setView('source')")
+            await page.wait_for_timeout(800)
+            ok(await page.evaluate("window.__lt.state.srcBuf === window.__src0"), "opening and closing the editor leaves the letter alone")
+            ok(await page.evaluate(SETUP_JS) == setup0, "opening and closing the editor leaves every choice alone")
+            # type, save: the letter now holds the tags as text
+            await open_editor(page)
+            await type_at_end(page, "Following the annual review", " Thank you for a great year.", 40)
+            await save(page)
+            await page.screenshot(path=str(SHOTS / "edit-tagged-saved.png"))
+            ok(await page.evaluate("!window.__lt.state.rows.some(r => r.find === '[Department]') && window.__lt.state.logic.length === 0"), "after the save the tag and condition are text in the letter, not choices")
+            ok(await page.get_by_test_id("editor-converts").count() == 0, "the notice goes once the tags are text")
+            ok("dept" in await page.evaluate("window.__lt.oldTagNames().names.map(n => n.id)"), "Tags in the letter lists the tag")
+            ok(await tags_in(page) == tags_t, "the saved letter has each tag once (nothing tagged twice)")
+            blob = await download(page)
+            ok(validate_docx(blob)["syntax"] == [], "the downloaded letter passes real Jinja")
+            emp = lambda r: {**r, "employee_schema": {"updated_designation": "Lead", "designation": "Analyst", "department": r["dept"]}, "custom_schema": {}}   # noqa: E731
+            e1, e2 = text_of(render_docx(blob, emp(EMPS[0]))), text_of(render_docx(blob, emp(EMPS[1])))
+            ok("Thank you for a great year." in e1, "the typed sentence is in the employee letter")
+            ok("Your department is Finance." in e1, "the tagged value is filled in")
+            ok("We are pleased to promote" in e1 and "We are pleased to promote" not in e2, "the condition decides per employee")
+            # one undo step brings the choices back
+            await page.evaluate("window.__lt.setView('edit')")
+            await page.get_by_test_id("editor-undo").click()
+            await page.wait_for_function("window.__lt.state.rows.some(r => r.find === '[Department]')")
+            ok(await page.evaluate("window.__lt.state.srcBuf === window.__src0"), "Undo editor change puts the client letter back")
+            ok(await page.evaluate(SETUP_JS) == setup0, "Undo editor change puts every choice back (tag row and condition)")
+            tags_u = await tags_in(page)
+            ok(tags_u == tags_t and tags_u.count("{{ dept }}") == 1, "after undo each tag is there once")
+            await page.wait_for_timeout(1500)
+            await page.wait_for_function("!!window.__sd")
+            await expect(run(page, "{{ dept }}")).to_have_count(1)
+            ok(True, "the editor shows the tagged letter again after undo")
+            await ctx.close()
             ctx, page = await V.new_page(browser, url)
             page.set_default_timeout(20000)
 

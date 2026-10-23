@@ -24,15 +24,20 @@ export default function EditorSurface() {
 
   useEffect(() => {
     if (!host.current || !bar.current || !state.srcBuf) return
-    let base: any = null, dirty = false, live = true, sd: any = null, stopChips = () => {}, chips: ReturnType<typeof installTagChips> | null = null, unsub = () => {}, fitWatch: ResizeObserver | null = null
+    let base: any = null, exported: any = null, dirty = false, live = true, sd: any = null, stopChips = () => {}, chips: ReturnType<typeof installTagChips> | null = null, unsub = () => {}, fitWatch: ResizeObserver | null = null
     const srcName = state.fileName || 'letter.docx'
     const handle = {
       exportDocx: async () => {
+        exported = sd?.activeEditor?.state?.doc ?? null   // what this save holds: words typed while it runs stay unsaved
         const blob: Blob = await sd.export({ exportType: ['docx'], triggerDownload: false, commentsType: 'clean' })
         return blob.arrayBuffer()
       },
       isDirty: () => dirty,
-      markClean: () => { dirty = false; base = sd?.activeEditor?.state?.doc ?? base },
+      markClean: () => {
+        const doc = sd?.activeEditor?.state?.doc
+        base = exported ?? doc ?? base; exported = null
+        dirty = !!(doc && base && !doc.eq(base))
+      },
     }
     const readSel = () => {
       const ed = sd?.activeEditor

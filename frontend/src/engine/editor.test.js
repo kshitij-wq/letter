@@ -119,6 +119,14 @@ describe('saving the editor into the engine', () => {
     expect(ed.prev).toBe(null)
   })
 
+  it('two saves in one editing session undo as one step', async () => {
+    const before = state.srcBuf
+    next = await docxOf(['Dear {{ first_name }},', 'Your pay is {{ ctc }}.', 'One.'], 'Ref {{ emp_code }}'); await saveEditor()
+    dirty = true; next = await docxOf(['Dear {{ first_name }},', 'Your pay is {{ ctc }}.', 'One. Two.'], 'Ref {{ emp_code }}'); await saveEditor()
+    await undoEditorChange()
+    expect(state.srcBuf).toBe(before)
+  })
+
   it('flushEditor saves pending changes (downloads and checks call it first)', async () => {
     next = await docxOf(['Dear {{ first_name }},', 'Your pay is {{ ctc }}.', 'Flushed.'], 'Ref {{ emp_code }}')
     editorChanged()
@@ -153,7 +161,7 @@ describe('round trip with the sample letter', () => {
     const open = await editorDocx()
     const tags = await docTags(open), xml = state.built.xml
     expect(tags.some((t) => t.startsWith('{% if promotion'))).toBe(true)
-    registerEditor({ exportDocx: async () => open.slice(0), isDirty: () => true, markClean() {} })
+    let d = true; registerEditor({ exportDocx: async () => open.slice(0), isDirty: () => d, markClean() { d = false } })
     await saveEditor(); build()
     expect(ed.status).toBe('saved')
     expect(state.built.xml).toEqual(xml)
@@ -174,7 +182,7 @@ describe('round trip with the test letters and data', () => {
       await loadDocx(fixture(name), name, false); state.pendingRestore = null
       ingestCsv(readFileSync(`${process.cwd()}/../tests_ui/fixtures/emps.csv`, 'utf8'), 'emps.csv'); build()
       const open = await editorDocx(), xml = state.built.xml, tags = await docTags(open)
-      registerEditor({ exportDocx: async () => open.slice(0), isDirty: () => true, markClean() {} })
+      let d = true; registerEditor({ exportDocx: async () => open.slice(0), isDirty: () => d, markClean() { d = false } })
       expect(await saveEditor()).toBe(true); build()
       expect(state.built.xml).toEqual(xml)
       expect(await docTags(await builtDocx())).toEqual(tags)

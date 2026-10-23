@@ -12,6 +12,7 @@ import { builtDocx } from './downloads.js'
 import { finalTag } from './rows.js'
 import { exportSetup, exportTable, importSetup } from './setup.js'
 import { state } from './state.js'
+import { tCellTag } from './tables.js'
 
 /** What the editor view shows: status is none | unsaved | saving | saved | blocked | error. */
 // knownBuf/knownSig: the source and build the editor view was opened on; base: the docx it opened; baked: what that docx had
@@ -29,6 +30,7 @@ export const unregisterEditor = (h) => { if (handle === h) handle = null }
  * tags while the editor has unsaved changes does not reload it (ed.stale: the view offers to reload).
  */
 export function editorSourceId() {
+  if (running) return ed.loadId          // a save is loading the editor's own letter: apply() says what the editor shows
   const sig = state.built?.sig ?? null
   if (state.srcBuf === ed.knownBuf && sig === ed.knownSig) { ed.stale = false; return ed.loadId }
   if (state.srcBuf === ed.knownBuf && (handle?.isDirty?.() || ed.status === 'blocked')) { ed.stale = true; return ed.loadId }
@@ -40,11 +42,13 @@ export function editorSourceId() {
 export function bakedNow() {
   const active = new Set(state.rows.filter((r) => r.enabled && finalTag(r)).map((r) => r.id))
   return {
+    rows: [...active],
     edits: Object.entries(state.edits).filter(([id]) => active.has(id)).map(([id, e]) => id + JSON.stringify(e)),
     logic: state.logic.map((l) => l.id),
     switchOps: state.switchOps.map((o) => o.id),
     tagOps: state.tagOps.map((o) => o.id),
     tables: state.tables.filter((t) => t.enabled).map((t) => t.id + JSON.stringify(state.tableEdits[t.id] || null)),
+    tableCells: state.tables.filter((t) => t.rows.some((r) => t.cols.some((c) => tCellTag(t, r, c)))).map((t) => t.id),
   }
 }
 
@@ -68,7 +72,7 @@ export async function editorDocx() {
 }
 
 /** Saving turns tags into text in the letter: true while the editor shows tags that are still choices. */
-export const editorConverts = () => !!ed.baked && Object.values(ed.baked).some((a) => a.length > 0)
+export const editorConverts = () => !!ed.baked && ['rows', 'logic', 'switchOps', 'tagOps', 'tableCells'].some((k) => ed.baked[k].length > 0)
 
 const CT = 'application/vnd.openxmlformats-officedocument.wordprocessingml'
 const NS_W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
@@ -162,17 +166,20 @@ async function apply(buf, accept) {
   const setup = unbakedSetup(exportSetup({ includeSource: false, local: true }), baked)
   // tables keep only choices not yet written in (a turned-off table stays off)
   setup.tables = state.tables.filter((t) => !baked.tables.includes(t.id + JSON.stringify(state.tableEdits[t.id] || null))).map(exportTable).filter(Boolean)
-  const kept = Object.keys(setup.edits).length + setup.logic.length + setup.switchOps.length + setup.tagOps.length
+  ed.knownBuf = buf
   await loadDocx(buf, state.fileName, state.isSample)
   state.pendingRestore = null
   ed.lastReport = importSetup(setup, { noUndo: true })
   state.unplaced = [...state.unplaced, ...unplaced]; state.pvIdx = pvIdx
-  // the editor already shows this letter: no reload, unless choices made elsewhere since it opened were added on top
+  // the editor already shows this letter: no reload, unless the build still adds tags to it (choices made elsewhere since it opened)
   ed.knownBuf = state.srcBuf; ed.base = buf; ed.baked = bakedNow()
-  if (!kept) ed.knownSig = state.built?.sig ?? null
-  ed.prev = prev; ed.blocked = null; ed.savedAt = Date.now(); state.editedAt = ed.savedAt
+  if (!editorConverts()) ed.knownSig = state.built?.sig ?? null
+  // one undo step for everything saved since the editor opened this letter (it saves by itself while the person types)
+  if (!ed.prev || ed.prevLoad !== ed.loadId) { ed.prev = prev; ed.prevLoad = ed.loadId }
+  ed.blocked = null; ed.savedAt = Date.now(); state.editedAt = ed.savedAt
   handle?.markClean?.()
   setStatus('saved')
+  if (handle?.isDirty?.()) editorChanged()   // typed while the save ran
   return true
 }
 
@@ -186,7 +193,7 @@ export function saveEditor() {
   running = (async () => {
     try { return await apply(await handle.exportDocx(), false) }
     catch (e) { console.warn(e); ed.error = e && e.message ? e.message : 'Could not save the changes.'; setStatus('error'); return false }
-    finally { running = null }
+    finally { running = null; notify() }
   })()
   return running
 }
@@ -209,7 +216,7 @@ export function reloadEditor() {
 }
 export const restoreBlockedTags = reloadEditor
 
-/** One step back: the letter and every choice as they were before the last save. */
+/** One step back: the letter and every choice as they were before the editor's first save since it opened the letter. */
 export async function undoEditorChange() {
   const p = ed.prev; if (!p) return false
   ed.knownBuf = null
