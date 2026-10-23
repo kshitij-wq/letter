@@ -4,7 +4,7 @@ import 'superdoc/style.css'
 import { Tag } from 'lucide-react'
 import { Button, toast } from '@/ui'
 import { setView } from '../../engine'
-import { editorChanged, editorInput, finalTag, flushEditor, registerEditor, selectEditorWords, squash, state, subscribe, tagSyntaxProblem, unregisterEditor } from '../../engine'
+import { editorChanged, editorDocx, editorInput, finalTag, flushEditor, registerEditor, selectEditorWords, squash, state, subscribe, tagSyntaxProblem, unregisterEditor } from '../../engine'
 import { firePaper } from '../paper/paperEvents'
 import { installTagChips, type ChipHooks } from './tagChips'
 import './editor.css'
@@ -12,8 +12,8 @@ import './editor.css'
 type Sel = { text: string; para: string; before: number } | null
 
 /**
- * SuperDoc on the engine's letter. It is made once per letter (the parent remounts it when the engine's docx changes
- * from outside); typing marks the engine's editor state "unsaved", and the engine saves it back (engine/editor.js).
+ * SuperDoc on the tagged letter (what Download gives). It is made once per letter and build (the parent remounts it when
+ * the letter or its tags change from outside); typing marks the engine's editor state "unsaved", and the engine saves it back (engine/editor.js).
  */
 export default function EditorSurface() {
   const host = useRef<HTMLDivElement>(null)
@@ -25,7 +25,7 @@ export default function EditorSurface() {
   useEffect(() => {
     if (!host.current || !bar.current || !state.srcBuf) return
     let base: any = null, dirty = false, live = true, sd: any = null, stopChips = () => {}, chips: ReturnType<typeof installTagChips> | null = null, unsub = () => {}, fitWatch: ResizeObserver | null = null
-    const srcBuf = state.srcBuf, srcName = state.fileName || 'letter.docx'
+    const srcName = state.fileName || 'letter.docx'
     const handle = {
       exportDocx: async () => {
         const blob: Blob = await sd.export({ exportType: ['docx'], triggerDownload: false, commentsType: 'clean' })
@@ -63,7 +63,7 @@ export default function EditorSurface() {
       },
     }
     const start = async () => {
-      const file = new File([await editorInput(srcBuf)], srcName, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+      const file = new File([await editorInput(await editorDocx())], srcName, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
       if (!live) return
       sd = new SuperDoc({
         selector: host.current,

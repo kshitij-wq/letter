@@ -1,17 +1,22 @@
 // The in-app Word editor (SuperDoc, features/editor) and the engine: no DOM here.
-// The engine's docx (state.srcBuf) stays the one template. The editor opens it, and a save exports the editor's docx and
-// puts it back with loadDocx + importSetup (the same way a changed letter gets its tags and conditions back), after a guard
-// that no {{ }} / {% %} tag was lost on the way.
+// The editor opens the tagged letter, the same bytes Download gives (every mapping, condition and table tag written in).
+// A save with changes exports the editor's docx and makes it the new source (an already-tagged letter) with loadDocx; the
+// setup goes back with importSetup minus what the opened letter already had written in (bakedNow / unbakedSetup), so nothing
+// is tagged twice. A guard first checks that no {{ }} / {% %} tag was lost on the way.
 import JSZip from 'jszip'
 import { RX_TAG } from './detect.js'
 import { notify, toast } from './events.js'
 import { parseXml, W } from './helpers.js'
 import { loadDocx } from './load.js'
-import { exportSetup, importSetup } from './setup.js'
+import { builtDocx } from './downloads.js'
+import { finalTag } from './rows.js'
+import { exportSetup, exportTable, importSetup } from './setup.js'
 import { state } from './state.js'
 
 /** What the editor view shows: status is none | unsaved | saving | saved | blocked | error. */
-export const ed = { status: 'none', savedAt: 0, prev: null, blocked: null, error: '', knownBuf: null, loadId: 0, lastReport: null }
+// knownBuf/knownSig: the source and build the editor view was opened on; base: the docx it opened; baked: what that docx had
+// written in (bakedNow); stale: the tags changed elsewhere while the editor had unsaved changes.
+export const ed = { status: 'none', savedAt: 0, prev: null, blocked: null, error: '', knownBuf: null, knownSig: null, loadId: 0, lastReport: null, base: null, baked: null, stale: false }
 let handle = null          // set by the editor component: { exportDocx(): Promise<ArrayBuffer>, isDirty(): boolean, markClean(): void }
 let saveTimer = null
 let running = null         // the save in progress, so a second caller waits for it instead of starting another
@@ -19,11 +24,51 @@ let running = null         // the save in progress, so a second caller waits for
 export const registerEditor = (h) => { handle = h; if (!h) clearTimeout(saveTimer) }
 export const unregisterEditor = (h) => { if (handle === h) handle = null }
 
-/** The id the editor view reloads on: it changes only when the engine's docx changed from outside the editor. */
+/**
+ * The id the editor view reloads on: it changes when the letter or its tags changed from outside the editor. A change of
+ * tags while the editor has unsaved changes does not reload it (ed.stale: the view offers to reload).
+ */
 export function editorSourceId() {
-  if (state.srcBuf !== ed.knownBuf) { ed.knownBuf = state.srcBuf; ed.loadId++; ed.status = 'none'; ed.blocked = null }
+  const sig = state.built?.sig ?? null
+  if (state.srcBuf === ed.knownBuf && sig === ed.knownSig) { ed.stale = false; return ed.loadId }
+  if (state.srcBuf === ed.knownBuf && (handle?.isDirty?.() || ed.status === 'blocked')) { ed.stale = true; return ed.loadId }
+  ed.knownBuf = state.srcBuf; ed.knownSig = sig; ed.loadId++; ed.status = 'none'; ed.blocked = null; ed.stale = false
   return ed.loadId
 }
+
+/** What the tagged letter has written in now: the choices a save must not apply again. */
+export function bakedNow() {
+  const active = new Set(state.rows.filter((r) => r.enabled && finalTag(r)).map((r) => r.id))
+  return {
+    edits: Object.entries(state.edits).filter(([id]) => active.has(id)).map(([id, e]) => id + JSON.stringify(e)),
+    logic: state.logic.map((l) => l.id),
+    switchOps: state.switchOps.map((o) => o.id),
+    tagOps: state.tagOps.map((o) => o.id),
+    tables: state.tables.filter((t) => t.enabled).map((t) => t.id + JSON.stringify(state.tableEdits[t.id] || null)),
+  }
+}
+
+/** The setup without what `baked` says is already written into the letter (choices made since then stay). Pure. */
+export function unbakedSetup(setup, baked) {
+  const edits = Object.fromEntries(Object.entries(setup.edits || {}).filter(([id, e]) => !baked.edits.includes(id + JSON.stringify(e))))
+  return {
+    ...setup, edits,
+    rowsInfo: (setup.rowsInfo || []).filter((r) => r.id in edits),
+    logic: (setup.logic || []).filter((l) => !baked.logic.includes(l.id)),
+    switchOps: (setup.switchOps || []).filter((o) => !baked.switchOps.includes(o.id)),
+    tagOps: (setup.tagOps || []).filter((o) => !baked.tagOps.includes(o.id)),
+  }
+}
+
+/** The docx the editor opens: the tagged letter as Download gives it. Remembers what it has written in. */
+export async function editorDocx() {
+  ed.baked = bakedNow()
+  ed.base = await builtDocx()
+  return ed.base
+}
+
+/** Saving turns tags into text in the letter: true while the editor shows tags that are still choices. */
+export const editorConverts = () => !!ed.baked && Object.values(ed.baked).some((a) => a.length > 0)
 
 const CT = 'application/vnd.openxmlformats-officedocument.wordprocessingml'
 const NS_W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
@@ -85,8 +130,8 @@ export function missingTags(before, after) {
 }
 
 /**
- * The engine changed the letter's own text (a reworded paragraph, text by value, an undo of those): the editor must open the
- * letter as it is now. The source docx gets the engine's parts, and editorSourceId() then reloads the editor view.
+ * The engine changed the letter's own text (a reworded paragraph, text by value, an undo of those): the source docx gets the
+ * engine's parts, so it matches state.xml. The editor view reloads on the new source (editorSourceId()) and opens the build.
  */
 export async function syncEditorSource() {
   const zip = await JSZip.loadAsync(state.srcBuf)
@@ -108,15 +153,23 @@ export function editorChanged() {
 }
 
 async function apply(buf, accept) {
-  const before = await docTags(state.srcBuf)
+  const before = await docTags(ed.base || state.srcBuf)
   const gone = accept ? [] : missingTags(before, await docTags(buf))
   if (gone.length) { ed.blocked = { missing: gone, buf }; setStatus('blocked'); return false }
-  const prev = { buf: state.srcBuf, name: state.fileName, isSample: state.isSample, setup: exportSetup({ includeSource: true, local: true }) }
-  const setup = exportSetup({ includeSource: false, local: true })
-  ed.knownBuf = buf                       // the editor already shows this: no reload
+  const pvIdx = state.pvIdx, unplaced = state.unplaced
+  const prev = { buf: state.srcBuf, name: state.fileName, isSample: state.isSample, pvIdx, setup: exportSetup({ includeSource: true, local: true }) }
+  const baked = ed.baked || bakedNow()
+  const setup = unbakedSetup(exportSetup({ includeSource: false, local: true }), baked)
+  // tables keep only choices not yet written in (a turned-off table stays off)
+  setup.tables = state.tables.filter((t) => !baked.tables.includes(t.id + JSON.stringify(state.tableEdits[t.id] || null))).map(exportTable).filter(Boolean)
+  const kept = Object.keys(setup.edits).length + setup.logic.length + setup.switchOps.length + setup.tagOps.length
   await loadDocx(buf, state.fileName, state.isSample)
   state.pendingRestore = null
   ed.lastReport = importSetup(setup, { noUndo: true })
+  state.unplaced = [...state.unplaced, ...unplaced]; state.pvIdx = pvIdx
+  // the editor already shows this letter: no reload, unless choices made elsewhere since it opened were added on top
+  ed.knownBuf = state.srcBuf; ed.base = buf; ed.baked = bakedNow()
+  if (!kept) ed.knownSig = state.built?.sig ?? null
   ed.prev = prev; ed.blocked = null; ed.savedAt = Date.now(); state.editedAt = ed.savedAt
   handle?.markClean?.()
   setStatus('saved')
@@ -147,12 +200,14 @@ export async function keepBlockedChange() {
   try { await apply(b.buf, true) } catch (e) { ed.error = e.message; setStatus('error') }
 }
 
-/** The blocked save, thrown away: the editor goes back to the letter as the engine has it (the tags are back). */
-export function restoreBlockedTags() {
-  ed.blocked = null; ed.status = 'none'; ed.knownBuf = null     // editorSourceId() sees a new source and the editor reloads
+/** The editor's unsaved changes thrown away: it opens the tagged letter as the engine has it now (also: a blocked save's tags are back). */
+export function reloadEditor() {
+  clearTimeout(saveTimer)
+  ed.blocked = null; ed.status = 'none'; ed.stale = false; ed.knownBuf = null     // editorSourceId() sees a new source and the editor reloads
   handle?.markClean?.()
   notify()
 }
+export const restoreBlockedTags = reloadEditor
 
 /** One step back: the letter and every choice as they were before the last save. */
 export async function undoEditorChange() {
@@ -161,6 +216,7 @@ export async function undoEditorChange() {
   await loadDocx(p.buf, p.name, p.isSample)
   state.pendingRestore = null
   importSetup(p.setup, { noUndo: true })
+  state.pvIdx = p.pvIdx || 0
   ed.prev = null; ed.status = 'none'; ed.blocked = null
   handle?.markClean?.()
   toast('Undid the last editor change.')

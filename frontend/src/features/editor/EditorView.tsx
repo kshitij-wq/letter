@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Undo2 } from 'lucide-react'
 import { useEngineRev } from '@/hooks/useEngine'
 import { Button, Notice } from '@/ui'
-import { ed, editorSourceId, editorStatusText, keepBlockedChange, restoreBlockedTags, saveEditor, undoEditorChange } from '../../engine'
+import { ed, editorConverts, editorSourceId, editorStatusText, keepBlockedChange, reloadEditor, restoreBlockedTags, saveEditor, undoEditorChange } from '../../engine'
 
 // The editor library is large: it loads when the Edit letter view is first opened.
 const EditorSurface = lazy(() => import('./EditorSurface'))
@@ -28,6 +28,12 @@ export function EditorView() {
           This change would remove {blocked.missing.length === 1 ? 'a tag' : `${blocked.missing.length} tags`}: {blocked.missing.slice(0, 4).map((t, i) => <code key={i} className="mx-0.5 rounded-sm bg-hairline-soft px-1 font-mono text-[0.85em]">{t}</code>)}{blocked.missing.length > 4 ? ' and more' : ''}. Nothing was saved.
         </Notice></div>
       )}
+      {ed.stale && !blocked && (
+        <div data-testid="editor-stale"><Notice tone="warn" action={<Button size="sm" onClick={reloadEditor} data-testid="editor-reload">Reload the letter</Button>}>
+          Tags changed in another step. Save your changes here to keep them, or reload to see the new tags (your unsaved changes here are lost).
+        </Notice></div>
+      )}
+      {editorConverts() && !blocked && <p data-testid="editor-converts" className="text-sm text-muted">Saving here turns your tags into text in the letter; you can still rename them in Tags in the letter.</p>}
       {ed.status === 'error' && <Notice tone="err">{ed.error || 'Could not save the changes.'} Your edits are still in the editor.</Notice>}
       <div className="min-h-0 flex-1">
         <Suspense fallback={<p className="p-3 text-muted" role="status">Opening the editor…</p>}>
