@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs'
+import process from 'node:process'
 import JSZip from 'jszip'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { build, docTags, ed, editorInput, editorChanged, flushEditor, keepBlockedChange, loadDocx, missingTags, registerEditor, restoreBlockedTags, sampleDocx, saveEditor, setRowKey, state, undoEditorChange, exportSetup } from './index.js'
+import { ingestCsv, applyParaCondition, bakedNow, build, builtDocx, cbNew, clickParagraph, docTags, ed, editorDocx, editorConverts, editorSourceId, editorInput, unbakedSetup, editorChanged, flushEditor, keepBlockedChange, loadDocx, missingTags, registerEditor, restoreBlockedTags, sampleDocx, saveEditor, setRowKey, state, undoEditorChange, exportSetup } from './index.js'
 
 const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
 const docxOf = async (paras, header = '') => {
@@ -43,7 +45,7 @@ describe('saving the editor into the engine', () => {
   const sourceOf = async () => { await loadDocx(await docxOf(['Dear {{ first_name }},', 'Your pay is {{ ctc }}.', 'Plain words here.'], 'Ref {{ emp_code }}'), 'l.docx', false); state.pendingRestore = null }
   let next, dirty
   beforeEach(async () => {
-    localStorage.clear(); ed.prev = null; ed.status = 'none'; ed.blocked = null
+    localStorage.clear(); ed.prev = null; ed.status = 'none'; ed.blocked = null; ed.base = null; ed.baked = null
     await sourceOf()
     dirty = true; next = null
     registerEditor({ exportDocx: async () => next, isDirty: () => dirty, markClean: () => { dirty = false } })
@@ -56,11 +58,28 @@ describe('saving the editor into the engine', () => {
     expect(state.an.paras.some((p) => p.model.text === 'Changed words here.')).toBe(true)
   })
 
-  it('keeps tag choices (a typed tag for a placeholder) across the save', async () => {
+  it('keeps a tag choice made after the editor opened (it is not in the editor yet)', async () => {
     await loadDocx(await docxOf(['Name: [Employee Name]', 'Hello.']), 'p.docx', false)
+    await editorDocx()
     const r = state.rows.find((x) => x.find === '[Employee Name]'); setRowKey(r.id, 'custom_schema.who')
     dirty = true; next = await docxOf(['Name: [Employee Name]', 'Hello there.'])
     await saveEditor()
+    expect(state.rows.find((x) => x.find === '[Employee Name]').key).toBe('custom_schema.who')
+  })
+
+  it('a tag the editor showed becomes text in the letter: no mapping left, not tagged twice', async () => {
+    await loadDocx(await docxOf(['Name: [Employee Name]', 'Hello.']), 'p.docx', false)
+    const r = state.rows.find((x) => x.find === '[Employee Name]'); setRowKey(r.id, 'custom_schema.who'); build()
+    const open = await editorDocx()
+    expect(editorConverts()).toBe(true)
+    expect(await docTags(open)).toEqual(['{{ custom_schema.who }}'])
+    dirty = true; next = open.slice(0)
+    await saveEditor(); build()
+    expect(state.rows.some((x) => x.find === '[Employee Name]')).toBe(false)
+    expect(Object.keys(state.edits)).toEqual([])
+    expect(await docTags(await builtDocx())).toEqual(['{{ custom_schema.who }}'])
+    expect(editorConverts()).toBe(false)
+    await undoEditorChange()
     expect(state.rows.find((x) => x.find === '[Employee Name]').key).toBe('custom_schema.who')
   })
 
@@ -100,6 +119,14 @@ describe('saving the editor into the engine', () => {
     expect(ed.prev).toBe(null)
   })
 
+  it('two saves in one editing session undo as one step', async () => {
+    const before = state.srcBuf
+    next = await docxOf(['Dear {{ first_name }},', 'Your pay is {{ ctc }}.', 'One.'], 'Ref {{ emp_code }}'); await saveEditor()
+    dirty = true; next = await docxOf(['Dear {{ first_name }},', 'Your pay is {{ ctc }}.', 'One. Two.'], 'Ref {{ emp_code }}'); await saveEditor()
+    await undoEditorChange()
+    expect(state.srcBuf).toBe(before)
+  })
+
   it('flushEditor saves pending changes (downloads and checks call it first)', async () => {
     next = await docxOf(['Dear {{ first_name }},', 'Your pay is {{ ctc }}.', 'Flushed.'], 'Ref {{ emp_code }}')
     editorChanged()
@@ -125,15 +152,76 @@ describe('saving the editor into the engine', () => {
 })
 
 describe('round trip with the sample letter', () => {
-  it('saving an unchanged copy changes neither the findings nor the template', async () => {
-    localStorage.clear()
+  it('saving the tagged letter unchanged gives the same template: nothing tagged twice, undo puts every choice back', async () => {
+    localStorage.clear(); ed.prev = null; ed.status = 'none'; ed.blocked = null
     await loadDocx(await sampleDocx(), 's.docx', true); build()
-    const xml = state.built.xml['word/document.xml'], rows = state.rows.map((r) => r.find + '|' + r.count), checks = state.built.checks.length
-    const same = state.srcBuf
-    registerEditor({ exportDocx: async () => same.slice(0), isDirty: () => true, markClean() {} })
+    const p = state.an.paras.find((x) => x.kind === 'body' && !x.fallback && !x.textbox && x.model.text.trim().length > 30)
+    clickParagraph(p.pid, false); state.cb = cbNew('promotion == "yes"'); applyParaCondition(); state.cb = null; build()
+    const setup = JSON.stringify(exportSetup()), rowsBefore = state.rows.length
+    const open = await editorDocx()
+    const tags = await docTags(open), xml = state.built.xml
+    expect(tags.some((t) => t.startsWith('{% if promotion'))).toBe(true)
+    let d = true; registerEditor({ exportDocx: async () => open.slice(0), isDirty: () => d, markClean() { d = false } })
     await saveEditor(); build()
-    expect(state.built.xml['word/document.xml']).toBe(xml)
-    expect(state.rows.map((r) => r.find + '|' + r.count)).toEqual(rows)
-    expect(state.built.checks.length).toBe(checks)
+    expect(ed.status).toBe('saved')
+    expect(state.built.xml).toEqual(xml)
+    expect(await docTags(await builtDocx())).toEqual(tags)
+    expect(state.logic).toEqual([])
+    expect(state.lg.some((e) => e.kw === 'if')).toBe(true)   // the condition is now a tag in the letter's text
+    expect(state.rows.length).toBeLessThan(rowsBefore)
+    await undoEditorChange(); build()
+    expect(JSON.stringify({ ...exportSetup(), savedAt: 0 })).toBe(JSON.stringify({ ...JSON.parse(setup), savedAt: 0 }))
+  })
+})
+
+describe('round trip with the test letters and data', () => {
+  const fixture = (name) => { const b = readFileSync(`${process.cwd()}/../tests_ui/fixtures/${name}`); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) }
+  for (const name of ['ACME Letter - MHPromotion.docx', 'acme_tagged.docx', 'conditions_tagged.docx', 'with_header.docx', 'northwind.docx', 'letterA.docx', 'oldtemplate.docx']) {
+    it(`${name}: the saved tagged letter builds to the same template`, async () => {
+      localStorage.clear(); ed.prev = null; ed.status = 'none'; ed.blocked = null
+      await loadDocx(fixture(name), name, false); state.pendingRestore = null
+      ingestCsv(readFileSync(`${process.cwd()}/../tests_ui/fixtures/emps.csv`, 'utf8'), 'emps.csv'); build()
+      const open = await editorDocx(), xml = state.built.xml, tags = await docTags(open)
+      let d = true; registerEditor({ exportDocx: async () => open.slice(0), isDirty: () => d, markClean() { d = false } })
+      expect(await saveEditor()).toBe(true); build()
+      expect(state.built.xml).toEqual(xml)
+      expect(await docTags(await builtDocx())).toEqual(tags)
+    })
+  }
+})
+
+describe('editor reload', () => {
+  it('reloads when the tags change, but not over unsaved changes', async () => {
+    localStorage.clear()
+    await loadDocx(await docxOf(['Name: [Employee Name]', 'Hello.']), 'p.docx', false); build()
+    let dirty = false
+    registerEditor({ exportDocx: async () => null, isDirty: () => dirty, markClean() { dirty = false } })
+    const id = editorSourceId()
+    expect(editorSourceId()).toBe(id)
+    const r = state.rows.find((x) => x.find === '[Employee Name]'); setRowKey(r.id, 'custom_schema.reload_a'); build()
+    expect(editorSourceId()).toBe(id + 1)
+    dirty = true; setRowKey(r.id, 'custom_schema.reload_b'); build()
+    expect(editorSourceId()).toBe(id + 1)
+    expect(ed.stale).toBe(true)
+    dirty = false
+    expect(editorSourceId()).toBe(id + 2)
+    expect(ed.stale).toBe(false)
+  })
+})
+
+describe('unbakedSetup', () => {
+  it('drops what was written in and keeps what changed since', () => {
+    const baked = { edits: ['g:a{"key":"x"}', 'g:b{"key":"y"}'], logic: ['l1'], switchOps: ['s1'], tagOps: ['o1'], tables: [] }
+    const setup = { edits: { 'g:a': { key: 'x' }, 'g:b': { key: 'z' }, 'g:c': { enabled: false } }, rowsInfo: [{ id: 'g:a' }, { id: 'g:c' }], logic: [{ id: 'l1' }, { id: 'l2' }], switchOps: [{ id: 's1' }], tagOps: [{ id: 'o1' }, { id: 'o2' }], settings: { a: 1 } }
+    const out = unbakedSetup(setup, baked)
+    expect(out.edits).toEqual({ 'g:b': { key: 'z' }, 'g:c': { enabled: false } })
+    expect(out.rowsInfo).toEqual([{ id: 'g:c' }])
+    expect(out.logic).toEqual([{ id: 'l2' }]); expect(out.switchOps).toEqual([]); expect(out.tagOps).toEqual([{ id: 'o2' }])
+    expect(out.settings).toEqual({ a: 1 })
+  })
+  it('bakedNow lists only active rows', async () => {
+    await loadDocx(await docxOf(['Name: [Employee Name]']), 'p.docx', false)
+    const r = state.rows.find((x) => x.find === '[Employee Name]'); setRowKey(r.id, 'custom_schema.who')
+    expect(bakedNow().edits.length).toBe(1)
   })
 })
