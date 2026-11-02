@@ -10,7 +10,7 @@ import { focusCell } from './SalaryTables'
 import { markPlace, showRow, type Place } from './locate'
 import { openTag, tagNameAt } from './existing'
 
-registerStep('tags', { Panel: TagsStep, hint: 'Tag each placeholder below, or click words in the letter to tag them.' })
+registerStep('tags', { Panel: TagsStep, hint: 'Pick a field for each placeholder, or click words in the letter.' })
 registerInspector('tag', { title: 'Placeholder', Panel: TagInspector })
 
 // a click on a placeholder in the letter: go to Tags & fields, show every placeholder, open this one

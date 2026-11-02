@@ -14,16 +14,16 @@ export function StepPanel({ inDrawer }: { inDrawer?: boolean }) {
   const Body = def?.Panel
   return (
     <Tabs.Content value={id} tabIndex={-1} className="flex min-h-0 flex-1 flex-col outline-none">
-      <div className={cn('shrink-0 px-6 pb-4 pt-6', inDrawer && 'pr-14')}>
-        <h2 className="text-xl font-semibold leading-tight tracking-tight">{STEP_NAMES[id]}</h2>
-        {def?.hint && <p className="mt-1.5 text-sm text-muted">{def.hint}</p>}
+      <div className={cn('shrink-0 px-5 pb-3 pt-5', inDrawer && 'pr-14')}>
+        <h2 className="text-lg font-semibold leading-tight">{STEP_NAMES[id]}</h2>
+        {def?.hint && <p className="mt-1 text-sm text-muted">{def.hint}</p>}
       </div>
-      <div data-testid="step-panel" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-10 pt-2">{Body ? <Body /> : null}</div>
+      <div data-testid="step-panel" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-10 pt-3">{Body ? <Body /> : null}</div>
     </Tabs.Content>
   )
 }
 
-/** Wide screens: the step panel as the left column, 300 to 560px wide, dragged (or arrow-keyed) by its right edge. */
+/** Wide screens: the step panel as the left column, 280 to 640px wide (340 by default), dragged (or arrow-keyed) by its right edge. */
 export function SidePanel() {
   const width = useUi((s) => s.sideW)
   const setW = useUi((s) => s.setSideW)

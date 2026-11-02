@@ -43,7 +43,7 @@ export function Counts({ counts }: { counts: View['counts'] }) {
 function IssueRow({ x, selected }: { x: Item; selected: boolean }) {
   return (
     <li data-issue-key={x.key} data-level={x.level} aria-current={selected || undefined}
-      className={cn('-mx-2 grid grid-cols-[minmax(0,1fr)] gap-2 rounded-control px-2 py-3 transition-colors duration-150', selected && 'bg-accent-wash')}>
+      className={cn('-mx-2 grid grid-cols-[minmax(0,1fr)] gap-1.5 rounded-control px-2 py-2.5 transition-colors duration-150', selected && 'bg-accent-wash')}>
       <div className="flex items-center gap-2">
         <FlagLetter letter={x.letter} level={x.level} />
         <LevelBadge level={x.level} label={x.label} />
@@ -65,14 +65,14 @@ function IssueRow({ x, selected }: { x: Item; selected: boolean }) {
 export function IssueGroups({ groups, selectedKey }: { groups: View['groups']; selectedKey: string | null }) {
   if (!groups.length) return null
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-5">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
       {groups.map((g) => (
         <section key={g.cat} aria-label={g.name} data-cat={g.cat}>
           <h3 className="flex items-center gap-2 text-base font-semibold">
             {g.name}
             <Badge shape="pill" tone={g.errors ? 'err' : g.warnings ? 'warn' : 'neutral'}>{g.items.length}</Badge>
           </h3>
-          <ul className="divide-y divide-hairline-soft">
+          <ul className="grid gap-1">
             {g.items.map((x) => <IssueRow key={x.key} x={x} selected={selectedKey === x.key} />)}
           </ul>
         </section>

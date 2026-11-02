@@ -17,8 +17,11 @@ export function EditorView() {
   return (
     <div className="mx-auto flex h-full w-full max-w-[960px] flex-col gap-2 px-1 pb-4">
       <div className="flex min-h-8 shrink-0 flex-wrap items-center gap-2">
-        <span role="status" aria-live="polite" data-testid="editor-status" className="text-sm text-muted">{status || 'Edit the letter here. Tags stay as they are.'}</span>
-        <span className="ml-auto flex gap-2">
+        <span className="min-w-0 flex-1 text-sm text-muted">
+          <span role="status" aria-live="polite" data-testid="editor-status">{status || 'Edit the letter here. Tags stay as they are.'}</span>
+          {editorConverts() && !blocked && <span data-testid="editor-converts" className="block text-xs">Saving here turns your tags into text in the letter; you can still rename them in Tags in the letter.</span>}
+        </span>
+        <span className="ml-auto flex shrink-0 gap-2">
           {ed.prev && <Button size="sm" onClick={() => undoEditorChange()} data-testid="editor-undo"><Undo2 aria-hidden />Undo editor change</Button>}
           <Button size="sm" variant="primary" disabled={ed.status !== 'unsaved' && ed.status !== 'error'} onClick={() => saveEditor()} data-testid="editor-save">Save changes</Button>
         </span>
@@ -33,7 +36,6 @@ export function EditorView() {
           Tags changed in another step. Save your changes here to keep them, or reload to see the new tags (your unsaved changes here are lost).
         </Notice></div>
       )}
-      {editorConverts() && !blocked && <p data-testid="editor-converts" className="text-sm text-muted">Saving here turns your tags into text in the letter; you can still rename them in Tags in the letter.</p>}
       {ed.status === 'error' && <Notice tone="err">{ed.error || 'Could not save the changes.'} Your edits are still in the editor.</Notice>}
       <div className="min-h-0 flex-1">
         <Suspense fallback={<p className="p-3 text-muted" role="status">Opening the editor…</p>}>

@@ -35,7 +35,7 @@ function AdvancedTag({ sel }: { sel: ParaSel }) {
   const insert = () => insertLogicTag(text, place)
 
   return (
-    <Section defaultOpen={!!openTop} className="border-t border-hairline-soft pt-3"
+    <Section defaultOpen={!!openTop} className="pt-2"
       title={openTop ? <>Advanced: close the open <Code>{openTop.text.slice(0, 40)}</Code> here, or insert another single tag</> : 'Advanced: insert a single logic tag'}>
       <div className="grid gap-3">
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Tag type">

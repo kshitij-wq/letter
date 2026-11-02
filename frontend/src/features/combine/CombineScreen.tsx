@@ -22,7 +22,7 @@ function VersionRow({ v, i, n, isBase, dragId, setDragId }: {
       onDragStart={(e) => { setDragId(v.id); e.dataTransfer.effectAllowed = 'move' }} onDragEnd={() => setDragId(null)}
       onDragOver={(e) => { if (dragId) e.preventDefault() }}
       onDrop={(e) => { if (dragId) { e.preventDefault(); combineMoveTo(dragId, i); setDragId(null) } }}
-      className={cn('grid gap-2 border-b border-hairline-soft py-3 last:border-b-0', dragId === v.id && 'opacity-50')}>
+      className={cn('grid gap-2 py-2.5', dragId === v.id && 'opacity-50')}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className="flex shrink-0 items-center">
           <IconButton label={`Move ${v.label} up`} size="sm" disabled={i === 0} onClick={() => combineMove(v.id, -1)}><ArrowUp aria-hidden /></IconButton>

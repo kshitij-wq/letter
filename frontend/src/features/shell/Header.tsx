@@ -1,11 +1,11 @@
-import { Check, Command, Download, Ellipsis, Redo2, Sparkles, Table2, Undo2 } from 'lucide-react'
+import { Check, Command, Download, Ellipsis, FileDown, Redo2, Search, Sparkles, Table2, Undo2 } from 'lucide-react'
 import { useEffect, useId, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger, IconButton, Kbd, modKey } from '@/ui'
-import { HISTORY, downloadMapping, redo, saveStatusText, undo } from '../../engine'
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger, IconButton, modKey } from '@/ui'
+import { HISTORY, downloadMapping, downloadSetup, redo, saveStatusText, undo } from '../../engine'
 import { runDownloadDocx } from './docx'
-import { THEMES, ThemeMenu } from './ThemeMenu'
+import { THEMES } from './ThemeMenu'
 
 /** The CompUp mark: navy square, orange and yellow rounded shapes, white where they overlap (drawn from the logo). */
 function Mark({ className }: { className?: string }) {
@@ -29,7 +29,8 @@ function DocxLabel() {
   return <>Download<span className="@max-[380px]:hidden"> tagged .docx</span></>
 }
 
-/** The top bar: brand, the open letter and what this browser has saved, search, theme, undo/redo and the two downloads. */
+/** The top bar: brand, the open letter and what this browser has saved, then a few quiet icons (search, assistant, undo/redo,
+ *  a "More" menu with the other downloads and the theme) and the one filled button, Download. */
 export function Header() {
   useEngineRev()
   const has = !!es.an
@@ -44,49 +45,44 @@ export function Header() {
   useEffect(() => { const t = setInterval(() => tick((n) => n + 1), 30000); return () => clearInterval(t) }, [])
 
   return (
-    <header className="@container flex h-16 shrink-0 items-center gap-3 bg-panel px-5 @max-[520px]:px-3">
-      <div className="flex min-w-0 items-center gap-2.5">
-        <Mark />
-        <span className="hidden text-lg font-bold leading-none tracking-tight text-brand-ink min-[640px]:inline">CompUp</span>
-        <span aria-hidden className="hidden h-[18px] w-px bg-hairline min-[640px]:block" />
-        <span className="whitespace-nowrap text-lg font-semibold leading-none max-[480px]:hidden">Letter Tagger</span>
+    <header className="@container flex h-12 shrink-0 items-center gap-3 border-b border-hairline-soft bg-panel px-4 @max-[520px]:px-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <Mark className="size-5 shrink-0" />
+        <span className="hidden text-base font-bold leading-none text-brand-ink min-[640px]:inline">CompUp</span>
+        <span className="whitespace-nowrap text-base font-semibold leading-none max-[480px]:hidden">Letter Tagger</span>
       </div>
       {has && (
-        <div className="ml-2 hidden min-w-0 flex-1 flex-col justify-center leading-tight min-[640px]:flex">
-          <span className="truncate text-base text-ink" title={es.fileName}>{es.fileName}</span>
+        <div className="ml-3 hidden min-w-0 flex-1 items-baseline gap-2 leading-tight min-[640px]:flex">
+          <span className="truncate text-sm text-ink" title={es.fileName}>{es.fileName}</span>
           <span className="truncate text-xs text-muted" role="status">{saveStatusText()}</span>
         </div>
       )}
-      <div className="ml-auto flex shrink-0 items-center gap-1">
-        <Button variant="ghost" onClick={() => setPalette(true)} aria-label="Search and commands" aria-keyshortcuts="Control+K Meta+K"
-          className="hidden text-muted min-[900px]:inline-flex">
-          Search <Kbd>{modKey}</Kbd><Kbd>K</Kbd>
-        </Button>
-        {<Button variant={assistant ? 'primary' : 'ghost'} icon={<Sparkles aria-hidden />} aria-pressed={assistant} onClick={() => setAssistant(!assistant)} data-testid="assistant-toggle"><span className="max-[560px]:sr-only">Assistant</span></Button>}
-        <span className="hidden min-[561px]:inline-flex"><ThemeMenu /></span>
-        <IconButton label="Undo" shortcut={`${modKey}+Z`} disabled={!has || !HISTORY.undo.length} onClick={undo}><Undo2 aria-hidden /></IconButton>
-        <IconButton label="Redo" shortcut={`${modKey}+Shift+Z`} disabled={!has || !HISTORY.redo.length} onClick={redo}><Redo2 aria-hidden /></IconButton>
-        <Button className="ml-2 hidden min-[561px]:inline-flex" disabled={!has} icon={<Table2 aria-hidden />} onClick={() => downloadMapping()}>Export mapping CSV</Button>
-        <Button variant="primary" className="ml-1 max-[560px]:size-10 max-[560px]:px-0" disabled={!has} loading={docx === 'busy'}
+      <div className="ml-auto flex shrink-0 items-center gap-0.5">
+        <IconButton label="Search and commands" shortcut={`${modKey}+K`} aria-keyshortcuts="Control+K Meta+K" onClick={() => setPalette(true)} className="max-[560px]:hidden"><Search aria-hidden /></IconButton>
+        <IconButton label="Assistant" aria-pressed={assistant} onClick={() => setAssistant(!assistant)} data-testid="assistant-toggle"
+          className="aria-pressed:bg-accent-wash aria-pressed:text-accent"><Sparkles aria-hidden /></IconButton>
+        {has && <>
+          <IconButton label="Undo" shortcut={`${modKey}+Z`} disabled={!HISTORY.undo.length} onClick={undo}><Undo2 aria-hidden /></IconButton>
+          <IconButton label="Redo" shortcut={`${modKey}+Shift+Z`} disabled={!HISTORY.redo.length} onClick={redo}><Redo2 aria-hidden /></IconButton>
+        </>}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><IconButton label="More" data-testid="header-more"><Ellipsis aria-hidden /></IconButton></DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem icon={<Table2 aria-hidden />} disabled={!has} onSelect={() => downloadMapping()}>Export mapping CSV</DropdownMenuItem>
+            <DropdownMenuItem icon={<FileDown aria-hidden />} disabled={!has} onSelect={() => downloadSetup()}>Download setup file</DropdownMenuItem>
+            <DropdownMenuItem icon={<Command aria-hidden />} shortcut={`${modKey}+K`} onSelect={() => setPalette(true)}>Search and commands</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Theme</DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={theme} onValueChange={(v) => setTheme(v as typeof theme)}>
+              {THEMES.map((t) => <DropdownMenuRadioItem key={t.value} value={t.value} icon={<t.icon aria-hidden />}>{t.label}</DropdownMenuRadioItem>)}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button variant="primary" className="ml-2 max-[560px]:size-8 max-[560px]:px-0" disabled={!has} loading={docx === 'busy'}
           aria-label={docx === 'busy' ? 'Building the tagged .docx' : 'Download tagged .docx'}
           icon={docx === 'done' ? <Check aria-hidden /> : <Download aria-hidden />} onClick={() => runDownloadDocx()}>
           <span className="max-[560px]:sr-only"><DocxLabel /></span>
         </Button>
-        {/* phones: theme, mapping CSV and search move into one menu */}
-        <span className="min-[561px]:hidden">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild><IconButton label="More"><Ellipsis aria-hidden /></IconButton></DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem icon={<Table2 aria-hidden />} disabled={!has} onSelect={() => downloadMapping()}>Export mapping CSV</DropdownMenuItem>
-              <DropdownMenuItem icon={<Command aria-hidden />} onSelect={() => setPalette(true)}>Search and commands</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Theme</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={theme} onValueChange={(v) => setTheme(v as typeof theme)}>
-                {THEMES.map((t) => <DropdownMenuRadioItem key={t.value} value={t.value} icon={<t.icon aria-hidden />}>{t.label}</DropdownMenuRadioItem>)}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </span>
       </div>
     </header>
   )

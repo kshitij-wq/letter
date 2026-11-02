@@ -56,7 +56,7 @@ function TablesTodo() {
     }, 80)
   }
   return (
-    <Notice tone="warn" className="px-4 py-3 text-base" action={<Button size="sm" onClick={open} data-testid="tables-todo-open">Open</Button>}>
+    <Notice tone="warn" action={<Button size="sm" onClick={open} data-testid="tables-todo-open">Open</Button>}>
       <div data-testid="tables-todo">
         <b className="font-semibold"><Table2 aria-hidden className="mr-1.5 inline size-4 align-[-2px]" />Salary tables</b>
         <span className="block text-muted"><span className="tnum">{plural(t.cells, 'cell')}</span> in {plural(k, 'table')} need a tag</span>
@@ -78,17 +78,17 @@ export function Inventory() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-          <p className="tnum text-lg" aria-live="polite">
-            {hasOld && <span data-testid="existing-head"><b className="text-xl font-semibold">This letter already has {plural(old.total, 'tag')}</b></span>}
+          <p className="tnum text-base" aria-live="polite">
+            {hasOld && <span data-testid="existing-head"><b className="font-semibold">This letter already has {plural(old.total, 'tag')}</b></span>}
             {hasOld && stats.inDoc > 0 && <span className="text-muted"> · </span>}
-            {stats.inDoc ? <><b className="text-xl font-semibold">{stats.tagged}</b> <span className="text-muted">of {stats.inDoc} {hasOld ? 'new words ' : ''}tagged</span></> : hasOld ? null : <span className="text-muted">No placeholders in the letter</span>}
+            {stats.inDoc ? <><b className="font-semibold">{stats.tagged}</b> <span className="text-muted">of {stats.inDoc} {hasOld ? 'new words ' : ''}tagged</span></> : hasOld ? null : <span className="text-muted">No placeholders in the letter</span>}
             {todo.cells > 0 && <span className="text-muted"> · {plural(todo.cells, 'table cell')} to tag</span>}
           </p>
           {stats.check > 0 && <Button size="sm" variant="ghost" onClick={acceptAll}>Accept all suggestions</Button>}
         </div>
-        {stats.inDoc > 0 && <Progress value={(stats.tagged / stats.inDoc) * 100} label={`${stats.tagged} of ${stats.inDoc} placeholders tagged`} className="h-2" />}
+        {stats.inDoc > 0 && <Progress value={(stats.tagged / stats.inDoc) * 100} label={`${stats.tagged} of ${stats.inDoc} placeholders tagged`} className="h-1" />}
       </div>
 
       <TablesTodo />
@@ -97,11 +97,12 @@ export function Inventory() {
       <ExistingTags />
 
       {stats.all > 0 || stats.removed > 0 || !hasOld ? (
-        <div className="flex flex-col gap-3">
-        <h3 className="text-lg font-semibold">All placeholders</h3>
+        <div className="flex flex-col gap-2">
+        <h3 className="text-base font-semibold">All placeholders</h3>
         <SearchInput value={q} onChange={setSearch} placeholder="Search text or field" label="Search placeholders by text or field" autoComplete="off" spellCheck={false} />
         <div role="group" aria-label="Filter placeholders" className="-mx-1 flex flex-wrap gap-0.5 px-1">
-          {FILTERS.filter(([id]) => id !== 'removed' || stats.removed > 0 || f === 'removed').map(([id, label]) => (
+          {/* a filter with nothing in it stays out of the way */}
+          {FILTERS.filter(([id]) => id === 'all' || f === id || (stats as any)[id] > 0).map(([id, label]) => (
             <FilterChip quiet key={id} pressed={f === id} onPressedChange={() => setFilter(id)} count={(stats as any)[id]}>{label}</FilterChip>
           ))}
         </div>

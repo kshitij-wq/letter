@@ -154,7 +154,8 @@ def main():
         card = pg.get_by_test_id("next-card")
         if check(card.count() == 1, "no Next to tag card"):
             shown = card.locator("button.font-serif").inner_text().strip()
-            card.get_by_test_id("next-remove").click()
+            card.get_by_role("button", name="More for this placeholder").click()   # it sits in the card's menu
+            pg.get_by_test_id("next-remove").click()
             pg.wait_for_timeout(400)
             check(ev("(f)=>!window.__lt.state.rows.some(r=>r.find===f)", shown), f"Not a placeholder on the card didn't remove {shown!r}")
             ev("()=>window.__lt.undo()")

@@ -4,7 +4,7 @@ import { useId, useMemo, useState } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from './Popover'
 import { cn } from './cn'
 
-const ITEM = 'flex min-h-10 cursor-default items-center gap-2 rounded-control px-2.5 py-1.5 text-base data-[selected=true]:bg-hairline-soft'
+const ITEM = 'flex min-h-8 cursor-default items-center gap-2 rounded-control px-2.5 py-1 text-base data-[selected=true]:bg-hairline-soft'
 
 export type PickerOption = { value: string; label: string; /** the mono code shown at the right, e.g. the tag key */ hint?: string; /** extra words the search also matches */ keywords?: string[] }
 export type PickerGroup = { heading: string; options: PickerOption[] }
@@ -38,8 +38,8 @@ export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a f
       <PopoverTrigger asChild>
         <button type="button" id={id} role="combobox" aria-expanded={open} aria-controls={listId} aria-label={ariaLabel} disabled={disabled}
           className={cn(variant === 'button'
-            ? 'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-accent-line bg-accent-wash px-3 text-sm font-semibold text-accent transition-colors duration-150 hover:border-accent focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-55'
-            : 'inline-flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-control border border-hairline bg-panel px-3 text-left text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-55', className)}>
+            ? 'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-control border border-accent-line bg-accent-wash px-2.5 text-sm font-medium text-accent transition-colors duration-150 hover:border-accent focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-55'
+            : 'inline-flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-control border border-hairline bg-panel px-2.5 text-left text-base text-ink transition-colors duration-150 hover:border-muted/50 focus-visible:border-accent focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-55', className)}>
           {variant === 'button' ? <span>{current ? current.label : value || placeholder}</span> : <>
             <span className={cn('min-w-0 flex-1 truncate', !value && 'text-muted')}>{current ? current.label : value || placeholder}</span>
             {current?.hint && <span className="max-w-[40%] shrink-0 truncate font-mono text-xs text-muted">{current.hint}</span>}
@@ -50,7 +50,7 @@ export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a f
         <Command loop label={searchPlaceholder} filter={(val, search, kw) => (`${val} ${(kw || []).join(' ')}`.toLowerCase().includes(search.toLowerCase()) ? 1 : 0)}>
           <div className="border-b border-hairline-soft p-2">
             <Command.Input autoFocus value={query} onValueChange={setQuery} placeholder={searchPlaceholder} aria-label={searchPlaceholder}
-              className="h-10 w-full rounded-control bg-hairline-soft px-3 text-base text-ink outline-none placeholder:text-muted focus-visible:outline-2 focus-visible:outline-accent" />
+              className="h-8 w-full rounded-control bg-hairline-soft px-2.5 text-base text-ink outline-none placeholder:text-muted focus-visible:outline-2 focus-visible:outline-accent" />
           </div>
           <Command.List id={listId} className="max-h-[min(320px,50dvh)] overflow-y-auto overscroll-contain p-1">
             <Command.Empty className="px-3 py-6 text-center text-sm text-muted">{allowCustom && q ? '' : emptyText}</Command.Empty>
