@@ -182,27 +182,27 @@
     "typographyMeta": {
       "headline": {
         "displayName": "Headline",
-        "purpose": "First-run heading only (18px, 600)."
+        "purpose": "The step heading and the first-run heading (16px, 600). Headings differ by weight, not size."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Product name, dialog titles, drop-zone titles, the all-clear line (15px, 600)."
+        "purpose": "Dialog titles, drop-zone titles, block heads in a step (15px, 600)."
       },
       "subtitle": {
         "displayName": "Subtitle",
-        "purpose": "Panel block heads, inspector section heads, step labels, buttons (13.5px, 600)."
+        "purpose": "Inspector section heads, list group heads, the primary button (14px, 600)."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Running UI text, inputs and list items (13.5px, 400)."
+        "purpose": "Running UI text, inputs and list items (14px, 400; page default)."
       },
       "body-small": {
         "displayName": "Body Small",
-        "purpose": "Hints, counts, row summaries, notices, chips (12.5px; 11.5px for metadata)."
+        "purpose": "Hints, counts, row summaries, notices, chips (13px; 12px for metadata)."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Badge text, count pills and flag letters (11px, 600, tabular figures)."
+        "purpose": "Badge text, count pills and flag letters (12px, 600, tabular figures)."
       },
       "tag": {
         "displayName": "Tag",
@@ -381,7 +381,7 @@
       "refersTo": "placeholder-row",
       "description": "A found placeholder: status mark, text and mapped field, count. Status restyles the mark; the row never changes size.",
       "html": "<ul class=\"ds-rows\"><li class=\"ds-row ds-sel\"><span class=\"ds-mark ds-tagged\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"m3.5 8.5 3 3 6-7\"/></svg></span><span class=\"ds-body\"><b>Asha</b><code>first_name</code></span><span class=\"ds-side\">3 times</span></li><li class=\"ds-row\"><span class=\"ds-mark ds-need\"></span><span class=\"ds-body\"><b>XXXX</b><code>Needs a tag</code></span><span class=\"ds-side\">1 time</span></li></ul>",
-      "css": ".ds-rows{list-style:none;margin:0;padding:0;width:320px;display:grid;gap:2px} .ds-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:6px;background:transparent;color:var(--ink,#17211D);font:400 13.5px var(--font-ui,Calibri,Carlito,system-ui,sans-serif);cursor:pointer;transition:background-color .15s,box-shadow .15s} .ds-row:hover{background:var(--line-2,#E9EEEB)}.ds-row.ds-sel{background:var(--accent-soft,#E0F0EB);box-shadow:inset 0 0 0 1px var(--accent,#0B6E5F)} .ds-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--line-2,#E9EEEB);color:var(--muted,#58665F)} .ds-mark svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round} .ds-tagged{background:var(--ok-soft,#E3F3EA);color:var(--ok,#17784A)}.ds-need{background:var(--hl,#FFF0A3)} .ds-body{display:grid;gap:1px;min-width:0}.ds-body b{font-weight:500}.ds-body code{font:400 11px var(--font-mono,'IBM Plex Mono',ui-monospace,monospace);color:var(--muted,#58665F)} .ds-side{font-size:11.5px;color:var(--muted,#58665F)}"
+      "css": ".ds-rows{list-style:none;margin:0;padding:0;width:320px;display:grid;gap:2px} .ds-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:44px;padding:6px 10px;border-radius:8px;background:transparent;color:var(--ink,#17211D);font:400 13.5px var(--font-ui,Calibri,Carlito,system-ui,sans-serif);cursor:pointer;transition:background-color .15s,box-shadow .15s} .ds-row:hover{background:var(--line-2,#E9EEEB)}.ds-row.ds-sel{background:var(--accent-soft,#E0F0EB);box-shadow:inset 0 0 0 1px var(--accent,#0B6E5F)} .ds-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--line-2,#E9EEEB);color:var(--muted,#58665F)} .ds-mark svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round} .ds-tagged{background:var(--ok-soft,#E3F3EA);color:var(--ok,#17784A)}.ds-need{background:var(--hl,#FFF0A3)} .ds-body{display:grid;gap:1px;min-width:0}.ds-body b{font-weight:500}.ds-body code{font:400 11px var(--font-mono,'IBM Plex Mono',ui-monospace,monospace);color:var(--muted,#58665F)} .ds-side{font-size:11.5px;color:var(--muted,#58665F)}"
     },
     {
       "name": "Margin Flag",
@@ -460,6 +460,11 @@
         "name": "The Pennant Rule",
         "body": "A lettered pennant is the only way a finding is marked on the paper. Do not invent other marker shapes for issues.",
         "section": "shapes"
+      },
+      {
+        "name": "The One Loud Action Rule",
+        "body": "Each panel, card and row shows one obvious action. The header has one filled button (Download tagged .docx); search, assistant, undo and redo are icon buttons, and the mapping CSV, setup file and theme sit in its More menu. Secondary row actions fade in on hover, keyboard focus or while the row is open, keep their place and stay in the tab order.",
+        "section": "components"
       }
     ],
     "dos": [
