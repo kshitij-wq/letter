@@ -2,7 +2,7 @@ import { es } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { toast } from '@/ui'
 import { cancelCondEdit, cancelSwitch, clearSelection, flashRow, rowStatus, setFilter, setTab } from '../../engine'
-import { showPid } from '../paper/navigate'
+import { afterPaint, flash, scrollBehavior, showPid } from '../paper/navigate'
 import { closeInspector, openInspector } from '../shell/inspector'
 import { isNarrowNow } from '../shell/useMedia'
 
@@ -19,7 +19,7 @@ export function runCategoryAction(cat: string) {
   } else if (cat === 'cells') {
     setTab('tags', open)
     // the salary tables are a section of the Tags & fields step: bring it into view once the step is drawn
-    requestAnimationFrame(() => requestAnimationFrame(() => document.querySelector('[data-section="tables"], #salary-tables, #tablesBlock')?.scrollIntoView({ block: 'start', behavior: 'smooth' })))
+    afterPaint(() => document.querySelector('[data-section="tables"], #salary-tables, #tablesBlock')?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
   } else if (cat === 'conditions') {
     setTab('logic', open)
   }
@@ -42,12 +42,12 @@ export function openIssue(index: number): boolean {
   if (selecting()) { cancelSwitch(); cancelCondEdit(); clearSelection(); es.inlineUi = null }
   if (isNarrowNow()) useUi.getState().setDrawerOpen(false)   // on a phone the step drawer would cover the panel
   openInspector('issue', { index, key: x.key })
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  afterPaint(() => {
     const li = [...document.querySelectorAll<HTMLElement>('[data-issue-key]')].find((e) => e.dataset.issueKey === x.key)
     if (!li) return
-    li.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
-    li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash')
-  }))
+    li.scrollIntoView({ block: 'nearest', behavior: scrollBehavior() })
+    flash(li)
+  })
   return true
 }
 

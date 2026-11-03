@@ -23,7 +23,7 @@ export function reviewNext() {
 export async function acceptAll() {
   const k = inventoryStats().check
   if (!k) return
-  const ok = await confirm({ title: `Accept ${k} suggested tag${k === 1 ? '' : 's'}?`, body: "They'll be marked as reviewed. You can still change any of them.", confirmLabel: 'Accept all' })
+  const ok = await confirm({ title: `Accept ${plural(k, 'suggested tag')}?`, body: "They'll be marked as reviewed. You can still change any of them.", confirmLabel: 'Accept all' })
   if (ok) acceptAllChecks()
 }
 
@@ -59,7 +59,7 @@ function TablesTodo() {
     <Notice tone="warn" className="px-4 py-3 text-base" action={<Button size="sm" onClick={open} data-testid="tables-todo-open">Open</Button>}>
       <div data-testid="tables-todo">
         <b className="font-semibold"><Table2 aria-hidden className="mr-1.5 inline size-4 align-[-2px]" />Salary tables</b>
-        <span className="block text-muted"><span className="tnum">{t.cells}</span> cell{t.cells === 1 ? '' : 's'} in {k} table{k === 1 ? '' : 's'} need a tag</span>
+        <span className="block text-muted"><span className="tnum">{plural(t.cells, 'cell')}</span> in {plural(k, 'table')} need a tag</span>
       </div>
     </Notice>
   )
@@ -84,7 +84,7 @@ export function Inventory() {
             {hasOld && <span data-testid="existing-head"><b className="text-xl font-semibold">This letter already has {plural(old.total, 'tag')}</b></span>}
             {hasOld && stats.inDoc > 0 && <span className="text-muted"> · </span>}
             {stats.inDoc ? <><b className="text-xl font-semibold">{stats.tagged}</b> <span className="text-muted">of {stats.inDoc} {hasOld ? 'new words ' : ''}tagged</span></> : hasOld ? null : <span className="text-muted">No placeholders in the letter</span>}
-            {todo.cells > 0 && <span className="text-muted"> · {todo.cells} table cell{todo.cells === 1 ? '' : 's'} to tag</span>}
+            {todo.cells > 0 && <span className="text-muted"> · {plural(todo.cells, 'table cell')} to tag</span>}
           </p>
           {stats.check > 0 && <Button size="sm" variant="ghost" onClick={acceptAll}>Accept all suggestions</Button>}
         </div>

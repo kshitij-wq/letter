@@ -1,15 +1,11 @@
 import JSZip from 'jszip'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { build, docTags, ed, editorInput, editorChanged, flushEditor, keepBlockedChange, loadDocx, missingTags, registerEditor, restoreBlockedTags, sampleDocx, saveEditor, setRowKey, state, undoEditorChange, exportSetup } from './index.js'
+import { docxFrom } from './testkit.js'
 
-const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
-const docxOf = async (paras, header = '') => {
-  const z = new JSZip()
-  z.file('[Content_Types].xml', '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>')
-  z.file('word/document.xml', `<?xml version="1.0"?><w:document ${W}><w:body>${paras.map((p) => `<w:p>${Array.isArray(p) ? p.map((t) => `<w:r><w:t>${t}</w:t></w:r>`).join('') : `<w:r><w:t>${p}</w:t></w:r>`}</w:p>`).join('')}</w:body></w:document>`)
-  if (header) z.file('word/header1.xml', `<?xml version="1.0"?><w:hdr ${W}><w:p><w:r><w:t>${header}</w:t></w:r></w:p></w:hdr>`)
-  return z.generateAsync({ type: 'arraybuffer' })
-}
+// paragraphs of one run each, or of several runs (an array)
+const runs = (p) => `<w:p>${[].concat(p).map((t) => `<w:r><w:t>${t}</w:t></w:r>`).join('')}</w:p>`
+const docxOf = (paras, header = '') => docxFrom(paras.map(runs).join(''), header && runs(header))
 
 describe('tag guard', () => {
   it('finds tags in every part, also when a tag is split over runs', async () => {

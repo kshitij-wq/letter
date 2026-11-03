@@ -745,10 +745,10 @@ class Sweep:
         await self.close_overlays()
 
     async def tag_fix_flows(self):
-        """The step badge matches what the panel shows; a detected placeholder can be removed (highlight, flag and count go, undo and the
-        Removed list bring it back); the Custom tag switch is there for a CompUp field. (More in tests_ui/react/tagfix.py.)"""
+        """The step badge matches what the panel shows; a detected placeholder can be removed (highlight, flag and count go, undo
+        brings it back). The Custom tag switch and the rest are in tests_ui/react/tagfix.py."""
         pg = self.pg
-        self.doing = "Tags: badge, Not a placeholder, Custom tag"
+        self.doing = "Tags: badge, Not a placeholder"
         await self.load_letter("letterA.docx")
         await self.view("source")
         await self.tab("tags")
@@ -780,12 +780,6 @@ class Sweep:
         await self.settle(500)
         self.expect(await self.ev("(i)=>window.__lt.state.rows.some(x=>x.id===i)", rid), "undo didn't bring the removed row back")
         self.expect(await self.ev("()=>window.__lt.tagsTodo().total") == n0, "undo didn't restore the step count")
-        # the Custom tag switch for a CompUp field
-        await self.ev("(i)=>window.__lt.setRowKey(i,'first_name')", rid)
-        await pg.locator(f'[data-row-id="{rid}"]').click()
-        await self.settle(400)
-        tog = pg.locator("#inspector").get_by_role("switch", name=re.compile("^Custom tag"))
-        self.expect(await tog.count() == 1 and await tog.is_visible(), "no Custom tag switch for first_name")
         await self.close_overlays()
 
     async def tag_editor_flows(self):

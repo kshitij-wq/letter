@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { create } from 'zustand'
 import { es } from '@/hooks/useEngine'
 import { useUi } from '@/store'
 import { backFromInline, cancelCondEdit, cancelSwitch, clearFilters, clearSelection, listRows, placeAt, rowPlaces } from '../../engine'
@@ -13,10 +13,9 @@ import { isNarrowNow } from '../shell/useMedia'
 /* ---- where the letter was last scrolled to: "Showing 2 of 3" ---- */
 export type Place = { pid: string; s: number }
 type Pos = { id: string; index: number; count: number; place: Place | null } | null
-let pos: Pos = null
-const subs = new Set<() => void>()
-const setPos = (p: Pos) => { pos = p; subs.forEach((f) => f()) }
-export const usePos = (id: string): Pos => useSyncExternalStore((f) => { subs.add(f); return () => { subs.delete(f) } }, () => (pos && pos.id === id ? pos : null), () => null)
+const usePosStore = create(() => ({ pos: null as Pos }))
+const setPos = (pos: Pos) => usePosStore.setState({ pos })
+export const usePos = (id: string): Pos => usePosStore((s) => (s.pos && s.pos.id === id ? s.pos : null))
 
 /** The spot of a placeholder that a `.ph` element in the letter shows. */
 function placeOfSpan(id: string, sp: HTMLElement | undefined): Place | null {

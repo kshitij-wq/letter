@@ -5,6 +5,7 @@ import { Button, FieldPicker } from '@/ui'
 import { confirmRow, dataColumnFor, fieldPickerGroups, inventoryStats, removeRow, rowContext, rowStatus, setFilter, setRowKey, setTab, tagKeyOf, tagsTodo } from '../../engine'
 import { CustomToggle } from './CustomToggle'
 import { locateRow, showRow } from './locate'
+import { Around, ColumnHint } from './parts'
 
 /** The placeholders in the letter still waiting for a tag, then the ones with a suggestion to check. */
 function pending(): any[] {
@@ -90,16 +91,16 @@ export function NextCard() {
         <button type="button" onClick={() => locateRow(r.id, true)} title="Show it in the letter" className="block w-full break-words rounded-control text-left font-serif text-xl leading-snug hover:text-accent">{r.find}</button>
         {cx && (
           <p className="mt-2 break-words font-serif text-base leading-relaxed text-muted">
-            {cx.before.length > 60 ? '…' : ''}{cx.before.slice(-60)}<mark className="rounded-[2px] bg-hl px-0.5 text-hl-ink">{cx.find}</mark>{cx.after.slice(0, 40)}{cx.after.length > 40 ? '…' : ''}
+            <Around cx={cx} after={40} />
           </p>
         )}
         {times && <p className="mt-1.5 text-sm text-muted">{times}</p>}
       </div>
       <div className="flex flex-col gap-1.5">
         <span id="next-field-label" className="text-sm font-medium text-ink">{status === 'check' ? 'Suggested field' : 'Which employee field is this?'}</span>
-        <FieldPicker id="next-field" aria-label="Employee field for the next placeholder" value={key} groups={groups} allowCustom placeholder="Pick or type a field" searchPlaceholder="Search fields or type a name"
-          customLabel={(t) => `Use “${t}” as the field`} emptyText="No field matches. Keep typing to use your own name." onChange={(v) => setDraft({ id: r.id, key: v })} />
-        {col && <p data-testid="next-column" className="text-sm text-muted">Your data has a “{col}” column. <button type="button" className="font-semibold text-accent hover:underline" onClick={() => setDraft({ id: r.id, key: tagKeyOf(col) })}>Use {col}</button></p>}
+        <FieldPicker id="next-field" aria-label="Employee field for the next placeholder" value={key} groups={groups} allowCustom placeholder="Pick or type a field"
+          onChange={(v) => setDraft({ id: r.id, key: v })} />
+        {col && <ColumnHint testId="next-column" col={col} onUse={() => setDraft({ id: r.id, key: tagKeyOf(col) })} />}
         <CustomToggle fieldKey={key} compact className="mt-1" onChange={(k) => setDraft({ id: r.id, key: k })} />
       </div>
       <div className="flex flex-wrap items-center gap-2">

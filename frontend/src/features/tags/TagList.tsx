@@ -7,6 +7,7 @@ import { Button, FieldPicker, IconButton, type PickerGroup } from '@/ui'
 import { X } from 'lucide-react'
 import { ST_INFO, fieldPickerGroups, removeRow, restoreRow, setRowKey } from '../../engine'
 import { STATUS_ICON } from './TagInspector'
+import { afterPaint, flash, scrollBehavior } from '../paper/navigate'
 import { locateRow, pickRow, registerListScroller, showRow } from './locate'
 
 type Item = { id: string; find: string; here?: string; removed?: boolean; status: string; field: { label: string; key: string; same: boolean } | null; custom: boolean; kindShown: string; kindTitle: string; count: number; inLetter: boolean }
@@ -68,8 +69,8 @@ function Row({ it, selected, tabbable, onFocus, groups }: { it: Item; selected: 
       )}
       {pickable && (
         <span className="shrink-0 pr-3">
-          <FieldPicker variant="button" aria-label={`Pick a field for ${it.find}`} value="" groups={groups} allowCustom placeholder="Pick field" searchPlaceholder="Search fields or type a name"
-            customLabel={(t) => `Use “${t}” as the field`} emptyText="No field matches. Keep typing to use your own name." onChange={(v) => { setRowKey(it.id, v); if (showRow(it.id)) locateRow(it.id, false) }} />
+          <FieldPicker variant="button" aria-label={`Pick a field for ${it.find}`} value="" groups={groups} allowCustom placeholder="Pick field"
+            onChange={(v) => { setRowKey(it.id, v); if (showRow(it.id)) locateRow(it.id, false) }} />
         </span>
       )}
     </div>
@@ -108,7 +109,7 @@ export function TagList({ items }: { items: Item[] }) {
     const id = rows[i]?.id; if (!id) return
     setFocusId(id)
     if (virtual) v.scrollToIndex(entries.findIndex((e) => e.key === id), { align: 'auto' })
-    requestAnimationFrame(() => requestAnimationFrame(() => box.current?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(id)}"]`)?.focus()))
+    afterPaint(() => box.current?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(id)}"]`)?.focus())
   }, [rows, entries, virtual, v])
 
   // the letter, the review buttons or the palette picked a row: bring it into view
@@ -116,15 +117,15 @@ export function TagList({ items }: { items: Item[] }) {
     registerListScroller((id) => {
       const i = entryIdx(id); if (i < 0) return
       if (virtual) v.scrollToIndex(i, { align: 'auto' })
-      requestAnimationFrame(() => requestAnimationFrame(() => {
+      afterPaint(() => {
         const el = box.current?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(id)}"]`); if (!el) return
         const sp = scrollParent(el)
         if (sp) {
           const a = el.getBoundingClientRect(), b = sp.getBoundingClientRect()
-          if (a.top < b.top || a.bottom > b.bottom) el.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+          if (a.top < b.top || a.bottom > b.bottom) el.scrollIntoView({ block: 'nearest', behavior: scrollBehavior() })
         }
-        el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash')
-      }))
+        flash(el)
+      })
     })
     return () => registerListScroller(null)
   })

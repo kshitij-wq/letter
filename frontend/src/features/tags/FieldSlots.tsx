@@ -36,8 +36,7 @@ export function FieldSlots({ id, fieldKey, groups, focusFirst, onKey }: { id: st
       {(slots.length ? slots : ['']).map((k, i) => (
         <div key={i} className="flex items-center gap-1.5">
           <FieldPicker id={`tag-key-${i}`} aria-label={slots.length > 1 ? `Employee field ${i + 1}` : 'Employee field'} value={k} groups={groups} allowCustom
-            placeholder="Pick or type a field" searchPlaceholder="Search fields or type a name" customLabel={(t) => `Use “${t}” as the field`}
-            emptyText="No field matches. Keep typing to use your own name." onChange={(v) => change(i, v)} />
+            placeholder="Pick or type a field" onChange={(v) => change(i, v)} />
           {slots.length > 1 && (
             <IconButton label={`Remove field ${i + 1}`} size="sm" onClick={() => setKey(setKeyPart(fieldKey, i, ''))}><X aria-hidden /></IconButton>
           )}
@@ -50,8 +49,8 @@ export function FieldSlots({ id, fieldKey, groups, focusFirst, onKey }: { id: st
         </label>
       )}
       {adding && (
-        <FieldPicker defaultOpen aria-label="Another employee field" value="" groups={groups} allowCustom placeholder="Pick another field" searchPlaceholder="Search fields or type a name"
-          customLabel={(t) => `Use “${t}” as the field`} onOpenChange={(o) => { if (!o) setAdding(false) }}
+        <FieldPicker defaultOpen aria-label="Another employee field" value="" groups={groups} allowCustom placeholder="Pick another field"
+          onOpenChange={(o) => { if (!o) setAdding(false) }}
           onChange={(v) => { setAdding(false); setKey(joinKey([...slots, v])) }} />
       )}
       {slots.length > 0 && !adding && (

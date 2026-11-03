@@ -10,6 +10,7 @@ import { collectCommands, type Command as Cmd } from './registry'
 
 const GROUP_ORDER = ['Letter', 'Go to', 'View', 'Check', 'Download', 'Edit', 'Theme']
 const itemCls = 'flex min-h-[34px] cursor-default select-none items-center gap-2.5 rounded-control px-2.5 py-1.5 text-base data-[selected=true]:bg-hairline-soft [&_svg]:text-muted'
+const groupCls = '[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted'
 
 /**
  * Ctrl/Cmd+K: jump to a step or view, find a placeholder by its text or tag, run a check, download. Only what is available
@@ -51,7 +52,7 @@ export function CommandPalette() {
               <Command.Empty className="px-3 py-8 text-center text-sm text-muted">Nothing matches “{query}”.</Command.Empty>
               {groups.map(([name, list]) => (
                 <Command.Group key={name} heading={name}
-                  className="[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted">
+                  className={groupCls}>
                   {list.map((c) => (
                     <Command.Item key={c.id} value={`${c.group} ${c.label}`} keywords={c.keywords} className={itemCls}
                       onSelect={() => (c.id.startsWith('letter.') ? runNow(c.run) : run(c.run))}>
@@ -64,7 +65,7 @@ export function CommandPalette() {
               ))}
               {rows.length > 0 && (
                 <Command.Group heading="Placeholders"
-                  className="[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted">
+                  className={groupCls}>
                   {rows.slice(0, 300).map((r) => {
                     const tag: string = finalTag(r)
                     const st = rowStatus(r)

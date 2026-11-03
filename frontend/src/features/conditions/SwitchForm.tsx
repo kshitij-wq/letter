@@ -44,7 +44,7 @@ export function SwitchForm() {
         <SelSummary title={<b className="font-semibold">Text by value</b>}
           ctx={inline ? 'Changes the selected words depending on a field.' : 'Shows a different version of the paragraph depending on a field, such as rating or band.'} />
         <Part title="Field" htmlFor="swField">
-          <FieldPicker id="swField" value={sw.field} groups={groups} allowCustom placeholder="Field, e.g. employee_schema.rating" customLabel={(t) => `Use “${t}” as the field`}
+          <FieldPicker id="swField" value={sw.field} groups={groups} allowCustom placeholder="Field, e.g. employee_schema.rating" searchPlaceholder="Search fields"
             onChange={(v) => { sw.field = v; bump() }} />
           <Select aria-label="How to compare" value={sw.match} options={MATCH} onValueChange={(m) => { sw.match = m; bump() }} />
         </Part>

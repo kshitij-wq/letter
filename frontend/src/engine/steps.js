@@ -46,14 +46,14 @@ export function setTab(t, opts){
   emit('tab', {tab:t, changed, open:!!(opts && opts.open)});
 }
 
-// what the step badges and the export checklist read: counts and "done" per step, from what the page can see
-// (never from clicks or navigation). Same rules as the old updateTabBadges().
 // what the Tags & fields badge counts, in two parts the panel shows as well: placeholders that need a tag or a check, and empty table cells
 export function tagsTodo(){
   const rows=state.rows.filter(r=>r.count && ['need','check'].includes(rowStatus(r))).length;
   const t=tableCellsTodo();
   return {rows, cells:t.todo, tables:t.tables, total:rows+t.todo};
 }
+// what the step badges and the export checklist read: counts and "done" per step, from what the page can see
+// (never from clicks or navigation). Same rules as the old updateTabBadges().
 export function stepInfo(){
   const inDoc=state.rows.filter(r=>r.count);
   const need=tagsTodo().total;
@@ -84,7 +84,7 @@ export function stepInfo(){
 // Returns {items:[{kind:'ok'|'warn'|'err'|'idle', label, text, sub, step, stepLabel}], warn:'' }
 export function exportChecklist(){
   if (!state.an) return {items:[], warn:''};
-  const F=exportFacts(); const pl=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+  const F=exportFacts();
   const items=[];
   // each line starts with a short label so it reads on its own: "Validate — no errors · 1 warning"
   const add=(kind, label, text, sub, step, stepLabel)=>items.push({kind, label, text, sub:sub||'', step:step||'', stepLabel:stepLabel||''});
@@ -94,18 +94,18 @@ export function exportChecklist(){
   else add('warn', 'Placeholders', [F.needTag?`${F.needTag} still need${F.needTag===1?'s':''} a tag`:'', F.toCheck?`${F.toCheck} to check`:''].filter(Boolean).join(' · '), `${F.total-F.needTag-F.toCheck} of ${F.total} mapped`, 'tags', 'Tags & fields');
   // conditions
   if (F.bad) add('err', 'Conditions', [F.openN?`${F.openN} not closed`:'', F.bad-F.openN?`${F.bad-F.openN} to fix`:''].filter(Boolean).join(' · '), '', 'logic', 'Conditions');
-  else if (F.ifs) add('ok', 'Conditions', `${pl(F.ifs,'condition')}, all closed`, '', 'logic', 'Conditions');
+  else if (F.ifs) add('ok', 'Conditions', `${plural(F.ifs,'condition')}, all closed`, '', 'logic', 'Conditions');
   else add('idle', 'Conditions', 'none (optional)', '', 'logic', 'Conditions');
   // validate: this page's own checks, then the real Jinja check
   if (!state.built) add('idle', 'Validate', 'not checked yet', '', 'check', 'Validate');
-  else if (F.errs) add('err', 'Validate', pl(F.errs,'error')+(F.warns?' · '+pl(F.warns,'warning'):''), '', 'check', 'Validate');
-  else if (F.warns) add('warn', 'Validate', 'no errors · '+pl(F.warns,'warning'), '', 'check', 'Validate');
+  else if (F.errs) add('err', 'Validate', plural(F.errs,'error')+(F.warns?' · '+plural(F.warns,'warning'):''), '', 'check', 'Validate');
+  else if (F.warns) add('warn', 'Validate', 'no errors · '+plural(F.warns,'warning'), '', 'check', 'Validate');
   else add('ok', 'Validate', 'no errors', '', 'check', 'Validate');
   const sc=server.check;
   if (!server.ok) add('idle', 'Real Jinja check', 'not available here', 'It runs when this page is opened from Letter Studio.');
   else if (server.err) add('warn', 'Real Jinja check', "didn't run", server.err, 'check', 'Validate');
   else if (!sc || server.checking) add('idle', 'Real Jinja check', 'running…');
-  else if (sc.syntax.length) add('err', 'Real Jinja check', `found ${pl(sc.syntax.length,'typing mistake')}`, '', 'check', 'Validate');
+  else if (sc.syntax.length) add('err', 'Real Jinja check', `found ${plural(sc.syntax.length,'typing mistake')}`, '', 'check', 'Validate');
   else add('ok', 'Real Jinja check', 'passed', sc.target==='built' ? 'No typing mistakes in the template with your changes.' : 'No typing mistakes in the file as uploaded.');
   // employee test
   const B=state.batch, nRows=csvRows().length;
@@ -116,7 +116,7 @@ export function exportChecklist(){
   // the download stays available with errors; say what will be in the file
   const realN = server.ok && sc && !server.checking ? sc.syntax.length : 0;
   const n=F.errs||realN;
-  return {items, warn: n ? `${F.errs?pl(F.errs,'error'):pl(realN,'typing mistake')} will stay in the file.` : ''};
+  return {items, warn: n ? `${F.errs?plural(F.errs,'error'):plural(realN,'typing mistake')} will stay in the file.` : ''};
 }
 // what the Download button asks before it saves, from the same checklist: errors block it, warnings ask "Download anyway?"
 export function exportGate(){

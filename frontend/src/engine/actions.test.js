@@ -5,8 +5,8 @@ import {
   oldTagNames, on, paperHtml, previewTag, previewValues, resetRowTag, rowStatus, runTableAction, sampleDocx, setLogicPlace, setRowEnabled, setRowFormat, setRowKey, setRowTag,
   startClosing, state, stepInfo, typeTableCellKey, setTab, setView, cancelPicking, startPlacing, discardUnplaced,
 } from './index.js'
+import { rowFor } from './testkit.js'
 
-const rowFor = (find) => state.rows.find((r) => r.find === find)
 const toasts = []
 on('toast', (m) => toasts.push(m))
 

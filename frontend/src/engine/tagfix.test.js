@@ -1,27 +1,18 @@
-import JSZip from 'jszip'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   addManual, build, canBeCustom, customReason, editPlace, finalTag, inventoryItems, inventoryStats, isCustomKey, loadDocx, mergePlace, placeLabel, removeRow, restoreRow, rowPlaces,
   rowStatus, selectWords, setCustomKey, setFilter, setRowKey, setRowKeyAt, state, stepInfo, tagSelectedWords, tagsTodo, tableCellsTodo, exportSetup, importSetup, setTab,
 } from './index.js'
+import { docxFrom, rowFor } from './testkit.js'
 import { HISTORY, undo } from './undo.js'
 
-const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
 const para = (p) => `<w:p>${Array.isArray(p) ? p.map((t) => `<w:r><w:t xml:space="preserve">${t}</w:t></w:r>`).join('') : `<w:r><w:t xml:space="preserve">${p}</w:t></w:r>`}</w:p>`
 const cell = (t) => `<w:tc><w:p>${t ? `<w:r><w:t>${t}</w:t></w:r>` : ''}</w:p></w:tc>`
 const table = (rows) => `<w:tbl>${rows.map((r) => `<w:tr>${r.map(cell).join('')}</w:tr>`).join('')}</w:tbl>`
-async function docxOf(body, header = '') {
-  const z = new JSZip()
-  z.file('[Content_Types].xml', '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>')
-  z.file('word/document.xml', `<?xml version="1.0"?><w:document ${W}><w:body>${body}</w:body></w:document>`)
-  if (header) z.file('word/header1.xml', `<?xml version="1.0"?><w:hdr ${W}>${para(header)}</w:hdr>`)
-  return z.generateAsync({ type: 'arraybuffer' })
-}
-const LETTER = () => docxOf(
+const LETTER = () => docxFrom(
   para('Expleo/HR/PF/26-27/001') + para('Name') + para('Emp ID') + para('Dear Name,') + para('Your [Insert Name] is revised.') +
   table([['Component', 'Monthly', 'Annual'], ['Basic', '', ''], ['HRA', '', '']]),
-  'Expleo header text')
-const rowFor = (find) => state.rows.find((r) => r.find === find)
+  para('Expleo header text'))
 const doc = () => state.built.xml['word/document.xml']
 const textOf = (xml) => xml.replace(/<[^>]+>/g, '')
 
