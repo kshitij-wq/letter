@@ -13,13 +13,17 @@ try { (window.claude && window.claude.use ? window.claude.use('downloads') : Pro
 export async function buildBlob(){
   await flushEditor();   // changes made in the editor go into the letter first
   build();
+  return builtDocx('blob');
+}
+/** The tagged letter as last built (what Download gives), without building again; the editor opens this. */
+export async function builtDocx(type='arraybuffer'){
   const z = await JSZip.loadAsync(state.srcBuf);
   for (const [p,x] of Object.entries(state.built.xml)) z.file(p, x);
   if (state.an.fields && z.file('word/settings.xml')){
     let s=await z.file('word/settings.xml').async('string');
     s=s.replace(/<w:mailMerge>[\s\S]*?<\/w:mailMerge>/,''); z.file('word/settings.xml', s);
   }
-  return z.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document', compression:'DEFLATE'});
+  return z.generateAsync({type, mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document', compression:'DEFLATE'});
 }
 export async function offer(filename, data){
   if (!dlApi && !window.claude){ browserDownload(filename, data); return true; }
