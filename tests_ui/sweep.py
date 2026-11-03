@@ -960,16 +960,16 @@ class Sweep:
         await self.settle(300)
         self.expect(await self.visible(PANEL), "Show panel didn't bring the step panel back")
         # theme
-        await pg.locator("header button[aria-label^='Theme']").click()
+        await pg.get_by_test_id("header-more").click()   # the theme is in the header's More menu
         await pg.get_by_role("menuitemradio", name="Dark").click()
         await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         await self.settle(200)
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") == "dark", "choosing Dark didn't set the dark theme")
-        await pg.locator("header button[aria-label^='Theme']").click()
+        await pg.get_by_test_id("header-more").click()   # the theme is in the header's More menu
         await pg.get_by_role("menuitemradio", name="Light").click()
         await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") == "light", "choosing Light didn't set the light theme")
-        await pg.locator("header button[aria-label^='Theme']").click()
+        await pg.get_by_test_id("header-more").click()   # the theme is in the header's More menu
         await pg.get_by_role("menuitemradio", name="System").click()
         await pg.get_by_role("menu").wait_for(state="detached")   # the menu is still leaving; a trigger click now can land on it
         self.expect(await self.ev("()=>document.documentElement.getAttribute('data-theme')") is None, "choosing System left a theme set")
@@ -1564,7 +1564,10 @@ class Sweep:
         except zipfile.BadZipFile:
             self.fail("the tagged .docx isn't a zip file")
         await self.settle(2300)
-        csv = await grab(pg.get_by_role("button", name="Export mapping CSV").click, "-tag-mapping.csv")
+        async def mapping_from_menu():   # the header keeps it in its More menu
+            await pg.get_by_test_id("header-more").click()
+            await pg.get_by_role("menuitem", name="Export mapping CSV").click()
+        csv = await grab(mapping_from_menu, "-tag-mapping.csv")
         self.expect(csv.stat().st_size > 20, "the mapping CSV is empty")
         await self.tab("doc")
         tpl = await grab(pg.locator(PANEL).get_by_role("button", name="Get CSV template").click, ".csv")
@@ -2065,7 +2068,8 @@ async def team_library(browser, url, sw):
     await sw.settle(500)
     sw.expect(not await sw.ev("()=>Object.keys(window.__store.setups).length"), "Delete setup didn't remove the setup")
     # downloads go through window.claude, not the browser
-    await page.get_by_role("button", name="Export mapping CSV").click()
+    await page.get_by_test_id("header-more").click()   # the header keeps it in its More menu
+    await page.get_by_role("menuitem", name="Export mapping CSV").click()
     await sw.settle(600)
     sw.expect(await sw.ev("()=>window.__saved.length") >= 1, "on claude.ai the mapping CSV should be saved through window.claude")
     sw.expect(await sw.ev("()=>window.__apiCalls.length") == 0, "on claude.ai the page must not call the Letter Studio back end")

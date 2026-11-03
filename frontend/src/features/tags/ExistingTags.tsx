@@ -19,9 +19,9 @@ export function ExistingTags() {
   const shown = all ? names : names.slice(0, SHOWN)
   return (
     <div className="flex flex-col gap-2" data-testid="existing-tags">
-      <h3 className="text-lg font-semibold">Tags in the letter</h3>
+      <h3 className="text-base font-semibold">Tags in the letter</h3>
       <p className="text-sm text-muted">Click a yellow tag in the letter to find it here, or use the pin to find it in the letter.</p>
-      <ul className="divide-y divide-hairline-soft">
+      <ul className="flex flex-col gap-0.5">
         {shown.map((n) => <NameRow key={n.id} n={n} />)}
       </ul>
       {names.length > SHOWN && <Button size="sm" variant="ghost" className="self-start" onClick={() => setAll((a) => !a)}>{all ? 'Show fewer tags' : `Show all ${names.length} tags`}</Button>}

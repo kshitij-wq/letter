@@ -13,7 +13,7 @@ type InspectorState = { kind: string; args: Record<string, unknown> } | null
 type DocxState = 'idle' | 'busy' | 'done'
 type LoadError = { id: number; message: string; scope?: string } | null
 
-export const SIDE_MIN = 300
+export const SIDE_MIN = 280
 export const SIDE_MAX = 640
 
 // The host page (claude.ai) may set data-theme itself: "System" then means "whatever the host says".
@@ -69,7 +69,7 @@ export const useUi = create<UiState>((set) => ({
   setTheme: (theme) => { lsSet('lt.theme', theme); applyTheme(theme); set({ theme }) },
   sideCollapsed: !!lsGet('lt.sideOff', false),
   setSideCollapsed: (sideCollapsed) => { lsSet('lt.sideOff', sideCollapsed); set({ sideCollapsed }) },
-  sideW: clampSide(+lsGet('lt.sideW', 400) || 400),
+  sideW: clampSide(+lsGet('lt.sideW', 340) || 340),
   setSideW: (px, persist) => { const sideW = clampSide(px); if (persist) lsSet('lt.sideW', sideW); set({ sideW }) },
   drawerOpen: false,
   setDrawerOpen: (drawerOpen) => set({ drawerOpen }),

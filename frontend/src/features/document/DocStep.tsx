@@ -17,7 +17,7 @@ export function DocStep() {
   const setError = useUi((s) => s.setError)
   const [report, setReport] = useState<Report>(null)
   return (
-    <div className="grid gap-10">
+    <div className="grid gap-8">
       {error && <Notice tone="err" action={<Button size="sm" variant="ghost" onClick={() => setError(null)}>Dismiss</Button>}>{error.message}</Notice>}
       <section aria-label="Client letter"><LetterGroup /></section>
       <section aria-label="Employee data"><DataGroup /></section>

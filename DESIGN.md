@@ -34,27 +34,27 @@ colors:
 typography:
   headline:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "21px"
+    fontSize: "16px"
     fontWeight: 600
     lineHeight: 1.3
   title:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "18px"
+    fontSize: "15px"
     fontWeight: 600
-    lineHeight: 1.45
+    lineHeight: 1.4
   subtitle:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "16px"
+    fontSize: "14px"
     fontWeight: 600
     lineHeight: 1.45
   body:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "16px"
+    fontSize: "14px"
     fontWeight: 400
-    lineHeight: 1.45
+    lineHeight: 1.5
   body-small:
     fontFamily: "Calibri, Carlito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
-    fontSize: "14px"
+    fontSize: "13px"
     fontWeight: 400
     lineHeight: 1.45
   label:
@@ -94,7 +94,7 @@ components:
     rounded: "{rounded.control}"
     typography: "{typography.subtitle}"
     padding: "5px 12px"
-    height: "40px"
+    height: "32px"
   button-primary-hover:
     backgroundColor: "{colors.accent-deep}"
     textColor: "{colors.on-accent}"
@@ -104,7 +104,7 @@ components:
     rounded: "{rounded.control}"
     typography: "{typography.subtitle}"
     padding: "5px 12px"
-    height: "40px"
+    height: "32px"
   button-secondary-hover:
     backgroundColor: "{colors.hairline-soft}"
     textColor: "{colors.ink}"
@@ -113,20 +113,20 @@ components:
     textColor: "{colors.muted}"
     rounded: "{rounded.control}"
     padding: "5px 12px"
-    height: "40px"
+    height: "32px"
   button-danger:
     backgroundColor: "{colors.panel}"
     textColor: "{colors.flag-red}"
     rounded: "{rounded.control}"
     padding: "5px 12px"
-    height: "40px"
+    height: "32px"
   input:
     backgroundColor: "{colors.panel}"
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
     typography: "{typography.body}"
-    padding: "5px 8px"
-    height: "40px"
+    padding: "5px 10px"
+    height: "32px"
   chip:
     backgroundColor: "{colors.panel}"
     textColor: "{colors.ink}"
@@ -174,7 +174,7 @@ components:
     backgroundColor: "{colors.notesheet}"
     textColor: "{colors.muted}"
     typography: "{typography.subtitle}"
-    padding: "0 10px"
+    padding: "0 12px"
     height: "44px"
   step-tab-selected:
     textColor: "{colors.ink}"
@@ -187,8 +187,8 @@ components:
     backgroundColor: "{colors.notesheet}"
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
-    padding: "6px 8px"
-    height: "48px"
+    padding: "6px 10px"
+    height: "44px"
   placeholder-row-selected:
     backgroundColor: "{colors.accent-wash}"
     textColor: "{colors.ink}"
@@ -226,7 +226,7 @@ components:
   inspector:
     backgroundColor: "{colors.panel}"
     textColor: "{colors.ink}"
-    width: "420px"
+    width: "360px"
 ---
 
 # Design System: Letter Tagger
@@ -287,18 +287,18 @@ Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0
 ## Typography
 
 **UI Font:** Calibri, falling back to Carlito (bundled, metric-compatible, OFL) and then system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif. Carlito ships 400, 700 and 400 italic, so 500 renders as 400 and 600 as 700.
-**UI scale:** Calibri has a smaller x-height than Public Sans, so the app scale is 14 / 15 / 16 / 18 / 21px (xs / sm / base / lg / xl) (page default 16px). The styles below use that scale.
+**UI scale:** one calm scale, 12 / 13 / 14 / 15 / 16px (xs / sm / base / lg / xl), page default 14px. Labels are 12, secondary text 13, body 14, block titles 15 and the step heading 16; headings differ by weight, not by size. Tags in mono are 12.5px.
 **Tag Font:** IBM Plex Mono (with ui-monospace, SFMono-Regular, Menlo, Consolas), weights 400, 500
 **Letter Font:** Source Serif 4 (with Georgia, Times New Roman, serif), optical size 8-60, weights 400, 600
 
 **Character:** A plain humanist sans for the tool, a typewriter-flavoured mono for anything that is code, and a bookish serif so the letter reads as correspondence rather than data. The three never trade jobs, which lets a reader tell the document, the machinery and the instructions apart at a glance.
 
 ### Hierarchy
-- **Headline** (600, 21px, 1.3): the first-run heading only, centred and balanced.
-- **Title** (600, 16px, 1.45): the product name "Letter Tagger" in the header, dialog titles, the "all clear" statement in the issue inspector, drop-zone titles.
-- **Subtitle** (600, 16px, 1.45): panel block heads, inspector section heads, step labels, buttons.
-- **Body** (400, 16px, 1.5): all running UI text, inputs, list items. Panel copy stays near 40-60 characters per line because the side panel is 400px.
-- **Body Small** (400, 14px, 1.45; also 12.5px for metadata): hints, counts, row summaries, notices, chips.
+- **Headline** (600, 16px, 1.35): the step heading and the first-run heading.
+- **Title** (600, 15px, 1.4): dialog titles, drop-zone titles, block heads in a step.
+- **Subtitle** (600, 14px, 1.5): inspector section heads, list group heads, the primary button. Other buttons and step labels are 14px at 400-500.
+- **Body** (400, 14px, 1.5): all running UI text, inputs, list items. Panel copy stays near 40-55 characters per line because the side panel is 340px.
+- **Body Small** (400, 13px, 1.5; 12px for metadata): hints, counts, row summaries, notices, chips.
 - **Label** (600, 12px, 1.5, tabular figures): badge text, count pills, flag letters. Numbers always use tabular figures.
 - **Tag** (400, 12.5px, 1.55 in the inspector; 12px or 0.82em inline; 11.5px in condition lines): every Jinja tag, field name and expression.
 - **Letter** (400, 15px, 1.55): the paper, and the "text in the letter" quote and value preview in the inspector (16px and 15px).
@@ -310,7 +310,7 @@ Dark theme (set under `prefers-color-scheme` and `data-theme="dark"`): ground #0
 
 ## Layout
 
-An app frame that does not scroll as a page on wide screens: each column scrolls on its own. A 52px header and a 44px step bar sit on top; below them three columns: the current step (400px, resizable and collapsible, on the notesheet layer), the letter (fluid, on the desk ground, with a 48px view toolbar), and the inspector (420px, only present when a tag, condition or issue is selected). The paper is centred, max 816px wide (a Letter page), with 80px side padding and 72px top and bottom padding, narrowing to 56px under 1500px and 20px by 28px on phones. Gutters around the paper are 24px (16px on phones). Spacing rhythm is a 4px base: 4, 8, 12, 16, 24, 32. Panel blocks pad 16px and separate with a soft hairline rather than cards; list rows are 48px tall with 6px 8px padding.
+An app frame that does not scroll as a page on wide screens: each column scrolls on its own. A 48px header and a 44px step bar sit on top; below them three columns: the current step (340px by default, 280 to 640px, resizable and collapsible, on the notesheet layer), the letter (fluid, on the desk ground, with one slim 44px toolbar holding the view switch, the key and Back to top), and the inspector (360px, only present when a tag, condition or issue is selected). The letter is the hero: the columns around it stay narrow. The paper is centred, max 816px wide (a Letter page), with 80px side padding and 72px top and bottom padding, narrowing to 56px under 1500px and 20px by 28px on phones. Gutters around the paper are 24px (16px on phones). Spacing rhythm is a 4px base: 4, 8, 12, 16, 24, 32. Space goes between groups, not inside them: rows are tight (32-44px), groups and sections are 24-32px apart, and a hairline is used only where two surfaces meet (header, step bar, inspector edge), never just to separate rows. The step panel pads 20px, the inspector 16px, each with one left edge.
 
 The step bar is a numbered sequence (Document, Tags & fields, Conditions, Validate, Preview & export), each with a count or a check mark; it appears once a letter is open, and before that the page is only the first-run screen. Responsive behaviour: at 1280px and below the inspector floats over the right edge as a drawer; at 980px and below the page scrolls normally, the current step becomes a 88vw drawer on the left with a scrim, and the view toolbar sticks under the step bar; at 600px the header drops the company name, file name and save state; at 440px the mapping CSV button gives way; at 380px Download becomes icon-only. Touch targets stay 28-32px minimum.
 
@@ -340,7 +340,7 @@ Small, even radii and straight rules. Controls (buttons, inputs, chips, rows, no
 Quiet and legible: buttons and chips are outlined, status is carried by tint and a small mark, and nothing moves except short tints and the 1.2 second flash that shows where a click landed.
 
 ### Buttons
-- **Shape:** 8px corners, 40px high (32px small, 40px square for icon-only), 16px side padding, weight 600, 6px gap to an icon.
+- **Shape:** 8px corners, 32px high (28px small, 32px square for icon-only), 12px side padding, 6px gap to an icon. The primary is weight 600; the others 500 (Calibri shows it as regular), so only the action to take reads heavy.
 - **Primary:** Accent fill with white text and a matching 1px border; one per view (Download tagged .docx). Hover goes to Deep Indigo.
 - **Secondary (default):** Panel white with a hairline border and ink text. Hover tints to Hairline Soft and darkens the border to Filing Grey.
 - **Ghost:** Transparent with muted text, ink and a soft wash on hover; for undo/redo and quiet tools.
@@ -349,29 +349,32 @@ Quiet and legible: buttons and chips are outlined, status is carried by tint and
 - **Focus:** a 2px accent outline at 2px offset on every focusable element (inside fields it is inset).
 
 ### Chips and filters
-- **Style:** 28px high, 6px corners, white with a hairline border and 12.5px text at weight 500; an optional count in muted semibold.
+- **Style:** 28px high, 8px corners, white with a hairline border (or borderless when quiet) and 13px text at weight 500; an optional count in muted semibold. A filter with nothing in it is not shown.
 - **State:** Selected turns Accent Wash with accent text and a accent border. Pressed toggles in the validate summary go dashed and muted when switched off.
 
 ### Badges and notices
 - **Badge:** 11px semibold, 4px corners, 0 6px padding, tint plus matching ink from the flag set (Fix and Error red, Check amber, Note blue, Tagged and Resolved green, Condition indigo, plain grey default). Count pills on step tabs are fully round.
-- **Notice:** An inline strip, 6px corners, 8px 12px padding, 12.5px text, no border. Blue by default; amber and red variants keep ink text and tint only the icon and ground.
+- **Notice:** An inline strip, 8px corners, 8px 12px padding, 13px text. Blue by default; amber and red variants keep ink text and tint only the icon and ground.
 
 ### Inputs / Fields
-- **Style:** 40px high, 1px hairline border, 8px corners, white ground, 5px 8px padding; selects take a drawn 16px chevron; text areas start at 60px.
+- **Style:** 32px high, 1px hairline border, 8px corners, white ground, 10px side padding; selects take a drawn 16px chevron; text areas start at 60px.
 - **Focus:** the 2px accent outline, inset by one pixel, with the border turning accent.
 - **Error / Disabled:** the Jinja editor turns its border red when invalid; disabled fields drop to 55% opacity.
 - **Combobox:** a field list in an 8px-radius popover with sticky group heads, 30px options, and a mono code on the right in muted type.
 
+### Progressive disclosure
+**The One Loud Action Rule.** Each panel, card and row shows one obvious action. The header has one filled button (Download tagged .docx); search, the assistant, undo and redo are icon buttons with tooltips, and the mapping CSV, setup file and theme are in its More menu. The Next to tag card shows Tag it and Skip, with Not a placeholder in its own menu. Secondary row actions (Not a placeholder, Locate, Rename, the batch tick, an off Custom tag switch) fade in on hover, on keyboard focus inside the row and while the row is open; they keep their place, so nothing reflows, and they stay in the tab order.
+
 ### Navigation (step bar)
-- **Style:** a 44px strip on the header's white surface, with one hairline under it. Each step is a 20px round mark (number, or a green check when done), a 13.5px semibold label and an optional count pill (amber for to-do, solid red for errors). No connecting rules: the marks carry the sequence.
+- **Style:** a 44px strip on the header's white surface, with one hairline under it. Each step is a 20px round mark (number, or a green check when done), a 14px label and an optional count pill (amber for to-do, solid red for errors). No connecting rules: the marks carry the sequence.
 - **States:** Unselected is Filing Grey; hover and selected go to ink; the selected mark turns ink and the label gets a 2px accent bar under it. Arrow keys move between steps. On phones the list scrolls sideways.
 
 ### Placeholder rows (list)
-- **Style:** 48px grid of a 24px status mark, the found text and field summary, a right-aligned count, and a chevron. Status is a mark tint only (green tagged, amber to check, yellow needs a tag, grey otherwise) so the row never changes size.
+- **Style:** a 44px row of a 16px status mark, the found text and its field, and a right-aligned count. "Not a placeholder" (x) appears in the count's place on hover, keyboard focus or when the row is open; an untagged row keeps its own "Pick field". Status is a mark tint only (green tagged, amber to check, yellow needs a tag, grey otherwise) so the row never changes size.
 - **State:** hover washes Hairline Soft; selected is Accent Wash with a 1px accent inset ring; a 1.2 second accent wash flash marks a row you were just sent to.
 
 ### Inspector
-- **Style:** a 420px white column with a 48px head (title, close), hairline separators, 16px section padding and 16px gaps. It keeps the inventory context: the quote from the letter, then mapping, format, live preview of the real value and the written tag, with a sticky foot of Include, previous/next and a primary Done.
+- **Style:** a 360px white column with a 44px head (title, close), 16px padding and 24px between sections. It keeps the inventory context: the quote from the letter, then mapping, format, live preview of the real value and the written tag, with a sticky foot of Include, previous/next and a primary Done.
 - **Behaviour:** appears only on selection. At 1280px and below it overlays from the right with the Pop shadow.
 
 ### Tag chips and placeholders on the paper (signature)

@@ -9,7 +9,7 @@ export function Toaster() {
       toastOptions={{
         unstyled: true,
         classNames: {
-          toast: 'pointer-events-auto flex w-[min(420px,calc(100vw-32px))] items-start gap-2.5 rounded-control bg-ink px-3.5 py-2.5 text-base text-panel shadow-pop',
+          toast: 'pointer-events-auto flex w-[min(420px,calc(100vw-32px))] items-start gap-2.5 rounded-control bg-ink px-3 py-2 text-base text-panel shadow-pop',
           title: 'leading-snug',
           description: 'text-sm opacity-75',
           icon: 'mt-0.5',

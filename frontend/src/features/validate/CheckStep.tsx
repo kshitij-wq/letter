@@ -23,12 +23,12 @@ export function CheckStep() {
       <Section title="Template check" count={v.stats}>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" icon={<FileUp aria-hidden />} onClick={() => pickFile(LETTER_ACCEPT, openTagged)}>Check another tagged template…</Button>
+            <Button size="sm" variant="ghost" className="-ml-2.5" icon={<FileUp aria-hidden />} onClick={() => pickFile(LETTER_ACCEPT, openTagged)}>Check another tagged template…</Button>
             {server.ok && (
               <IconButton label="Run the full check again" size="sm" className="ml-auto" loading={server.checking} onClick={() => realCheck()}><RefreshCw aria-hidden /></IconButton>
             )}
           </div>
-          <p className="text-sm text-muted">Problems with tags and conditions in this letter. A lettered flag in the letter's margin marks each one.</p>
+          <p className="text-sm text-muted">A lettered flag in the letter's margin marks each problem.</p>
           <EngineLine engine={v.engine} />
           <Counts counts={v.counts} />
           {v.clean && (

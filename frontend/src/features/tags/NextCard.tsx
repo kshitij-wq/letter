@@ -1,7 +1,7 @@
-import { CircleCheck, SkipForward, X } from 'lucide-react'
+import { CircleCheck, Ellipsis, SkipForward, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
-import { Button, FieldPicker } from '@/ui'
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, FieldPicker, IconButton } from '@/ui'
 import { confirmRow, dataColumnFor, fieldPickerGroups, inventoryStats, removeRow, rowContext, rowStatus, setFilter, setRowKey, setTab, tagKeyOf, tagsTodo } from '../../engine'
 import { CustomToggle } from './CustomToggle'
 import { locateRow, showRow } from './locate'
@@ -30,12 +30,12 @@ export function NextCard() {
   if (!stats.inDoc) return null
   if (!r) {
     return (
-      <section data-testid="next-done" aria-label="All tagged" className="flex flex-col gap-3 rounded-panel bg-ok-wash p-5">
+      <section data-testid="next-done" aria-label="All tagged" className="flex flex-col gap-3 rounded-panel bg-ok-wash p-4">
         <div className="flex items-start gap-3">
-          <CircleCheck aria-hidden className="mt-0.5 size-6 shrink-0 text-ok" />
+          <CircleCheck aria-hidden className="mt-0.5 size-5 shrink-0 text-ok" />
           <div>
-            <h3 className="text-lg font-semibold text-ink">Everything has a tag</h3>
-            <p className="mt-0.5 text-base text-muted">{tagsTodo().cells > 0 ? `The list is done. ${tagsTodo().cells} salary table cell${tagsTodo().cells === 1 ? ' still needs' : 's still need'} a tag.` : 'Look over the list once more, or go on to the conditions.'}</p>
+            <h3 className="text-base font-semibold text-ink">Everything has a tag</h3>
+            <p className="mt-0.5 text-sm text-muted">{tagsTodo().cells > 0 ? `The list is done. ${tagsTodo().cells} salary table cell${tagsTodo().cells === 1 ? ' still needs' : 's still need'} a tag.` : 'Look over the list once more, or go on to the conditions.'}</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -82,31 +82,36 @@ export function NextCard() {
   }
 
   return (
-    <section data-testid="next-card" aria-label={status === 'check' ? 'Next to check' : 'Next to tag'} className="flex flex-col gap-4 rounded-panel border border-accent-line bg-panel p-5 shadow-key">
+    <section data-testid="next-card" aria-label={status === 'check' ? 'Next to check' : 'Next to tag'} className="flex flex-col gap-4 rounded-panel bg-panel p-4 ring-1 ring-hairline">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold text-accent">{status === 'check' ? 'Next to check' : 'Next to tag'}</h3>
+        <h3 className="text-sm font-semibold text-ink">{status === 'check' ? 'Next to check' : 'Next to tag'}</h3>
         <span className="tnum text-sm text-muted">{left} left</span>
       </div>
       <div>
-        <button type="button" onClick={() => locateRow(r.id, true)} title="Show it in the letter" className="block w-full break-words rounded-control text-left font-serif text-xl leading-snug hover:text-accent">{r.find}</button>
+        <button type="button" onClick={() => locateRow(r.id, true)} title="Show it in the letter" className="block w-full break-words rounded-control text-left font-serif text-lg leading-snug hover:text-accent">{r.find}</button>
         {cx && (
-          <p className="mt-2 break-words font-serif text-base leading-relaxed text-muted">
+          <p className="mt-1.5 break-words font-serif text-sm leading-relaxed text-muted">
             <Around cx={cx} after={40} />
           </p>
         )}
-        {times && <p className="mt-1.5 text-sm text-muted">{times}</p>}
+        {times && <p className="mt-1 text-xs text-muted">{times}</p>}
       </div>
       <div className="flex flex-col gap-1.5">
-        <span id="next-field-label" className="text-sm font-medium text-ink">{status === 'check' ? 'Suggested field' : 'Which employee field is this?'}</span>
+        <span id="next-field-label" className="text-sm text-muted">{status === 'check' ? 'Suggested field' : 'Which employee field is this?'}</span>
         <FieldPicker id="next-field" aria-label="Employee field for the next placeholder" value={key} groups={groups} allowCustom placeholder="Pick or type a field"
           onChange={(v) => setDraft({ id: r.id, key: v })} />
         {col && <ColumnHint testId="next-column" col={col} onUse={() => setDraft({ id: r.id, key: tagKeyOf(col) })} />}
         <CustomToggle fieldKey={key} compact className="mt-1" onChange={(k) => setDraft({ id: r.id, key: k })} />
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1.5">
         <Button variant="primary" disabled={!key} onClick={tagIt} data-testid="next-tag">{status === 'check' && !picked ? 'Looks right' : 'Tag it'}</Button>
         <Button icon={<SkipForward aria-hidden />} variant="ghost" onClick={skip} disabled={list.length < 2} data-testid="next-skip">Skip</Button>
-        <Button icon={<X aria-hidden />} variant="ghost" onClick={notPlaceholder} data-testid="next-remove" title="Take it out of the list. The words stay in the letter as plain text.">Not a placeholder</Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><IconButton label="More for this placeholder" className="ml-auto"><Ellipsis aria-hidden /></IconButton></DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem icon={<X aria-hidden />} onSelect={notPlaceholder} data-testid="next-remove" title="Take it out of the list. The words stay in the letter as plain text.">Not a placeholder</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </section>
   )

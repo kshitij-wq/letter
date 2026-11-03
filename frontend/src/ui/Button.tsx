@@ -6,16 +6,16 @@ import { Spinner } from './Spinner'
 import { Tooltip } from './Tooltip'
 
 const button = cva(
-  'inline-flex shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-control border font-semibold leading-tight transition-colors duration-150 active:translate-y-px disabled:pointer-events-none disabled:opacity-45 aria-busy:pointer-events-none',
+  'inline-flex shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-control border font-medium leading-tight transition-colors duration-150 active:translate-y-px disabled:pointer-events-none disabled:opacity-45 aria-busy:pointer-events-none',
   {
     variants: {
       variant: {
-        primary: 'border-accent bg-accent text-accent-ink shadow-key hover:border-accent-hover hover:bg-accent-hover disabled:opacity-60 disabled:shadow-none',
+        primary: 'font-semibold border-accent bg-accent text-accent-ink shadow-key hover:border-accent-hover hover:bg-accent-hover disabled:opacity-60 disabled:shadow-none',
         secondary: 'border-hairline bg-panel text-ink shadow-key hover:border-accent-line hover:bg-accent-wash hover:text-accent',
         ghost: 'border-transparent bg-transparent text-muted hover:bg-accent-wash hover:text-accent',
         danger: 'border-err-line bg-panel text-err hover:border-err hover:bg-err-wash',
       },
-      size: { sm: 'h-8 px-3 text-sm', md: 'h-10 px-4 text-base' },
+      size: { sm: 'h-7 px-2.5 text-sm', md: 'h-8 px-3 text-base' },
     },
     defaultVariants: { variant: 'secondary', size: 'md' },
   },
@@ -54,7 +54,7 @@ export type IconButtonProps = Omit<ButtonProps, 'children' | 'icon' | 'asChild'>
 
 /** A square icon-only button. Always named (aria-label) and always explained (tooltip). */
 export function IconButton({ label, shortcut, variant = 'ghost', size = 'md', className, children, side, loading, ...rest }: IconButtonProps) {
-  const sq = size === 'sm' ? 'size-8 px-0' : 'size-10 px-0'
+  const sq = size === 'sm' ? 'size-7 px-0' : 'size-8 px-0'
   return (
     <Tooltip content={shortcut ? `${label} (${shortcut})` : label} side={side}>
       <Button variant={variant} size={size} loading={loading} aria-label={label} className={cn(sq, className)} {...rest}>{children}</Button>

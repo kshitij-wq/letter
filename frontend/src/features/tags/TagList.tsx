@@ -16,7 +16,7 @@ type Entry = { type: 'head'; key: string; label: string; n: number; first: boole
 const MARK_TONE = { tagged: 'text-ok', check: 'text-warn', need: 'text-err', off: 'text-muted', removed: 'text-muted' } as const
 /** More rows than this and the list draws only the ones in view. */
 const VIRTUAL_FROM = 80
-const ROW = 64
+const ROW = 48
 const GROUPS: [string, string][] = [['need', 'Needs a tag'], ['check', 'To check'], ['tagged', 'Tagged'], ['off', 'Skipped, left as typed'], ['gone', 'Not in the letter'], ['removed', 'Removed, plain text again']]
 
 /** The list as headed groups: what needs a tag first, then what to check, then what is done. */
@@ -47,28 +47,28 @@ function Row({ it, selected, tabbable, onFocus, groups }: { it: Item; selected: 
   const Mark = STATUS_ICON[st]
   const pickable = st === 'need' && it.inLetter && !it.removed
   return (
-    <div className={cn('relative flex w-full items-center gap-1 rounded-control transition-colors duration-150 hover:bg-hairline-soft', selected && 'bg-accent-wash hover:bg-accent-wash')}>
+    <div data-selected={selected || undefined} className={cn('group/row relative flex w-full items-center gap-1 rounded-control transition-colors duration-150 hover:bg-hairline-soft', selected && 'bg-accent-wash hover:bg-accent-wash')}>
       <button type="button" data-row-id={it.id} aria-current={selected || undefined} tabIndex={tabbable ? 0 : -1} onFocus={onFocus}
         onClick={(e) => { if (it.removed) restoreRow(it.id); else pickRow(it.id, e.detail === 0) }}
-        className="flex min-h-[60px] min-w-0 flex-1 items-start gap-3 rounded-control px-3 py-2.5 text-left focus-visible:-outline-offset-2">
-        <span title={ST_INFO[st].label} className={cn('mt-1 shrink-0', MARK_TONE[st])}><Mark aria-hidden /><span className="sr-only">{ST_INFO[st].label}. </span></span>
+        className={cn('flex min-h-11 min-w-0 flex-1 items-start gap-2.5 rounded-control py-1.5 pl-2.5 text-left focus-visible:-outline-offset-2', !pickable && !it.removed && it.inLetter ? 'pr-10' : 'pr-2.5')}>
+        <span title={ST_INFO[st].label} className={cn('mt-0.5 shrink-0', MARK_TONE[st])}><Mark aria-hidden /><span className="sr-only">{ST_INFO[st].label}. </span></span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-serif text-lg leading-snug">{it.here ? <>{it.find}<span className="font-sans text-sm text-muted"> — {it.here} · only here</span></> : it.find}</span>
-          <span className="mt-0.5 flex min-w-0 items-baseline gap-1.5 text-sm text-muted"><Summary it={it} /></span>
+          <span className="flex min-w-0 items-baseline gap-1.5 text-sm text-muted"><Summary it={it} /></span>
         </span>
-        {!pickable && (
-          <span className="flex shrink-0 flex-col items-end gap-px pt-0.5 text-sm text-muted">
-            <span title={it.kindTitle}>{it.kindShown}</span>
-            {!it.inLetter ? <span>Not in letter</span> : it.count > 1 ? <span className="tnum" title={`${it.count} times in the letter`}>×{it.count}<span className="sr-only"> times in the letter</span></span> : null}
+        {!pickable && (!it.inLetter || it.count > 1) && (
+          <span className={cn('shrink-0 pt-0.5 text-xs text-muted transition-opacity duration-150', !it.removed && it.inLetter && 'absolute right-3 top-2 group-hover/row:opacity-0 group-focus-within/row:opacity-0 group-data-[selected]/row:opacity-0')}>
+            {!it.inLetter ? <span>Not in letter</span> : <span className="tnum" title={`${it.count} times in the letter`}>×{it.count}<span className="sr-only"> times in the letter</span></span>}
           </span>
         )}
       </button>
-      {it.removed && <span className="shrink-0 pr-3"><Button size="sm" onClick={() => restoreRow(it.id)} aria-label={`Put ${it.find} back in the list`}>Put back</Button></span>}
+      {it.removed && <span className="shrink-0 pr-2"><Button size="sm" onClick={() => restoreRow(it.id)} aria-label={`Put ${it.find} back in the list`}>Put back</Button></span>}
+      {/* the quiet extra: shows on hover, keyboard focus or when the row is open, in the place of the count */}
       {!it.removed && it.inLetter && (
-        <IconButton label={`Not a placeholder: ${it.find}`} size="sm" className={cn('shrink-0', !pickable && 'mr-2')} onClick={() => removeRow(it.id)} data-testid={`remove-${it.id}`}><X aria-hidden /></IconButton>
+        <IconButton label={`Not a placeholder: ${it.find}`} size="sm" className={cn('shrink-0 opacity-0 transition-opacity duration-150 focus-visible:opacity-100 group-hover/row:opacity-100 group-focus-within/row:opacity-100 group-data-[selected]/row:opacity-100', !pickable && 'absolute right-1.5 top-1.5')} onClick={() => removeRow(it.id)} data-testid={`remove-${it.id}`}><X aria-hidden /></IconButton>
       )}
       {pickable && (
-        <span className="shrink-0 pr-3">
+        <span className="shrink-0 pr-2">
           <FieldPicker variant="button" aria-label={`Pick a field for ${it.find}`} value="" groups={groups} allowCustom placeholder="Pick field"
             onChange={(v) => { setRowKey(it.id, v); if (showRow(it.id)) locateRow(it.id, false) }} />
         </span>
@@ -78,7 +78,7 @@ function Row({ it, selected, tabbable, onFocus, groups }: { it: Item; selected: 
 }
 
 function Head({ label, n, first }: { label: string; n: number; first: boolean }) {
-  return <h3 className={cn('flex items-baseline gap-2 px-3 pb-1.5 text-sm font-semibold text-ink', first ? 'pt-1' : 'pt-6')}>{label}<span className="tnum font-medium text-muted">{n}</span></h3>
+  return <h3 className={cn('flex items-baseline gap-2 px-2.5 pb-1 text-sm font-semibold text-ink', first ? 'pt-1' : 'pt-5')}>{label}<span className="tnum font-medium text-muted">{n}</span></h3>
 }
 
 /** The nearest ancestor that scrolls. */
@@ -101,7 +101,7 @@ export function TagList({ items }: { items: Item[] }) {
   const entries = useMemo(() => groupItems(items), [items])
   const rows = useMemo(() => entries.flatMap((e) => (e.type === 'row' ? [e.it] : [])), [entries])
   const virtual = items.length > VIRTUAL_FROM
-  const v = useVirtualizer({ count: virtual ? entries.length : 0, getScrollElement: () => box.current, estimateSize: (i) => (entries[i].type === 'head' ? 40 : ROW), overscan: 8, getItemKey: (i) => entries[i].key })
+  const v = useVirtualizer({ count: virtual ? entries.length : 0, getScrollElement: () => box.current, estimateSize: (i) => (entries[i].type === 'head' ? 32 : ROW), overscan: 8, getItemKey: (i) => entries[i].key })
 
   const idx = (id: string) => rows.findIndex((x) => x.id === id)
   const entryIdx = (id: string) => entries.findIndex((e) => e.key === id)
@@ -146,13 +146,13 @@ export function TagList({ items }: { items: Item[] }) {
 
   if (!virtual) {
     return (
-      <div ref={box} role="list" aria-label="Placeholders" className="-mx-3 flex flex-col" onKeyDown={onKey}>
+      <div ref={box} role="list" aria-label="Placeholders" className="-mx-2.5 flex flex-col" onKeyDown={onKey}>
         {entries.map((e) => <div role="listitem" key={e.key}>{draw(e)}</div>)}
       </div>
     )
   }
   return (
-    <div ref={box} role="list" aria-label="Placeholders" onKeyDown={onKey} className="-mx-3 max-h-[min(640px,66dvh)] min-h-0 overflow-y-auto overscroll-contain">
+    <div ref={box} role="list" aria-label="Placeholders" onKeyDown={onKey} className="-mx-2.5 max-h-[min(640px,66dvh)] min-h-0 overflow-y-auto overscroll-contain">
       <div style={{ height: v.getTotalSize(), position: 'relative', width: '100%' }}>
         {v.getVirtualItems().map((row) => (
           <div key={row.key} role="listitem" ref={v.measureElement} data-index={row.index} style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${row.start}px)` }}>

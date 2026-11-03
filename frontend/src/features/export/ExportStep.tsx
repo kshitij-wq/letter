@@ -2,7 +2,7 @@ import { Check, Download, Eye, FileDown, Table2 } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { useUi } from '@/store'
-import { Badge, Button, EmptyState, Section, Select, Switch, cn } from '@/ui'
+import { Badge, Button, EmptyState, Section, Select, Switch, Tooltip, cn } from '@/ui'
 import { changePreviewSettings, csvRows, downloadMapping, downloadSetup, previewValues, setView } from '../../engine'
 import { scrollBehavior } from '../paper/navigate'
 import { runDownloadDocx } from '../shell/docx'
@@ -10,25 +10,25 @@ import { isNarrowNow } from '../shell/useMedia'
 import { PreviewValues } from './PreviewValues'
 import { Readiness } from './Readiness'
 
+/** A quiet download: the hint is its tooltip. */
 function DownloadItem({ children, hint, ...props }: { children: React.ReactNode; hint: string } & React.ComponentProps<typeof Button>) {
-  return (
-    <div className="grid justify-items-start gap-1.5">
-      <Button {...props}>{children}</Button>
-      <p className="text-sm text-muted">{hint}</p>
-    </div>
-  )
+  return <Tooltip content={hint}><Button variant="ghost" {...props}>{children}</Button></Tooltip>
 }
 
 function Downloads() {
   const docx = useUi((s) => s.docx)
   return (
-    <div className="grid gap-4">
-      <DownloadItem hint="Upload this to CompUp." variant="primary" loading={docx === 'busy'} onClick={() => runDownloadDocx()}
-        icon={docx === 'done' ? <Check aria-hidden /> : <Download aria-hidden />}>
-        {docx === 'busy' ? 'Building…' : docx === 'done' ? 'Downloaded' : 'Download tagged .docx'}
-      </DownloadItem>
-      <DownloadItem hint="Which text became which tag." icon={<Table2 aria-hidden />} onClick={() => downloadMapping()}>Export mapping CSV</DownloadItem>
-      <DownloadItem hint="Reopen this work later or reuse it next cycle." icon={<FileDown aria-hidden />} onClick={() => downloadSetup()}>Download setup file</DownloadItem>
+    <div className="grid gap-3">
+      <div className="grid justify-items-start gap-1">
+        <Button variant="primary" loading={docx === 'busy'} onClick={() => runDownloadDocx()} icon={docx === 'done' ? <Check aria-hidden /> : <Download aria-hidden />}>
+          {docx === 'busy' ? 'Building…' : docx === 'done' ? 'Downloaded' : 'Download tagged .docx'}
+        </Button>
+        <p className="text-sm text-muted">Upload this to CompUp.</p>
+      </div>
+      <div className="-ml-3 flex flex-wrap gap-1">
+        <DownloadItem hint="Which text became which tag." icon={<Table2 aria-hidden />} onClick={() => downloadMapping()}>Export mapping CSV</DownloadItem>
+        <DownloadItem hint="Reopen this work later or reuse it next cycle." icon={<FileDown aria-hidden />} onClick={() => downloadSetup()}>Download setup file</DownloadItem>
+      </div>
     </div>
   )
 }

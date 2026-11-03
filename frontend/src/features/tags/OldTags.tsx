@@ -2,7 +2,7 @@ import { MapPin, Pencil, X } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { es, useEngineRev } from '@/hooks/useEngine'
 import { Button, Checkbox, IconButton, Input, Section, Select, cn } from '@/ui'
-import { addPrefixToTags, fieldLabel, oldTagNames, plural, renameTag, renameTagTyped, replaceInTags, rewriteAmountTags, squash, tagOpParts, undoTagOp } from '../../engine'
+import { addPrefixToTags, fieldLabel, isCustomKey, oldTagNames, plural, renameTag, renameTagTyped, replaceInTags, rewriteAmountTags, squash, tagOpParts, undoTagOp } from '../../engine'
 import { scrollBehavior } from '../paper/navigate'
 import { plainLine } from '../validate/plain'
 import { CustomToggle } from './CustomToggle'
@@ -50,19 +50,22 @@ export function NameRow({ n }: { n: any }) {
   const problems = problemsOf(n)
   const submit = (e: FormEvent) => { e.preventDefault(); if (renameTagTyped(n.id, to)) { setEditing(false); setTo('') } }
   return (
-    <li ref={ref} data-testid={`old-tag-${n.id}`} data-open={isOpen ? '' : undefined} className={cn('py-1.5', isOpen && '-mx-2 rounded-control bg-accent-wash px-2')}>
+    <li ref={ref} data-testid={`old-tag-${n.id}`} data-open={isOpen || editing ? '' : undefined} className={cn('group/row -mx-2 rounded-control px-2 py-1 transition-colors duration-150 hover:bg-hairline-soft', isOpen && 'bg-accent-wash hover:bg-accent-wash')}>
       <div className="flex items-center gap-2">
-        <Checkbox checked={picked} onCheckedChange={(on) => setPicked(n.id, !!on)} className="relative [&_label]:sr-only">{`Select ${n.id}`}</Checkbox>
+        {/* the tick is for the batch tools below; Locate and Rename show on hover, focus or when the tag is open */}
+        <span className={cn('transition-opacity duration-150', !picked && 'opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100 group-data-[open]/row:opacity-100')}><Checkbox checked={picked} onCheckedChange={(on) => setPicked(n.id, !!on)} className="relative [&_label]:sr-only">{`Select ${n.id}`}</Checkbox></span>
         <code className="min-w-0 truncate font-mono text-sm" title={n.id}>{n.id}</code>
         <span className="tnum shrink-0 text-xs text-muted">{n.count}×</span>
-        <IconButton label={`Show ${n.id} in the letter`} size="sm" className="ml-auto" onClick={() => locateTag(n.id)}><MapPin aria-hidden /></IconButton>
-        <IconButton label={`Rename ${n.id}`} size="sm" onClick={() => setEditing((e) => !e)}><Pencil aria-hidden /></IconButton>
+        <span className={cn('ml-auto shrink-0 text-xs transition-opacity duration-150', !isCustomKey(n.id) && 'opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100 group-data-[open]/row:opacity-100')}><CustomToggle fieldKey={n.id} compact onChange={(k) => renameTagTyped(n.id, k)} /></span>
+        <span className="flex shrink-0 opacity-0 transition-opacity duration-150 focus-within:opacity-100 group-hover/row:opacity-100 group-focus-within/row:opacity-100 group-data-[open]/row:opacity-100">
+          <IconButton label={`Show ${n.id} in the letter`} size="sm" onClick={() => locateTag(n.id)}><MapPin aria-hidden /></IconButton>
+          <IconButton label={`Rename ${n.id}`} size="sm" onClick={() => setEditing((e) => !e)}><Pencil aria-hidden /></IconButton>
+        </span>
       </div>
       <p className={cn('ml-6 flex flex-wrap items-center gap-x-2 text-xs', st.tone)}>
         <span>{label && label.toLowerCase() !== n.id.toLowerCase() ? <span className="text-ink">{label} · </span> : null}{st.text}{n.suggestion ? <> · did you mean <code className="font-mono">{n.suggestion}</code>?</> : null}{pos ? <span className="text-muted"> · showing {pos.index + 1} of {pos.count}</span> : null}</span>
         {n.suggestion && <Button size="sm" variant="ghost" className="-my-1 h-6 px-1.5 text-xs" onClick={() => renameTag(n.id, n.suggestion)}>Use {n.suggestion}</Button>}
       </p>
-      <CustomToggle fieldKey={n.id} compact className="ml-6 mt-1" onChange={(k) => renameTagTyped(n.id, k)} />
       {problems.map((p) => <p key={p} className="ml-6 text-xs text-err" data-testid="old-tag-problem">{p}</p>)}
       {editing && (
         <form onSubmit={submit} className="ml-6 mt-1.5 flex gap-2">
