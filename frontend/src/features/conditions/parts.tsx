@@ -1,6 +1,12 @@
 import { ChevronRight } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 import { cn } from '@/ui'
+import { COND_PRESETS, PLACES } from '../../engine'
+
+/** The common conditions, as Select options. */
+export const PRESETS = (COND_PRESETS as Array<{ id: string; label: string; expr: string }>).filter((p) => p.expr).map((p) => ({ value: p.id, label: p.label }))
+/** Where a condition tag goes in its paragraph, as Select options. */
+export const PLACE_OPTIONS = (PLACES as Array<[string, string]>).map(([value, label]) => ({ value, label }))
 
 /** What is selected, in one place: a short title, the words, and where they sit. */
 export function SelSummary({ title, quote, ctx }: { title: ReactNode; quote?: ReactNode; ctx?: ReactNode }) {

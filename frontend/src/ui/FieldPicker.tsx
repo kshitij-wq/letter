@@ -4,15 +4,17 @@ import { useId, useMemo, useState } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from './Popover'
 import { cn } from './cn'
 
+const ITEM = 'flex min-h-10 cursor-default items-center gap-2 rounded-control px-2.5 py-1.5 text-base data-[selected=true]:bg-hairline-soft'
+
 export type PickerOption = { value: string; label: string; /** the mono code shown at the right, e.g. the tag key */ hint?: string; /** extra words the search also matches */ keywords?: string[] }
 export type PickerGroup = { heading: string; options: PickerOption[] }
 
 /**
  * A searchable list of fields grouped under headings (CompUp tags, columns from the data file).
  * Type to filter, Up/Down to move, Enter to pick, Esc to close. With `allowCustom`, typing something that is not in the
- * list offers “Use <text>” so a custom column name can be entered.
+ * list offers “Use <text> as the field” so a custom column name can be entered (the search box and the empty text say so).
  */
-export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a field', searchPlaceholder = 'Search fields', allowCustom, customLabel = (t) => `Use “${t}”`, emptyText = 'No field matches.', id, 'aria-label': ariaLabel, disabled, className, defaultOpen, onOpenChange, variant = 'field' }: {
+export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a field', allowCustom, searchPlaceholder = allowCustom ? 'Search fields or type a name' : 'Search fields', customLabel = (t) => `Use “${t}” as the field`, emptyText = allowCustom ? 'No field matches. Keep typing to use your own name.' : 'No field matches.', id, 'aria-label': ariaLabel, disabled, className, defaultOpen, onOpenChange, variant = 'field' }: {
   /** 'button': a small button ("Pick field") instead of the full-width field, for use inside a list row. */
   variant?: 'field' | 'button'
   value: string; onChange: (v: string) => void; groups: PickerGroup[]; placeholder?: string; searchPlaceholder?: string
@@ -57,7 +59,7 @@ export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a f
                 className="[&_[cmdk-group-heading]]:sticky [&_[cmdk-group-heading]]:top-0 [&_[cmdk-group-heading]]:z-[1] [&_[cmdk-group-heading]]:bg-panel [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted">
                 {g.options.map((o) => (
                   <Command.Item key={o.value} value={`${o.label} ${o.value}`} keywords={o.keywords} onSelect={() => pick(o.value)}
-                    className="flex min-h-10 cursor-default items-center gap-2 rounded-control px-2.5 py-1.5 text-base data-[selected=true]:bg-hairline-soft">
+                    className={ITEM}>
                     <Check aria-hidden className={cn('text-accent', o.value === value ? 'opacity-100' : 'opacity-0')} />
                     <span className="min-w-0 flex-1 truncate">{o.label}</span>
                     {o.hint && <span className="max-w-[45%] shrink-0 truncate font-mono text-xs text-muted">{o.hint}</span>}
@@ -67,7 +69,7 @@ export function FieldPicker({ value, onChange, groups, placeholder = 'Choose a f
             ))}
             {allowCustom && q && !known && (
               <Command.Item forceMount value={`__custom ${q}`} onSelect={() => pick(q)}
-                className="flex min-h-10 cursor-default items-center gap-2 rounded-control px-2.5 py-1.5 text-base data-[selected=true]:bg-hairline-soft">
+                className={ITEM}>
                 <span className="min-w-0 flex-1 truncate">{customLabel(q)}</span>
               </Command.Item>
             )}

@@ -5,14 +5,13 @@ import { es, useEngineRev } from '@/hooks/useEngine'
 import { Button, Checkbox, FieldPicker, Input, Section, Select, cn, type PickerGroup } from '@/ui'
 import {
   COL_FMTS, commitTableHidePattern, fieldPickerGroups, notify, runTableAction, setTableColDivide12, setTableColFormat, setTableEnabled, setTableHideColumn, setTableHideOn,
-  setTableRowHide, setView, tableCellView, tableCounts, tableHideExample, tableRowHide, tableSummary, tablesOverview, typeTableCellKey, typeTableCellTag, typeTableHidePattern,
+  setTableRowHide, tableCellView, tableCounts, tableHideExample, tableRowHide, tableSummary, tablesOverview, typeTableCellKey, typeTableCellTag, typeTableHidePattern,
 } from '../../engine'
 import { useUi } from '@/store'
 import { TagInput } from './TagInput'
 import { openSection, useCollapsed } from './useCollapsed'
+import { afterPaint, flash, inSource, scrollBehavior } from '../paper/navigate'
 
-const frames = (fn: () => void) => requestAnimationFrame(() => requestAnimationFrame(fn))
-const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const cellKey = (t: string, ri: number | string, ci: number | string) => `${t}-${ri}-${ci}`
 
 /** Show a table in the letter: the Client letter view, scrolled to its first empty cell. */
@@ -20,9 +19,9 @@ export function showTable(tid: string) {
   useUi.getState().setDrawerOpen(false)
   const go = () => {
     const g = [...document.querySelectorAll<HTMLElement>('#paper .cell-ghost')].find((x) => x.dataset.t === tid)
-    g?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: reduced() ? 'auto' : 'smooth' })
+    g?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: scrollBehavior() })
   }
-  if (es.view !== 'source') { setView('source'); frames(go) } else go()
+  inSource(go)
 }
 
 /** A click on a table cell in the letter: open that table and put the cursor in the cell's field. */
@@ -32,11 +31,11 @@ export function focusCell(tid: string, ri: string | number, ci: string | number)
   const find = () => document.querySelector<HTMLElement>(`[data-cell="${cellKey(tid, ri, ci)}"]`)
   const go = () => {
     const el = find(); if (!el) return
-    el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: reduced() ? 'auto' : 'smooth' })
-    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash')
+    el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: scrollBehavior() })
+    flash(el)
     setTimeout(() => el.querySelector<HTMLElement>('[role="combobox"]')?.focus({ preventScroll: true }), 250)
   }
-  setTimeout(() => frames(go), 60)
+  setTimeout(() => afterPaint(go), 60)
 }
 
 function CellBox({ t, row, col, groups }: { t: any; row: any; col: any; groups: PickerGroup[] }) {
@@ -52,8 +51,8 @@ function CellBox({ t, row, col, groups }: { t: any; row: any; col: any; groups: 
           ? <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-warn"><Flag aria-hidden className="size-3" />Needs a tag</span>
           : v.src ? <span className="shrink-0 text-muted">{v.src}</span> : null}
       </div>
-      <FieldPicker id={`tk-${id}`} aria-label={`${label} field`} value={v.key} groups={groups} allowCustom placeholder="Pick a field" searchPlaceholder="Search fields or type a name"
-        customLabel={(x) => `Use “${x}” as the field`} onChange={(x) => typeTableCellKey(t, row, col.ci, x)} className="bg-panel" />
+      <FieldPicker id={`tk-${id}`} aria-label={`${label} field`} value={v.key} groups={groups} allowCustom placeholder="Pick a field"
+        onChange={(x) => typeTableCellKey(t, row, col.ci, x)} className="bg-panel" />
       <TagInput value={v.tag} aria-label={`${label} tag text`} placeholder="Tag in the cell" className={cn('h-9 bg-panel text-sm', v.edited && 'border-accent')}
         onValueChange={(x) => typeTableCellTag(t, row, col.ci, x)} />
     </div>

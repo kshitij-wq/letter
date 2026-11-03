@@ -1,7 +1,6 @@
-import { useSyncExternalStore } from 'react'
-import { es } from '@/hooks/useEngine'
-import { oldTagNames, setView } from '../../engine'
-import { afterPaint, scrollBehavior } from '../paper/navigate'
+import { create } from 'zustand'
+import { oldTagNames } from '../../engine'
+import { inSource, scrollBehavior } from '../paper/navigate'
 
 /*
  * The tags a letter already had ({{ first_name }} and the like), shown up front on Tags & fields. Shared state of the list:
@@ -9,33 +8,24 @@ import { afterPaint, scrollBehavior } from '../paper/navigate'
  */
 type Place = { pid: string; s: number; e: number; tag: string }
 
-function store<T>(initial: T) {
-  let v = initial
-  const subs = new Set<() => void>()
-  return {
-    get: () => v,
-    set: (n: T) => { v = n; subs.forEach((f) => f()) },
-    use: () => useSyncExternalStore((f) => { subs.add(f); return () => { subs.delete(f) } }, () => v, () => initial),
-  }
-}
+const useTags = create(() => ({
+  picked: new Set<string>() as ReadonlySet<string>,
+  /** The name opened from a click on a tag in the letter (its row is highlighted and scrolled into view; n counts the clicks). */
+  open: null as { id: string; n: number } | null,
+  /** Where Locate last went: "Showing 2 of 3". */
+  pos: null as { id: string; index: number; count: number } | null,
+}))
 
-const pickedStore = store<ReadonlySet<string>>(new Set())
-export const usePicked = pickedStore.use
-export const getPicked = () => pickedStore.get()
+export const usePicked = () => useTags((s) => s.picked)
+export const getPicked = () => useTags.getState().picked
 export function setPicked(id: string, on: boolean) {
-  const x = new Set(pickedStore.get())
+  const x = new Set(getPicked())
   if (on) x.add(id); else x.delete(id)
-  pickedStore.set(x)
+  useTags.setState({ picked: x })
 }
-
-/** The name opened from a click on a tag in the letter (its row is highlighted and scrolled into view). */
-const openStore = store<{ id: string; n: number } | null>(null)
-export const useOpenTag = openStore.use
-export const openTag = (id: string) => openStore.set({ id, n: (openStore.get()?.n ?? 0) + 1 })
-
-/** Where Locate last went: "Showing 2 of 3". */
-const posStore = store<{ id: string; index: number; count: number } | null>(null)
-export const useTagPos = (id: string) => { const p = posStore.use(); return p && p.id === id ? p : null }
+export const useOpenTag = () => useTags((s) => s.open)
+export const openTag = (id: string) => useTags.setState((s) => ({ open: { id, n: (s.open?.n ?? 0) + 1 } }))
+export const useTagPos = (id: string) => useTags((s) => (s.pos && s.pos.id === id ? s.pos : null))
 
 const LOC = { id: null as string | null, i: 0 }
 
@@ -59,14 +49,14 @@ export function locateTag(id: string, advance = true): void {
   const go = () => {
     const pl = places[i]
     const chips = chipsOf(pl.pid, pl.s, pl.e)
-    posStore.set({ id, index: i, count: places.length })
+    useTags.setState({ pos: { id, index: i, count: places.length } })
     if (!chips.length) return
     chips[0].scrollIntoView({ block: 'center', inline: 'nearest', behavior: scrollBehavior() })
     document.querySelectorAll('#paper .tg.flash').forEach((x) => x.classList.remove('flash'))
     chips.forEach((c) => c.classList.add('flash'))
     setTimeout(() => chips.forEach((c) => c.classList.remove('flash')), 1600)
   }
-  if (es.view !== 'source') { setView('source'); afterPaint(go) } else go()
+  inSource(go)
 }
 
 /** The tag name behind a click at `offset` in paragraph `pid` of the letter (null when it isn't in a tag). */

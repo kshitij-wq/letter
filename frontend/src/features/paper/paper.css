@@ -106,7 +106,6 @@
 .mflag .fl { display: block; width: 100%; height: 100%; padding-right: 4px; text-align: center; font: 700 12px/18px var(--f-ui); clip-path: polygon(0 0, 76% 0, 100% 50%, 76% 100%, 0 100%); transition: filter 150ms; }
 .mflag.lvl-error .fl { background: var(--err); }
 .mflag.lvl-warn .fl { background: var(--warn); }
-.mflag.lvl-quiet .fl { background: var(--muted); }
 .mflag:hover .fl { filter: brightness(.9); }
 .mflag:active { transform: translateY(.5px); }
 .mflag:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }

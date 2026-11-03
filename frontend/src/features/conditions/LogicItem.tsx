@@ -2,11 +2,11 @@ import { ChevronDown, CircleAlert, Eye, X } from 'lucide-react'
 import { useState } from 'react'
 import { Badge, Button, IconButton, Input, Select, cn } from '@/ui'
 import {
-  PLACES, blockCountInfo, commitLogicText, deleteLogic, lgInfo, lgWord, logicSay, pageLabel, setLogicPlace, snippet, startCondEdit, typeLogicText,
+  blockCountInfo, commitLogicText, deleteLogic, lgInfo, lgWord, logicSay, pageLabel, setLogicPlace, snippet, startCondEdit, typeLogicText,
 } from '../../engine'
 import { es } from '@/hooks/useEngine'
 import { showPid } from '../paper/navigate'
-import { Code } from './parts'
+import { Code, PLACE_OPTIONS } from './parts'
 import { useSyncedText } from './hooks'
 
 /** The paragraph a condition is labelled by: its own, or when that is an empty line, the first one after it that has text (the block it wraps). */
@@ -19,8 +19,6 @@ function labelPara(p: any): any {
   }
   return p
 }
-
-const PLACE_OPTIONS = (PLACES as Array<[string, string]>).map(([value, label]) => ({ value, label }))
 
 /** The tag as typed (and where it goes), for the ones you added; read-only for the ones that were already in the letter. */
 function JinjaBox({ e }: { e: any }) {
